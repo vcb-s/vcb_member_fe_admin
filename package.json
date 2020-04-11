@@ -1,0 +1,49 @@
+{
+  "name": "vcb-member-fe",
+  "version": "1.0.0",
+  "description": "vcb-s成员介绍前端",
+  "private": true,
+  "keywords": [],
+  "author": "inori-lover",
+  "license": "GPL-3.0",
+  "scripts": {
+    "start": "umi dev",
+    "build": "cross-env ANALYZE=1 umi build",
+    "test": "umi-test",
+    "test:coverage": "umi-test --coverage"
+  },
+  "dependencies": {
+    "@material-ui/core": "^4.9.9",
+    "@material-ui/icons": "^4.9.1",
+    "axios": "^0.19.2",
+    "classnames": "^2.2.6",
+    "intersection-observer": "^0.7.0",
+    "masonry-layout": "^4.2.2",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-intersection-observer": "^8.26.1",
+    "react-loadable": "^5.5.0",
+    "react-use": "^13.26.3",
+    "tslib": "^1.11.1",
+    "typeface-roboto": "0.0.75",
+    "umi": "^3.1.0"
+  },
+  "devDependencies": {
+    "@types/classnames": "^2.2.10",
+    "@types/react": "^16.9.33",
+    "@types/react-dom": "^16.9.6",
+    "@types/react-loadable": "^5.5.3",
+    "@typescript-eslint/eslint-plugin": "^2.27.0",
+    "@typescript-eslint/parser": "^2.27.0",
+    "@umijs/plugin-crossorigin": "^1.1.0",
+    "@umijs/plugin-dva": "^0.6.4",
+    "@umijs/plugin-sass": "^1.1.1",
+    "@umijs/test": "^3.1.0",
+    "cross-env": "^7.0.2",
+    "eslint": "^6.8.0",
+    "eslint-plugin-react-hooks": "^3.0.0",
+    "fibers": "^4.0.2",
+    "prettier": "^2.0.4",
+    "typescript": "^3.8.3"
+  }
+}

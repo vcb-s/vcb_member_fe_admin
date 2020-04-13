@@ -1,19 +1,22 @@
 import { defineConfig } from 'umi';
 import fiber from 'fibers';
 
+const __DEV__ = process.env.NODE_ENV === 'development';
+
 const cdnHost = 'https://cache.cswsadlab.com';
-const base = '/vcbs_member/admin/';
+const base = __DEV__ ? '/' : '/vcbs_member/admin/';
+const publicPath = __DEV__ ? '/' : base;
 
 export default defineConfig({
   title: 'vcb-s成员介绍',
   base: base,
-  publicPath: `${cdnHost}${base}`,
+  publicPath: publicPath,
 
   hash: true,
   dynamicImport: {},
   forkTSCheker: {},
   nodeModulesTransform: { type: 'none' },
-  favicon: '/assets/favicon.ico',
+  favicon: `${cdnHost}/wp-content/customRes/favicon@180.png`,
 
   analyze: {
     analyzerMode: 'static',
@@ -33,7 +36,7 @@ export default defineConfig({
     immer: 'window.immer',
   },
 
-  scripts: [`${cdnHost}${base}/immer@6.0.3/immer.umd.production.min.js`],
+  scripts: [{ src: `${publicPath}immer@6.0.3/immer.umd.production.min.js` }],
 
   dva: {
     immer: true,

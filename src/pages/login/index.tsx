@@ -9,7 +9,7 @@ const Login = function Login() {
   // useEffect(() => {
   //   dispatch(AppModels.createAction(AppModels.ActionType.getUserlist)({}));
   // }, [dispatch]);
-  return <></>;
+  return <span>Login</span>;
 };
 
 export default Login;

@@ -4,8 +4,8 @@ import fiber from 'fibers';
 const __DEV__ = process.env.NODE_ENV === 'development';
 
 const cdnHost = 'https://cache.cswsadlab.com';
-const base = __DEV__ ? '/' : '/vcbs_member/admin/';
-const publicPath = __DEV__ ? '/' : base;
+const base = '/vcbs_member/admin/';
+const publicPath = base;
 
 export default defineConfig({
   title: 'vcb-s成员介绍',
@@ -30,6 +30,13 @@ export default defineConfig({
       target: 'https://vcb-s.com',
       changeOrigin: true,
     },
+  },
+
+  define: {
+    __DEV__,
+    cdnHost,
+    publicPath,
+    buildTimestmap: Date.now(),
   },
 
   externals: {

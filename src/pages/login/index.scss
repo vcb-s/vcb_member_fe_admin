@@ -1,0 +1,26 @@
+.wrap {
+  width: 320px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-top: 56px;
+
+  .logo {
+    display: block;
+    text-decoration: none;
+
+    height: 50px;
+    border-radius: 4px;
+    overflow: hidden;
+
+    // background-color: #d2322d;
+    background-size: contain;
+    background-position: center -5px;
+    background-repeat: no-repeat;
+  }
+
+  .mainForm {
+    width: 100%;
+
+    margin-top: 20px;
+  }
+}

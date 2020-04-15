@@ -1,0 +1,1 @@
+export { tokenInterceptor } from './token';

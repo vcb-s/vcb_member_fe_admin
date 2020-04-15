@@ -15,3 +15,5 @@ const Root: React.FC = function Root({ children }) {
 export function rootContainer(container: any) {
   return React.createElement(Root, null, container);
 }
+
+export { config as request } from '@/utils/requestConfig';

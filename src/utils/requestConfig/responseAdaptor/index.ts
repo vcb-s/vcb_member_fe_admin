@@ -1,0 +1,1 @@
+export { errorConfigAdaptor } from './error';

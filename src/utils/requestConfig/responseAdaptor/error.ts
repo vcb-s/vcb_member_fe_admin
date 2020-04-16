@@ -23,7 +23,7 @@ export function errorConfigAdaptor(
   ctx: ResContext,
 ): ErrorInfoStructure {
   // console.log('what is res', res, ctx);
-  let errorMessage = res.message;
+  let errorMessage = res.message || res.msg;
   if (
     !ctx.res.ok &&
     /** 服务器有可能抛出有意义的错误 */

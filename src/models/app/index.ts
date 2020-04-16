@@ -32,8 +32,8 @@ const effects: Partial<Record<AppModels.ActionType, Effect>> = {
     { call, put },
   ) {
     try {
-      const { data }: Services.group.ReadResponse = yield call(
-        Services.group.read,
+      const { data }: Services.Group.ReadResponse = yield call(
+        Services.Group.read,
       );
 
       yield put(
@@ -62,7 +62,7 @@ const effects: Partial<Record<AppModels.ActionType, Effect>> = {
       groupID = currentGroup,
     } = payload;
 
-    const param: Services.userList.ReadParam = {
+    const param: Services.UserList.ReadParam = {
       page,
       pageSize,
       group: groupID,
@@ -81,8 +81,8 @@ const effects: Partial<Record<AppModels.ActionType, Effect>> = {
           return;
         }
       }
-      const { data }: Services.userList.ReadResponse = yield call(
-        Services.userList.read,
+      const { data }: Services.UserList.ReadResponse = yield call(
+        Services.UserList.read,
         param,
       );
 

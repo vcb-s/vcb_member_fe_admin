@@ -11,6 +11,7 @@ export namespace UserCard {
     job: string;
     order: number;
     group: string;
+    uid: string;
   }
   export interface Item extends Omit<ItemInResponse, 'group'> {
     key: string;

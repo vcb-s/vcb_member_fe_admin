@@ -1,10 +1,11 @@
 import React, { useEffect, useCallback } from 'react';
 import { useSelector, useDispatch } from 'umi';
-import { Form, Input, Button, Select, Avatar } from 'antd';
+import { Form, Input, Button, Select, Avatar, message } from 'antd';
 
 import { AppModels } from '@/models/app';
 import { UserCard } from '@/utils/types/UserCard';
 import { LoginModel } from './models';
+import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
 
 import styles from './index.scss';
 
@@ -29,11 +30,18 @@ const Login = function Login() {
   const dispatch = useDispatch();
   const loginState = useSelector(LoginModel.currentState);
   const appState = useSelector(AppModels.currentState);
-  const userlistLoading = useSelector((_: any) => {
-    return _.loading.effects[
-      `${AppModels.namespace}/${AppModels.ActionType.getUserlist}`
-    ];
-  });
+  const userlistLoading = useSelector(
+    dvaLoadingSelector.effect(
+      AppModels.namespace,
+      AppModels.ActionType.getUserlist,
+    ),
+  );
+  const loginWithPassLoading = useSelector(
+    dvaLoadingSelector.effect(
+      LoginModel.namespace,
+      LoginModel.ActionType.loginWithPass,
+    ),
+  );
 
   useEffect(() => {
     dispatch(
@@ -47,11 +55,22 @@ const Login = function Login() {
     (id: UserCard.Item['id']) => {
       dispatch(
         LoginModel.createAction(LoginModel.ActionType.fieldChange)(
-          LoginModel.fieldChangePayloadCreator('login')('name')(id),
+          LoginModel.fieldChangePayloadCreator('login')('id')(id),
         ),
       );
+
+      for (user of appState.users.data) {
+        if (user.id === id) {
+          if (!user.uid) {
+            message.warn(
+              '该用户尚未关联用户，请联系组长或网络组进行关联后登录',
+            );
+          }
+          break;
+        }
+      }
     },
-    [dispatch],
+    [appState.users.data, dispatch],
   );
 
   const passChangeHandle = useCallback(
@@ -67,23 +86,14 @@ const Login = function Login() {
     [dispatch],
   );
 
-  const rememberChangeHandle = useCallback(
-    (evt: React.ChangeEvent<HTMLInputElement>) => {
-      dispatch(
-        LoginModel.createAction(LoginModel.ActionType.fieldChange)(
-          LoginModel.fieldChangePayloadCreator('login')('pass')(
-            evt.target.value,
-          ),
-        ),
-      );
-    },
-    [dispatch],
-  );
-
   /** 主站关联登录 */
-  const loginWithWpHandle = useCallback(() => {}, []);
+  // const loginWithWpHandle = useCallback(() => {}, []);
   /** 密码登录 */
-  const loginHandle = useCallback(() => {}, []);
+  const loginHandle = useCallback(() => {
+    dispatch(
+      LoginModel.createAction(LoginModel.ActionType.loginWithPass)(undefined),
+    );
+  }, [dispatch]);
 
   return (
     <div className={styles.wrap}>
@@ -99,7 +109,7 @@ const Login = function Login() {
               showSearch
               placeholder='输入用户名搜索'
               loading={userlistLoading}
-              value={loginState.form.login.name || undefined}
+              value={loginState.form.login.id || undefined}
               onChange={nameChangeHandle}
               filterOption={userFilterOption}
             >
@@ -121,15 +131,21 @@ const Login = function Login() {
           </Form.Item>
           <Form.Item style={{ textAlign: 'right' }}>
             <Button.Group>
-              <Button
+              {/* <Button
                 type='primary'
                 ghost
                 onClick={loginWithWpHandle}
                 title='使用主站关联登录，需要先关联主站账号'
               >
                 主站登录
-              </Button>
-              <Button type='primary' ghost onClick={loginHandle}>
+              </Button> */}
+              <Button
+                type='primary'
+                ghost
+                loading={loginWithPassLoading}
+                onClick={loginHandle}
+                disabled={!loginState.form.login.pass}
+              >
                 登录
               </Button>
             </Button.Group>

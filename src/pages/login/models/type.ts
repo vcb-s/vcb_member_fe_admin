@@ -1,8 +1,11 @@
-export namespace LoginModel {
+export namespace PersonModel {
   export const namespace = 'pages.login';
   export enum ActionType {
     reset = 'reset',
     fieldChange = 'fieldChange',
+    loginWithPass = 'loginWithPass',
+    loginWithPassSuccess = 'loginWithPassSuccess',
+    loginWithPassFail = 'loginWithPassFail',
   }
 
   const privateSymbol = Symbol();
@@ -29,11 +32,14 @@ export namespace LoginModel {
     [ActionType.fieldChange]: ReturnType<
       ReturnType<ReturnType<typeof fieldChangePayloadCreator>>
     >;
+    [ActionType.loginWithPass]: undefined;
+    [ActionType.loginWithPassSuccess]: undefined;
+    [ActionType.loginWithPassFail]: { err: Error };
   }
   export interface State {
     form: {
       login: {
-        name: string;
+        id: string;
         pass: string;
         remember: boolean;
       };

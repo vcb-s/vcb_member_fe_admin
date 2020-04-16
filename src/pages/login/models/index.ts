@@ -1,20 +1,17 @@
-import { produce } from 'immer';
 import { message } from 'antd';
+import { history } from 'umi';
 
-import type { Action, Reducer, Effect, PromisedType } from '@/utils/types';
-import { Group } from '@/utils/types/Group';
-import { UserCard } from '@/utils/types/UserCard';
-import { emptyList } from '@/utils/types/CommonList';
-import { webpDetect } from '@/utils/webpDetect';
+import type { Action, Reducer, Effect } from '@/utils/types';
 import { Services } from '@/utils/services';
-import { LoginModel } from './type';
+import { AppModels } from '@/models/app';
+import { PersonModel } from './type';
 
-export { LoginModel };
+export { PersonModel as LoginModel };
 
-const { namespace, currentState } = LoginModel;
+const { namespace, currentState } = PersonModel;
 
-interface Payload extends LoginModel.Payload {}
-interface State extends LoginModel.State {}
+interface Payload extends PersonModel.Payload {}
+interface State extends PersonModel.State {}
 
 const createAction = <K extends keyof Payload>(key: K) => {
   return (payload: Payload[K]) => {
@@ -25,20 +22,61 @@ const createAction = <K extends keyof Payload>(key: K) => {
 const initalState: State = {
   form: {
     login: {
+      /** 登陆密码 */
       pass: '',
+      /** 记住登录，目前统一记住 */
       remember: false,
-      name: '',
+      /** 卡片id */
+      id: '',
     },
   },
 };
 
-const effects: Partial<Record<LoginModel.ActionType, Effect>> = {};
+const effects: Partial<Record<PersonModel.ActionType, Effect>> = {
+  *[PersonModel.ActionType.loginWithPass](
+    { payload }: Action<Payload['loginWithPass']>,
+    { select, put, call },
+  ) {
+    const { form }: PersonModel.State = yield select(PersonModel.currentState);
+    const { users }: AppModels.State = yield select(AppModels.currentState);
+    const { id, pass } = form.login;
+    try {
+      const param: Services.Login.LoginParam = {
+        uid: '',
+        password: pass,
+      };
+      for (const user of users.data) {
+        if (user.id === id) {
+          param.uid = user.uid;
+          break;
+        }
+      }
 
-const reducers: Partial<Record<LoginModel.ActionType, Reducer<State>>> = {
-  [LoginModel.ActionType.reset]() {
+      if (!param.uid) {
+        message.error('该用户尚未关联用户，请联系组长或网络组进行关联后登录');
+        return;
+      }
+
+      yield call(Services.Login.login, param);
+      message.success('登录成功');
+      history.push(`/person/${param.uid}`);
+      yield put(
+        createAction(PersonModel.ActionType.loginWithPassSuccess)(undefined),
+      );
+    } catch (e) {
+      message.error(e.message);
+      yield put(
+        createAction(PersonModel.ActionType.loginWithPassFail)({ err: e }),
+      );
+    }
+  },
+};
+
+const reducers: Partial<Record<PersonModel.ActionType, Reducer<State>>> = {
+  [PersonModel.ActionType.reset]() {
     return initalState;
   },
-  [LoginModel.ActionType.fieldChange](
+  [PersonModel.ActionType.fieldChange](
     state,
     { payload }: Action<Payload['fieldChange']>,
   ) {

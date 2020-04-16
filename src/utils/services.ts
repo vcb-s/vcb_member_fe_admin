@@ -3,12 +3,12 @@ import { request } from 'umi';
 import { PaginationParam } from './types/Pagination';
 import { ResponseData } from './types/ResponseData';
 import { UserCard } from './types/UserCard';
-import { Group } from './types/Group';
+import { Group as GroupType } from './types/Group';
 
 export namespace Services {
-  export namespace userList {
+  export namespace UserList {
     export interface ReadParam extends Partial<PaginationParam> {
-      group?: Group.Item['id'];
+      group?: GroupType.Item['id'];
       retired?: UserCard.Item['retired'];
       /** @TODO */
       // sticky?: UserCard.Item['sticky']
@@ -21,13 +21,27 @@ export namespace Services {
       return request('/user/list', { data: data });
     };
   }
-  export namespace group {
+  export namespace Group {
     export type ReadResponse = ResponseData.Ok<{
-      res: Group.ItemInResponse[];
+      res: GroupType.ItemInResponse[];
       total: number;
     }>;
     export const read = (): Promise<ReadResponse> => {
       return request('/group/list');
+    };
+  }
+  export namespace Login {
+    export interface LoginParam {
+      /** 用户卡片的uid（不是id） */
+      uid: string;
+      password: string;
+    }
+    export type LoginResponse = ResponseData.Ok<undefined>;
+    export const login = (data: LoginParam) => {
+      return request('/admin/login', {
+        data,
+        method: 'post',
+      });
     };
   }
 }

@@ -21,6 +21,15 @@ export namespace Services {
       return request('/user/list', { data: data });
     };
   }
+  export namespace TinyUserList {
+    export type ReadResponse = ResponseData.Ok<{
+      res: UserCard.TinyItemInResponse[];
+      total: number;
+    }>;
+    export const read = (): Promise<ReadResponse> => {
+      return request('/user/list/tiny');
+    };
+  }
   export namespace Group {
     export type ReadResponse = ResponseData.Ok<{
       res: GroupType.ItemInResponse[];

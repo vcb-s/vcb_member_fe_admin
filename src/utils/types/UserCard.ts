@@ -13,9 +13,18 @@ export namespace UserCard {
     group: string;
     uid: string;
   }
+  export interface TinyItemInResponse
+    extends Omit<
+      ItemInResponse,
+      'retired' | 'bio' | 'job' | 'order' | 'group'
+    > {}
   export interface Item extends Omit<ItemInResponse, 'group'> {
     key: string;
     group: Group.Item[];
   }
+  export interface TinyItem extends TinyItemInResponse {
+    key: string;
+  }
   export type List = CommonList<Item>;
+  export type TinyList = CommonList<TinyItem>;
 }

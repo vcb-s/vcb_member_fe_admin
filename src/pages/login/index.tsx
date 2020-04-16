@@ -12,7 +12,7 @@ import styles from './index.scss';
 // const logoImage = `${cdnHost}/wp-content/themes/zanblog2_1_0/ui/images/logo.png`;
 
 // 缓存变量降低重复创建销毁的消耗
-let user: UserCard.Item;
+let user: UserCard.TinyItem;
 let keyword;
 let nickname, bio, job;
 /** 用户选择器 - 过滤器 */
@@ -45,9 +45,7 @@ const Login = function Login() {
 
   useEffect(() => {
     dispatch(
-      AppModels.createAction(AppModels.ActionType.getUserlist)({
-        groupID: '-1',
-      }),
+      AppModels.createAction(AppModels.ActionType.getUserlist)(undefined),
     );
   }, [dispatch]);
 

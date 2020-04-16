@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback } from 'react';
 import { useSelector, useDispatch } from 'umi';
-import { Form, Input, Button, Select } from 'antd';
+import { Form, Input, Button, Select, Avatar } from 'antd';
 
 import { AppModels } from '@/models/app';
 import { UserCard } from '@/utils/types/UserCard';
@@ -8,7 +8,22 @@ import { LoginModel } from './models';
 
 import styles from './index.scss';
 
-const logoImage = `${cdnHost}/wp-content/themes/zanblog2_1_0/ui/images/logo.png`;
+// const logoImage = `${cdnHost}/wp-content/themes/zanblog2_1_0/ui/images/logo.png`;
+
+// 缓存变量降低重复创建销毁的消耗
+let user: UserCard.Item;
+let keyword;
+let nickname, bio, job;
+/** 用户选择器 - 过滤器 */
+const userFilterOption = (value: string, option: any) => {
+  user = option['data-user'];
+  keyword = value.toLowerCase();
+  nickname = user.nickname.toLowerCase();
+  // bio = user.bio.toLowerCase();
+  // job = user.job.toLowerCase();
+
+  return nickname.indexOf(keyword) >= 0;
+};
 
 const Login = function Login() {
   const dispatch = useDispatch();
@@ -38,11 +53,6 @@ const Login = function Login() {
     },
     [dispatch],
   );
-
-  const userFilterOption = useCallback((value, option) => {
-    /** @todo 拼音 */
-    return option.children.toLowerCase().indexOf(value.toLowerCase()) >= 0;
-  }, []);
 
   const passChangeHandle = useCallback(
     (evt: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,26 +87,28 @@ const Login = function Login() {
 
   return (
     <div className={styles.wrap}>
-      <a
+      {/* <a
         href='https://vcb-s.com'
         className={styles.logo}
-        style={{ backgroundImage: `url(${logoImage})` }}
-      />
+        // style={{ backgroundImage: `url(${logoImage})` }}
+      /> */}
       <div className={styles.mainForm}>
         <Form className={styles.mainForm} layout='vertical'>
           <Form.Item label='用户'>
             <Select
               showSearch
-              placeholder='选择登录用户'
-              disabled={userlistLoading}
+              placeholder='输入用户名搜索'
               loading={userlistLoading}
-              value={loginState.form.login.name}
+              value={loginState.form.login.name || undefined}
               onChange={nameChangeHandle}
               filterOption={userFilterOption}
             >
               {appState.users.data.map((user) => (
                 <Select.Option key={user.key} value={user.id} data-user={user}>
-                  {user.nickname}
+                  <Avatar src={user.avast} size='small' />
+                  <span className={styles.userSeletorNickname}>
+                    {user.nickname}
+                  </span>
                 </Select.Option>
               ))}
             </Select>

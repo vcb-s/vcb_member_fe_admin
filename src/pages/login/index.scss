@@ -2,7 +2,7 @@
   width: 320px;
   margin-left: auto;
   margin-right: auto;
-  padding-top: 56px;
+  padding-top: 100px;
 
   .logo {
     display: block;
@@ -23,4 +23,8 @@
 
     margin-top: 20px;
   }
+}
+.userSeletorNickname {
+  margin-left: 10px;
+  // @todo 这里需要做省略就需要overflow，但overflow就对不齐，以后再改了
 }

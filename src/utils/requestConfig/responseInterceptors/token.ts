@@ -6,8 +6,8 @@ export const tokenInterceptor: ResponseInterceptor = function (
   response,
   options,
 ) {
-  if ('token' in response.headers) {
-    token.token = response.headers['token'];
+  if (response.headers.has('x-token')) {
+    token.token = response.headers.get('x-token') || '';
   }
 
   return response;

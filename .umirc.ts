@@ -27,7 +27,8 @@ export default defineConfig({
 
   proxy: {
     '/vcbs_member_api': {
-      target: 'https://vcb-s.com',
+      target: 'http://localhost',
+      // target: 'https://vcb-s.com',
       changeOrigin: true,
     },
   },

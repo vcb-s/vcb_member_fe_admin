@@ -33,7 +33,7 @@ const Login = function Login() {
   const userlistLoading = useSelector(
     dvaLoadingSelector.effect(
       AppModels.namespace,
-      AppModels.ActionType.getUserlist,
+      AppModels.ActionType.getAllUserlist,
     ),
   );
   const loginWithPassLoading = useSelector(
@@ -45,7 +45,7 @@ const Login = function Login() {
 
   useEffect(() => {
     dispatch(
-      AppModels.createAction(AppModels.ActionType.getUserlist)(undefined),
+      AppModels.createAction(AppModels.ActionType.getAllUserlist)(undefined),
     );
   }, [dispatch]);
 

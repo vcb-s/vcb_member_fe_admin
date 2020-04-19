@@ -3,6 +3,8 @@ import { request } from 'umi';
 import { PaginationParam } from './types/Pagination';
 import { ResponseData } from './types/ResponseData';
 import { UserCard } from './types/UserCard';
+import { PersonInfo } from './types/PersonInfo';
+import { GO_BOOL } from './types';
 import { Group as GroupType } from './types/Group';
 
 export namespace Services {
@@ -27,7 +29,10 @@ export namespace Services {
       total: number;
     }>;
     export const read = (): Promise<ReadResponse> => {
-      return request('/user/list/tiny');
+      return request('/user/list', {
+        method: 'get',
+        params: { tiny: GO_BOOL.yes },
+      });
     };
   }
   export namespace Group {
@@ -50,6 +55,28 @@ export namespace Services {
       return request('/admin/login', {
         data,
         method: 'post',
+      });
+    };
+  }
+  export namespace Person {
+    export interface InfoParam {
+      uid: string;
+    }
+    export interface InfoData {
+      cards: {
+        res: UserCard.ItemInResponse[];
+        total: number;
+      };
+      users: {
+        res: PersonInfo.ItemInResponse[];
+        total: number;
+      };
+      info: PersonInfo.ItemInResponse;
+    }
+    export type InfoResponse = ResponseData.Ok<InfoData>;
+    export const info = (params: InfoParam) => {
+      return request('/admin/personInfo', {
+        params,
       });
     };
   }

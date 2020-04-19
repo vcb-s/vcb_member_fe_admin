@@ -1,6 +1,11 @@
 import React from 'react';
+// import { message } from 'antd';
 
 import poyfill from '@/utils/asyncPoyfill';
+
+// message.config({
+//   maxCount: 3,
+// });
 
 export function render(oldRender: () => any) {
   poyfill().then(() => {

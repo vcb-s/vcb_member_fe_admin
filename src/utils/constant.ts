@@ -34,3 +34,7 @@ export const empty = {
 export const MAGIC = {
   AuthToken: 'AuthToken',
 };
+
+export const color = {
+  'primary-color': '#e74c3c',
+};

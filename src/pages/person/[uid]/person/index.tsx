@@ -1,9 +1,7 @@
 import React, { useEffect } from 'react';
 import { useRouteMatch, useDispatch, useSelector, PersonModel } from 'umi';
 
-interface PagrParam {
-  uid: string;
-}
+import { PagrParam } from '@/pages/person/[uid]/types';
 
 export default function PagePerson() {
   const match = useRouteMatch<PagrParam>();

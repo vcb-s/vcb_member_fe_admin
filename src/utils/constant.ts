@@ -22,3 +22,15 @@ export const defaultFormLayout = {
     },
   },
 };
+
+export const empty = {
+  array: [],
+  object: {},
+  func: function () {},
+  map: new Map(),
+  set: new Set(),
+};
+
+export const MAGIC = {
+  AuthToken: 'AuthToken',
+};

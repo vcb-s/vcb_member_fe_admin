@@ -3,6 +3,8 @@ import { history } from 'umi';
 
 import type { Action, Reducer, Effect } from '@/utils/types';
 import { Services } from '@/utils/services';
+import { MAGIC } from '@/utils/constant';
+import { token } from '@/utils/token';
 import { AppModels } from '@/models/app';
 import { PersonModel } from './type';
 
@@ -25,7 +27,7 @@ const initalState: State = {
       /** 登陆密码 */
       pass: '',
       /** 记住登录，目前统一记住 */
-      remember: false,
+      remember: true,
       /** 卡片id */
       id: '',
     },
@@ -39,7 +41,7 @@ const effects: Partial<Record<PersonModel.ActionType, Effect>> = {
   ) {
     const { form }: PersonModel.State = yield select(PersonModel.currentState);
     const { users }: AppModels.State = yield select(AppModels.currentState);
-    const { id, pass } = form.login;
+    const { id, pass, remember } = form.login;
     try {
       const param: Services.Login.LoginParam = {
         uid: '',
@@ -60,6 +62,9 @@ const effects: Partial<Record<PersonModel.ActionType, Effect>> = {
       yield call(Services.Login.login, param);
       message.success('登录成功');
       history.push(`/person/${param.uid}`);
+      if (remember) {
+        localStorage.setItem(MAGIC.AuthToken, token.token);
+      }
       yield put(
         createAction(PersonModel.ActionType.loginWithPassSuccess)(undefined),
       );

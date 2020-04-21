@@ -5,6 +5,7 @@ import { Action, Reducer, Effect, GO_BOOL } from '@/utils/types';
 import { Services } from '@/utils/services';
 import { PersonModel } from './type';
 import { emptyList } from '@/utils/types/CommonList';
+import { ModelAdapter } from '@/utils/modelAdapter';
 
 export { PersonModel };
 
@@ -22,6 +23,7 @@ const createAction = <K extends keyof Payload>(key: K) => {
 const initalState: State = {
   personInfo: {
     id: '',
+    key: '',
     admin: [],
     group: [],
     ban: GO_BOOL.no,
@@ -40,34 +42,39 @@ const effects: Partial<Record<PersonModel.ActionType, Effect>> = {
     yield put(
       AppModels.createAction(AppModels.ActionType.ensureGroupData)(undefined),
     );
-    const { f } = yield race({
-      s: take(AppModels.ActionType.ensureGroupDataSuccess),
-      f: take(AppModels.ActionType.ensureGroupDataFail),
-    });
-
-    if (f) {
-      return;
-    }
 
     try {
-      const { person, group } = yield all({
+      const { person, g } = yield all({
         person: call(Services.Person.info, { uid }),
-        group: race({
+        g: race({
           s: take(AppModels.ActionType.ensureGroupDataSuccess),
           f: take(AppModels.ActionType.ensureGroupDataFail),
         }),
       });
 
-      if (group.f) {
+      if (g.f) {
         return;
       }
 
+      const { group }: AppModels.State = yield select(AppModels.currentState);
+
       const { data }: Services.Person.InfoResponse = person;
 
-      console.log('what is data', person, group, data);
-    } catch (e) {
-      console.log('what is e', e);
-      message.error(e.message);
+      yield put(
+        createAction(PersonModel.ActionType.getPersonInfoSuccess)({
+          info: data.info,
+          cards: data.cards.res,
+          users: data.users.res,
+          group: group.data,
+        }),
+      );
+    } catch (error) {
+      yield put(
+        createAction(PersonModel.ActionType.getPersonInfoFail)({
+          error,
+        }),
+      );
+      message.error(error.message);
     }
   },
 };
@@ -75,6 +82,13 @@ const effects: Partial<Record<PersonModel.ActionType, Effect>> = {
 const reducers: Partial<Record<PersonModel.ActionType, Reducer<State>>> = {
   [PersonModel.ActionType.reset]() {
     return initalState;
+  },
+  [PersonModel.ActionType.getPersonInfoSuccess](
+    state,
+    { payload }: Action<Payload[PersonModel.ActionType.getPersonInfoSuccess]>,
+  ) {
+    const { cards, users, info, group } = payload;
+    state.cardList.data = ModelAdapter.UserCards(cards, group);
   },
 };
 

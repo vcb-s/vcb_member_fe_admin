@@ -1,3 +1,3 @@
-export interface PagrParam {
+export interface PageParam {
   uid: string;
 }

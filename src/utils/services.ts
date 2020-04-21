@@ -11,16 +11,18 @@ export namespace Services {
   export namespace UserList {
     export interface ReadParam extends Partial<PaginationParam> {
       group?: GroupType.Item['id'];
+      id?: UserCard.Item['id'];
       retired?: UserCard.Item['retired'];
-      /** @TODO */
-      // sticky?: UserCard.Item['sticky']
+      keyword?: UserCard.Item['id'] | UserCard.Item['nickname'];
+      sticky?: GO_BOOL;
+      tiny?: GO_BOOL;
     }
     export type ReadResponse = ResponseData.Ok<{
       res: UserCard.ItemInResponse[];
       total: number;
     }>;
-    export const read = (data: ReadParam): Promise<ReadResponse> => {
-      return request('/user/list', { data: data });
+    export const read = (params: ReadParam): Promise<ReadResponse> => {
+      return request('/user/list', { params });
     };
   }
   export namespace TinyUserList {

@@ -19,7 +19,7 @@ export default defineConfig({
   favicon: `${cdnHost}/wp-content/customRes/favicon@180.png`,
 
   theme: {
-    'primary-color': '#e74c3c',
+    // 'primary-color': '#e74c3c',
   },
 
   analyze: {

@@ -1,17 +1,26 @@
 import React, { useEffect, useMemo, useCallback } from 'react';
-import { useParams, useDispatch, useSelector, PersonModel } from 'umi';
-import { Typography, Table, Avatar, Button } from 'antd';
+import { useParams, history, useDispatch, useSelector, PersonModel } from 'umi';
+import { Typography, Table, Avatar, Button, Tag } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 
-import { PagrParam } from '@/pages/person/[uid]/types';
+import { Group } from '@/utils/types/Group';
 import { UserCard } from '@/utils/types/UserCard';
+import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
+
+import { PageParam } from '../types';
 
 import styles from './index.scss';
 
-export default function PagePerson() {
+const PagePersonCard: React.FC = function PagePersonCard() {
   const dispatch = useDispatch();
   const { personInfo, cardList } = useSelector(PersonModel.currentState);
-  const { uid } = useParams<PagrParam>();
+  const { uid } = useParams<PageParam>();
+  const tableLoading = useSelector(
+    dvaLoadingSelector.effect(
+      PersonModel.namespace,
+      PersonModel.ActionType.getPersonInfo,
+    ),
+  );
 
   useEffect(() => {
     if (personInfo.id !== uid) {
@@ -21,22 +30,38 @@ export default function PagePerson() {
     }
   }, [dispatch, personInfo.id, uid]);
 
-  const groupRender = useCallback(() => {
-    return <>todo</>;
+  const groupRender = useCallback((groups: Group.Item[]) => {
+    return groups.map((group) => <Tag key={group.key}>{group.name}</Tag>);
   }, []);
 
-  const actionRender = useCallback(() => {
-    return (
-      <Button.Group>
-        <Button ghost type='primary'>
+  /** 退休 */
+  // const
+  /** 编辑 */
+  const editHandle = useCallback(
+    (id: string) => {
+      history.push(`/person/${uid}/card/edit/${id}`);
+    },
+    [uid],
+  );
+
+  const actionRender = useCallback(
+    (key: string, item: UserCard.Item, index: number) => {
+      return (
+        <Button.Group>
+          {/* <Button ghost type='primary'>
           退休
-        </Button>
-        <Button ghost type='danger'>
+        </Button> */}
+          <Button ghost type='primary' onClick={() => editHandle(item.id)}>
+            编辑
+          </Button>
+          {/* <Button ghost type='danger'>
           删除
-        </Button>
-      </Button.Group>
-    );
-  }, []);
+        </Button> */}
+        </Button.Group>
+      );
+    },
+    [editHandle],
+  );
 
   const columns = useMemo<ColumnsType<UserCard.Item>>(() => {
     return [
@@ -59,9 +84,25 @@ export default function PagePerson() {
         dataIndex: 'job',
       },
       {
+        title: '简介',
+        dataIndex: 'bio',
+        render: (bio: string) => (
+          <div
+            style={{
+              maxWidth: '200px',
+              wordBreak: 'break-all',
+              whiteSpace: 'pre-wrap',
+            }}
+          >
+            {bio}
+          </div>
+        ),
+      },
+      {
         title: '操作',
         dataIndex: 'key',
         key: 'action',
+        width: 160,
         render: actionRender,
       },
     ];
@@ -74,7 +115,11 @@ export default function PagePerson() {
         className={styles.table}
         dataSource={cardList.data}
         columns={columns}
+        loading={tableLoading}
+        pagination={false}
       />
     </div>
   );
-}
+};
+
+export default PagePersonCard;

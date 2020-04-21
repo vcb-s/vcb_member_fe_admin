@@ -7,6 +7,7 @@ import { UserCard } from '@/utils/types/UserCard';
 import { emptyList } from '@/utils/types/CommonList';
 import { webpDetect } from '@/utils/webpDetect';
 import { Services } from '@/utils/services';
+import { ModelAdapter } from '@/utils/modelAdapter';
 import { AppModels } from './AppModels';
 export { AppModels };
 const { namespace, currentState } = AppModels;
@@ -31,46 +32,19 @@ const effects: Partial<Record<AppModels.ActionType, Effect>> = {
     { call, put },
   ) {
     try {
-      const { data }: Services.UserList.ReadResponse = yield call(
+      const { data }: Services.TinyUserList.ReadResponse = yield call(
         Services.TinyUserList.read,
       );
 
-      let list = data.res;
-      try {
-        if (yield call(() => webpDetect)) {
-          list = produce(list, (draft) => {
-            draft.forEach((user) => {
-              // 数据库现在有一部分外链图片，这部分不适用文件优化
-              if (user.avast.indexOf('//') === -1) {
-                // 限定只优化 jpg/png 格式，其他格式如gif什么的就原图展现
-                if (/[\.(jpg)|(png)]$/.test(user.avast)) {
-                  user.avast = `${user.avast.replace(
-                    /(.+)\..+?$/,
-                    '$1',
-                  )}@600.webp`;
-                } else if (!/[\.(gif)]$/.test(user.avast)) {
-                  user.avast = `${user.avast.replace(
-                    /^(.+)(\..+?)$/,
-                    '$1@600$2',
-                  )}`;
-                }
-
-                user.avast = `${cdnHost}/vcbs_member/uploads/${user.avast}`;
-              }
-            });
-          });
-        }
-      } catch (e) {
-        // 不支持webp，静默失败
-      }
-
       yield put(
         createAction(AppModels.ActionType.getAllUserlistSuccess)({
-          data: list,
+          data: data.res,
         }),
       );
     } catch (err) {
-      yield put(createAction(AppModels.ActionType.getAllUserlistFail)({ err }));
+      yield put(
+        createAction(AppModels.ActionType.getAllUserlistFail)({ error: err }),
+      );
       message.error(err.message);
     }
   },
@@ -120,8 +94,13 @@ const effects: Partial<Record<AppModels.ActionType, Effect>> = {
           data: data.res,
         }),
       );
-    } catch (e) {
-      message.error(e.message);
+    } catch (err) {
+      yield put(
+        createAction(AppModels.ActionType.getGroupFail)({
+          error: err,
+        }),
+      );
+      message.error(err.message);
     }
   },
 };
@@ -143,15 +122,7 @@ const reducers: Partial<Record<AppModels.ActionType, Reducer<State>>> = {
     state,
     { payload }: Action<Payload[AppModels.ActionType.getAllUserlistSuccess]>,
   ) {
-    const userList = payload.data.map((user) => {
-      const result: UserCard.TinyItem = {
-        ...user,
-        key: user.id,
-      };
-
-      return result;
-    });
-    state.users.data = userList;
+    state.users.data = ModelAdapter.TinyUserCards(payload.data);
   },
   [AppModels.ActionType.getAllUserlistFail]() {
     return initalState;

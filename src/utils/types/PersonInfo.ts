@@ -11,6 +11,7 @@ export namespace PersonInfo {
     ban: GO_BOOL;
   }
   export interface Item extends Omit<ItemInResponse, 'admin' | 'group'> {
+    key: string;
     /** 分组ID */
     admin: Group.Item[];
     /** 分组ID */

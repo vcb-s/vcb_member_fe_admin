@@ -24,14 +24,14 @@ export namespace AppModels {
 
     [ActionType.ensureGroupData]: undefined;
     [ActionType.ensureGroupDataSuccess]: undefined;
-    [ActionType.ensureGroupDataFail]: { err: Error };
+    [ActionType.ensureGroupDataFail]: { error: Error };
 
     [ActionType.getGroup]: undefined;
     [ActionType.getGroupSuccess]: {
       data: Group.ItemInResponse[];
     };
     [ActionType.getGroupFail]: {
-      err?: Error;
+      error: Error;
     };
     // [ActionType.changeGroup]: {
     //   groupID?: Group.Item['id'];
@@ -42,7 +42,7 @@ export namespace AppModels {
       data: UserCard.TinyItemInResponse[];
     };
     [ActionType.getAllUserlistFail]: {
-      err?: Error;
+      error: Error;
     };
   }
   /** 统一导出State，降低引用Model时心智负担，统一都使用State就行了 */

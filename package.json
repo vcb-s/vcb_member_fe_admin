@@ -19,23 +19,23 @@
     "react-dom": "^16.13.1",
     "react-loadable": "^5.5.0",
     "tslib": "^1.11.1",
-    "umi": "^3.1.1"
+    "umi": "^3.1.2"
   },
   "devDependencies": {
     "@types/classnames": "^2.2.10",
     "@types/react": "^16.9.34",
     "@types/react-dom": "^16.9.6",
     "@types/react-loadable": "^5.5.3",
-    "@typescript-eslint/eslint-plugin": "^2.27.0",
-    "@typescript-eslint/parser": "^2.27.0",
+    "@typescript-eslint/eslint-plugin": "^2.29.0",
+    "@typescript-eslint/parser": "^2.29.0",
     "@umijs/plugin-sass": "^1.1.1",
-    "@umijs/preset-react": "^1.4.14",
+    "@umijs/preset-react": "^1.4.18",
     "@umijs/test": "^3.1.1",
     "cross-env": "^7.0.2",
     "eslint": "^6.8.0",
     "eslint-plugin-react-hooks": "^3.0.0",
-    "fibers": "^4.0.2",
-    "prettier": "^2.0.4",
+    "fibers": "^5.0.0",
+    "prettier": "^2.0.5",
     "typescript": "^3.8.3"
   }
 }

@@ -16,6 +16,7 @@ export namespace Services {
       keyword?: UserCard.Item['id'] | UserCard.Item['nickname'];
       sticky?: GO_BOOL;
       tiny?: GO_BOOL;
+      includeHide?: GO_BOOL;
     }
     export type ReadResponse = ResponseData.Ok<{
       res: UserCard.ItemInResponse[];
@@ -23,6 +24,16 @@ export namespace Services {
     }>;
     export const read = (params: ReadParam): Promise<ReadResponse> => {
       return request('/user/list', { params });
+    };
+
+    export type UpdateParam = Partial<UserCard.ItemInResponse> & {
+      id: UserCard.ItemInResponse['id'];
+    };
+    export const update = (data: UpdateParam) => {
+      return request('/admin/updateUserCard', {
+        data,
+        method: 'post',
+      });
     };
   }
   export namespace TinyUserList {
@@ -32,7 +43,6 @@ export namespace Services {
     }>;
     export const read = (): Promise<ReadResponse> => {
       return request('/user/list', {
-        method: 'get',
         params: { tiny: GO_BOOL.yes },
       });
     };

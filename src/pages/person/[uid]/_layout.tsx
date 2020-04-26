@@ -24,7 +24,13 @@ const MenuSide: React.FC = function () {
 
   return (
     <div className={styles.menuWrap}>
-      <div className={styles.logo} />
+      <a
+        className={styles.logo}
+        href='https://vcb-s.com'
+        target='_blank'
+        rel='noopener'
+        referrerPolicy='no-referrer'
+      />
       <Menu
         theme='dark'
         className={styles.menu}

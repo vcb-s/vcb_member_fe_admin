@@ -5,6 +5,7 @@ export namespace UserCard {
   export interface ItemInResponse {
     id: string;
     retired: GO_BOOL;
+    hide: GO_BOOL;
     avast: string;
     bio: string;
     nickname: string;
@@ -21,9 +22,13 @@ export namespace UserCard {
   export interface Item extends Omit<ItemInResponse, 'group'> {
     key: string;
     group: Group.Item[];
+
+    originAvast: string;
   }
   export interface TinyItem extends TinyItemInResponse {
     key: string;
+
+    originAvast: string;
   }
   export type List = CommonList<Item>;
   export type TinyList = CommonList<TinyItem>;

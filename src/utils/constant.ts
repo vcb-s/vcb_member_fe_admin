@@ -1,3 +1,4 @@
+import { AutoSizeType } from 'antd/lib/input/ResizableTextArea';
 export const defaultFormLayout = {
   normal: {
     labelCol: {
@@ -21,6 +22,11 @@ export const defaultFormLayout = {
       },
     },
   },
+};
+
+export const textareaAutoSize: AutoSizeType = {
+  minRows: 3,
+  maxRows: 6,
 };
 
 export const empty = {

@@ -37,7 +37,7 @@ class GroupAdapter {
   };
 }
 
-const groupAdapter = new GroupAdapter();
+export const groupAdapter = new GroupAdapter();
 
 export namespace ModelAdapter {
   export function ImageURLAdapter(originURL: string): string {
@@ -50,7 +50,7 @@ export namespace ModelAdapter {
         result = `${originURL.replace(/^(.+)(\..+?)$/, '$1@600$2')}`;
       }
 
-      result = `${cdnHost}/vcbs_member/uploads/${originURL}`;
+      result = `${cdnHost}/vcbs_member/uploads/${result}`;
     }
 
     return result;
@@ -64,6 +64,8 @@ export namespace ModelAdapter {
         ...card,
         key: card.id,
         avast: ImageURLAdapter(card.avast),
+
+        originAvast: card.avast,
       };
     });
   }
@@ -83,6 +85,8 @@ export namespace ModelAdapter {
           .split(',')
           .filter((_) => !!_)
           .map(groupAdapter.getGroup),
+
+        originAvast: card.avast,
       };
     });
   }

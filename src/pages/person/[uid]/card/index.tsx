@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useCallback } from 'react';
 import { useParams, history, useDispatch, useSelector, PersonModel } from 'umi';
-import { Typography, Table, Avatar, Button, Tag } from 'antd';
+import { Typography, Table, Avatar, Button, Tag, Switch, Space } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 
+import { GO_BOOL } from '@/utils/types';
 import { Group } from '@/utils/types/Group';
 import { UserCard } from '@/utils/types/UserCard';
 import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
@@ -30,37 +31,14 @@ const PagePersonCard: React.FC = function PagePersonCard() {
     }
   }, [dispatch, personInfo.id, uid]);
 
-  const groupRender = useCallback((groups: Group.Item[]) => {
-    return groups.map((group) => <Tag key={group.key}>{group.name}</Tag>);
-  }, []);
-
   /** 退休 */
-  // const
+
   /** 编辑 */
   const editHandle = useCallback(
     (id: string) => {
       history.push(`/person/${uid}/card/edit/${id}`);
     },
     [uid],
-  );
-
-  const actionRender = useCallback(
-    (key: string, item: UserCard.Item, index: number) => {
-      return (
-        <Button.Group>
-          {/* <Button ghost type='primary'>
-          退休
-        </Button> */}
-          <Button ghost type='primary' onClick={() => editHandle(item.id)}>
-            编辑
-          </Button>
-          {/* <Button ghost type='danger'>
-          删除
-        </Button> */}
-        </Button.Group>
-      );
-    },
-    [editHandle],
   );
 
   const columns = useMemo<ColumnsType<UserCard.Item>>(() => {
@@ -77,7 +55,13 @@ const PagePersonCard: React.FC = function PagePersonCard() {
       {
         title: '组别',
         dataIndex: 'group',
-        render: groupRender,
+        render: (groups: Group.Item[]) => {
+          return groups.map((group) => (
+            <Tag.CheckableTag checked key={group.key}>
+              {group.name}
+            </Tag.CheckableTag>
+          ));
+        },
       },
       {
         title: '职位',
@@ -99,14 +83,42 @@ const PagePersonCard: React.FC = function PagePersonCard() {
         ),
       },
       {
+        title: '状态',
+        key: 'status',
+        width: 200,
+        render: (item: UserCard.Item) => (
+          <Space>
+            <Tag.CheckableTag checked={item.hide === GO_BOOL.no}>
+              {item.hide === GO_BOOL.no ? '可见' : '隐藏'}
+            </Tag.CheckableTag>
+            <Tag.CheckableTag checked={item.retired === GO_BOOL.no}>
+              {item.hide === GO_BOOL.no ? '活跃' : '退休'}
+            </Tag.CheckableTag>
+          </Space>
+        ),
+      },
+      {
         title: '操作',
-        dataIndex: 'key',
         key: 'action',
         width: 160,
-        render: actionRender,
+        render: (item: UserCard.Item) => {
+          return (
+            <Button.Group>
+              {/* <Button ghost type='primary'>
+              退休
+            </Button> */}
+              <Button ghost type='primary' onClick={() => editHandle(item.id)}>
+                编辑
+              </Button>
+              {/* <Button ghost type='danger'>
+              删除
+            </Button> */}
+            </Button.Group>
+          );
+        },
       },
     ];
-  }, [actionRender, groupRender]);
+  }, [editHandle]);
 
   return (
     <div className={styles.wrap}>

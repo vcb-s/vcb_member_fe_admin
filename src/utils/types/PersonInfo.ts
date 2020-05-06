@@ -4,6 +4,8 @@ import { Group } from './Group';
 export namespace PersonInfo {
   export interface ItemInResponse {
     id: string;
+    avast: string;
+    nickname: string;
     /** 逗号分隔的组别 */
     admin: string;
     /** 逗号分隔的组别 */

@@ -7,6 +7,8 @@ export namespace PersonModel {
   export const namespace = 'pages.person';
   export enum ActionType {
     reset = 'reset',
+
+    /** 获取个人信息，不传uid则为获取自己的个人信息 */
     getPersonInfo = 'getPersonInfo',
     getPersonInfoSuccess = 'getPersonInfoSuccess',
     getPersonInfoFail = 'getPersonInfoFail',

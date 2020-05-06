@@ -1,4 +1,4 @@
-import { Redirect, useLocation, useParams } from 'umi';
+import { Redirect, useParams } from 'umi';
 
 import { PageParam } from './types';
 export default function () {

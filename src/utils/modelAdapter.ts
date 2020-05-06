@@ -100,6 +100,7 @@ export namespace ModelAdapter {
     return {
       ...info,
       key: info.id,
+      avast: ImageURLAdapter(info.avast),
       group: info.group
         .split(',')
         .filter((_) => !!_)

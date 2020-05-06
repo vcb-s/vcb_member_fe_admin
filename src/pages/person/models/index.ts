@@ -11,8 +11,8 @@ export { PersonModel };
 
 const { namespace, currentState } = PersonModel;
 
-interface Payload extends PersonModel.Payload {}
-interface State extends PersonModel.State {}
+interface Payload extends PersonModel.Payload { }
+interface State extends PersonModel.State { }
 
 const createAction = <K extends keyof Payload>(key: K) => {
   return (payload: Payload[K]) => {
@@ -24,6 +24,8 @@ const initalState: State = {
   personInfo: {
     id: '',
     key: '',
+    nickname: '',
+    avast: '',
     admin: [],
     group: [],
     ban: GO_BOOL.no,
@@ -89,6 +91,8 @@ const reducers: Partial<Record<PersonModel.ActionType, Reducer<State>>> = {
   ) {
     const { cards, users, info, group } = payload;
     state.cardList.data = ModelAdapter.UserCards(cards, group);
+    state.userList.data = ModelAdapter.People(users, group)
+    state.personInfo = ModelAdapter.Person(info, group)
   },
 };
 

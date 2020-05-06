@@ -50,11 +50,13 @@ const PagePersonCard: React.FC = function PagePersonCard() {
       {
         title: '头像',
         dataIndex: 'avast',
+        align: 'center',
         render: (avatar) => <Avatar src={avatar} />,
       },
       {
         title: '组别',
         dataIndex: 'group',
+        align: 'center',
         render: (groups: Group.Item[]) => {
           return groups.map((group) => (
             <Tag.CheckableTag checked key={group.key}>
@@ -85,7 +87,7 @@ const PagePersonCard: React.FC = function PagePersonCard() {
       {
         title: '状态',
         key: 'status',
-        width: 200,
+        align: 'center',
         render: (item: UserCard.Item) => (
           <Space>
             <Tag.CheckableTag checked={item.hide === GO_BOOL.no}>
@@ -100,7 +102,7 @@ const PagePersonCard: React.FC = function PagePersonCard() {
       {
         title: '操作',
         key: 'action',
-        width: 160,
+        align: 'center',
         render: (item: UserCard.Item) => {
           return (
             <Button.Group>

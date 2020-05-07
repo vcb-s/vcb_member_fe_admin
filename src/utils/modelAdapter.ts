@@ -121,6 +121,7 @@ export namespace ModelAdapter {
     return infos.map((info) => ({
       ...info,
       key: info.id,
+      avast: ImageURLAdapter(info.avast),
       group: info.group
         .split(',')
         .filter((_) => !!_)

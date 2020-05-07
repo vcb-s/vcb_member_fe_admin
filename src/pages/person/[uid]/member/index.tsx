@@ -1,7 +1,17 @@
 import React, { useEffect, useMemo, useCallback } from 'react';
 import { useRouteMatch, useDispatch, useSelector, PersonModel } from 'umi';
 
-import { Typography, Table, Avatar, Button, Tag, Switch, Space } from 'antd';
+import {
+  Typography,
+  Table,
+  Avatar,
+  Button,
+  Tag,
+  Dropdown,
+  Space,
+  Menu,
+} from 'antd';
+import { DownOutlined } from '@ant-design/icons';
 import { ColumnsType } from 'antd/lib/table';
 
 import { GO_BOOL } from '@/utils/types';
@@ -11,6 +21,8 @@ import { PageParam } from '@/pages/person/[uid]/types';
 import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
 
 import styles from './index.scss';
+
+const tableSize = { y: 400 };
 
 export default function PagePerson() {
   const match = useRouteMatch<PageParam>();
@@ -25,6 +37,9 @@ export default function PagePerson() {
     ),
   );
 
+  const handleBan = useCallback((id: string, ban: GO_BOOL) => {}, []);
+  const handleKick = useCallback((uid: string, groupID: string) => {}, []);
+
   useEffect(() => {
     if (personInfo.id !== uid) {
       dispatch(
@@ -33,9 +48,7 @@ export default function PagePerson() {
     }
   }, [dispatch, personInfo.id, uid]);
 
-  console.log('what is userList', userList)
-
-  const editHandle = useCallback(() => { }, [])
+  const editHandle = useCallback(() => {}, []);
 
   const columns = useMemo<ColumnsType<PersonInfo.Item>>(() => {
     return [
@@ -61,41 +74,14 @@ export default function PagePerson() {
           ));
         },
       },
-      // {
-      //   title: '职位',
-      //   dataIndex: 'job',
-      // },
-      // {
-      //   title: '简介',
-      //   dataIndex: 'bio',
-      //   render: (bio: string) => (
-      //     <div
-      //       style={{
-      //         maxWidth: '200px',
-      //         wordBreak: 'break-all',
-      //         whiteSpace: 'pre-wrap',
-      //       }}
-      //     >
-      //       {bio}
-      //     </div>
-      //   ),
-      // },
       {
         title: '状态',
         key: 'status',
         align: 'center',
         render: (item: PersonInfo.Item) => (
           <Space>
-            <Tag.CheckableTag checked={!!item.admin.length}>
-              <span title='是否组长'>
-                {item.admin.length ? '组长' : '组员'}
-              </span>
-            </Tag.CheckableTag>
-            <Tag.CheckableTag checked={item.ban === GO_BOOL.no}>
-              <span title='是否封禁'>
-                {item.ban === GO_BOOL.no ? '正常' : '封禁'}
-              </span>
-            </Tag.CheckableTag>
+            <Tag>{!!item.admin.length ? '组长' : '组员'}</Tag>
+            {item.ban === GO_BOOL.yes ? <Tag>封禁</Tag> : null}
           </Space>
         ),
       },
@@ -105,22 +91,53 @@ export default function PagePerson() {
         align: 'center',
         render: (item: PersonInfo.Item) => {
           return (
-            <Button.Group>
-              {/* <Button ghost type='primary'>
-              退休
-            </Button> */}
-              {/* <Button ghost type='primary' onClick={() => editHandle(item.id)}>
-                编辑
-              </Button> */}
-              {/* <Button ghost type='danger'>
-              删除
-            </Button> */}
-            </Button.Group>
+            <Space>
+              {/* <Checkbox checked={item.ban === GO_BOOL.yes}>封禁</Checkbox> */}
+              {item.ban === GO_BOOL.yes ? (
+                <Button
+                  type='primary'
+                  ghost
+                  onClick={() => handleBan(item.id, GO_BOOL.no)}
+                >
+                  解封
+                </Button>
+              ) : (
+                <Button
+                  type='danger'
+                  ghost
+                  onClick={() => handleBan(item.id, GO_BOOL.yes)}
+                >
+                  封禁
+                </Button>
+              )}
+              <Dropdown
+                overlay={
+                  <Menu onClick={({ key }) => handleKick(item.id, key)}>
+                    {item.group.map((item) => (
+                      <Menu.Item
+                        key={item.id}
+                        title={`将会移除该用户及其卡片的${item.name}组关联`}
+                      >
+                        {item.name}
+                      </Menu.Item>
+                    ))}
+                    <Menu.Item key='-1' title='将会注销该用户所有信息'>
+                      VCB-S
+                    </Menu.Item>
+                  </Menu>
+                }
+              >
+                <Button type='danger' ghost>
+                  踢出
+                  <DownOutlined />
+                </Button>
+              </Dropdown>
+            </Space>
           );
         },
       },
     ];
-  }, [editHandle]);
+  }, [handleBan]);
 
   return (
     <div className={styles.wrap}>
@@ -130,6 +147,7 @@ export default function PagePerson() {
         dataSource={userList.data}
         columns={columns}
         loading={tableLoading}
+        scroll={tableSize}
       />
     </div>
   );

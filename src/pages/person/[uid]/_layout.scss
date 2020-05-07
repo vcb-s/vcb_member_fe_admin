@@ -15,6 +15,7 @@ $dark-color: #001529;
   background-color: $dark-color;
   height: 100%;
   overflow: auto;
+  flex-shrink: 0;
 
   :global {
     .ant-menu-inline .ant-menu-item {

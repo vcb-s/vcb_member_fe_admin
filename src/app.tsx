@@ -1,11 +1,8 @@
 import React from 'react';
-// import { message } from 'antd';
+import { ConfigProvider } from 'antd';
+import zhCN from 'antd/es/locale/zh_CN';
 
 import poyfill from '@/utils/asyncPoyfill';
-
-// message.config({
-//   maxCount: 3,
-// });
 
 export function render(oldRender: () => any) {
   poyfill().then(() => {
@@ -14,7 +11,7 @@ export function render(oldRender: () => any) {
 }
 
 const Root: React.FC = function Root({ children }) {
-  return <>{children}</>;
+  return <ConfigProvider locale={zhCN}>{children}</ConfigProvider>;
 };
 
 export function rootContainer(container: any) {

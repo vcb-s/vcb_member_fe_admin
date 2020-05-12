@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useCallback } from 'react';
+import React, { useEffect, useMemo, useCallback, useState } from 'react';
 import { useRouteMatch, useDispatch, useSelector, PersonModel } from 'umi';
+import { useThrottle, useCustomCompareEffect } from 'react-use';
 
 import {
   Typography,
@@ -10,6 +11,9 @@ import {
   Dropdown,
   Space,
   Menu,
+  Popconfirm,
+  Modal,
+  Input,
 } from 'antd';
 import { DownOutlined } from '@ant-design/icons';
 import { ColumnsType } from 'antd/lib/table';
@@ -37,8 +41,46 @@ export default function PagePerson() {
     ),
   );
 
-  const handleBan = useCallback((id: string, ban: GO_BOOL) => {}, []);
-  const handleKick = useCallback((uid: string, groupID: string) => {}, []);
+  const handleBan = useCallback(
+    (uid: string, ban: GO_BOOL) => {
+      dispatch(
+        PersonModel.createAction(PersonModel.ActionType.updatePersonInfo)({
+          uid,
+          ban,
+        }),
+      );
+    },
+    [dispatch],
+  );
+
+  const handleKick = useCallback(
+    (groupID: string, item: PersonInfo.Item) => {
+      let groupName = '未知';
+
+      console.log('what is groupID', groupID, item);
+
+      item.group.forEach((group) => {
+        if (`${group.id}` === groupID) {
+          groupName = group.name;
+        }
+      });
+
+      Modal.confirm({
+        title: `将会移除该用户及其卡片的${groupName}组关联`,
+        centered: true,
+        keyboard: true,
+        onOk: () => {
+          dispatch(
+            PersonModel.createAction(PersonModel.ActionType.kickoffPerson)({
+              uid: item.id,
+              group: groupID,
+            }),
+          );
+        },
+      });
+    },
+    [dispatch],
+  );
 
   useEffect(() => {
     if (personInfo.id !== uid) {
@@ -48,7 +90,30 @@ export default function PagePerson() {
     }
   }, [dispatch, personInfo.id, uid]);
 
-  const editHandle = useCallback(() => {}, []);
+  const [keyword, setKeyword] = useState('');
+  const throttledKeyword = useThrottle(keyword);
+  const filtedUserData = useMemo(() => {
+    return userList.data.filter((user) => {
+      if (
+        user.id === throttledKeyword ||
+        user.nickname.indexOf(throttledKeyword) > -1
+      ) {
+        return true;
+      }
+
+      return false;
+    });
+  }, [throttledKeyword, userList.data]);
+  const filtedUserGroupMap = useMemo(() => {
+    const resultMap = new Map();
+    filtedUserData.forEach((user) => {
+      user.group.forEach((group) => {
+        resultMap.set(group.id, group.name);
+      });
+    });
+
+    return resultMap;
+  }, [filtedUserData]);
 
   const columns = useMemo<ColumnsType<PersonInfo.Item>>(() => {
     return [
@@ -66,6 +131,16 @@ export default function PagePerson() {
         title: '组别',
         dataIndex: 'group',
         align: 'center',
+        filters: [...filtedUserGroupMap.keys()].map((id) => ({
+          text: filtedUserGroupMap.get(id),
+          value: id,
+        })),
+        onFilter: (value, record) => {
+          for (const group of record.group) {
+            if (group.id === value) return true;
+          }
+          return false;
+        },
         render: (groups: Group.Item[]) => {
           return groups.map((group) => (
             <Tag.CheckableTag checked key={group.key}>
@@ -89,41 +164,47 @@ export default function PagePerson() {
         title: '操作',
         key: 'action',
         align: 'center',
-        render: (item: PersonInfo.Item) => {
+        render: (person: PersonInfo.Item) => {
           return (
             <Space>
-              {/* <Checkbox checked={item.ban === GO_BOOL.yes}>封禁</Checkbox> */}
-              {item.ban === GO_BOOL.yes ? (
-                <Button
-                  type='primary'
-                  ghost
-                  onClick={() => handleBan(item.id, GO_BOOL.no)}
-                >
-                  解封
-                </Button>
-              ) : (
-                <Button
-                  type='danger'
-                  ghost
-                  onClick={() => handleBan(item.id, GO_BOOL.yes)}
-                >
-                  封禁
-                </Button>
-              )}
+              <Popconfirm title='确定？'>
+                {person.ban === GO_BOOL.yes ? (
+                  <Button
+                    type='primary'
+                    ghost
+                    onClick={() => handleBan(person.id, GO_BOOL.no)}
+                    loading={!!person.loading}
+                  >
+                    解封
+                  </Button>
+                ) : (
+                  <Button
+                    type='danger'
+                    ghost
+                    onClick={() => handleBan(person.id, GO_BOOL.yes)}
+                    loading={!!person.loading}
+                  >
+                    封禁
+                  </Button>
+                )}
+              </Popconfirm>
               <Dropdown
                 overlay={
-                  <Menu onClick={({ key }) => handleKick(item.id, key)}>
-                    {item.group.map((item) => (
+                  <Menu
+                    onClick={({ key: groupID }) => handleKick(groupID, person)}
+                  >
+                    {person.group.map((group) => (
                       <Menu.Item
-                        key={item.id}
-                        title={`将会移除该用户及其卡片的${item.name}组关联`}
+                        key={group.id}
+                        disabled={!!person.loading}
+                        title={`将会移除该用户及其卡片的${group.name}组关联`}
                       >
-                        {item.name}
+                        {group.name}
                       </Menu.Item>
                     ))}
-                    <Menu.Item key='-1' title='将会注销该用户所有信息'>
+                    {/* <Menu.Item key='-1' title='将会注销该用户所有信息'>
                       VCB-S
-                    </Menu.Item>
+                    </Menu.Item> */}
                   </Menu>
                 }
               >
@@ -137,14 +218,22 @@ export default function PagePerson() {
         },
       },
     ];
-  }, [handleBan]);
+  }, [filtedUserGroupMap, handleBan, handleKick]);
 
   return (
     <div className={styles.wrap}>
       <Typography.Title level={4}>我的组员</Typography.Title>
+      <Space style={{ marginBottom: 16 }}>
+        <Input.Search
+          value={keyword}
+          onChange={(evt) => setKeyword(evt.target.value)}
+          placeholder='可搜索 用户id/昵称'
+          onSearch={setKeyword}
+        />
+      </Space>
       <Table
         className={styles.table}
-        dataSource={userList.data}
+        dataSource={filtedUserData}
         columns={columns}
         loading={tableLoading}
         scroll={tableSize}

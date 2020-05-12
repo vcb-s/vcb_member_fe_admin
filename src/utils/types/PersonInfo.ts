@@ -18,5 +18,6 @@ export namespace PersonInfo {
     admin: Group.Item[];
     /** 分组ID */
     group: Group.Item[];
+    loading?: boolean;
   }
 }

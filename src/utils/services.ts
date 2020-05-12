@@ -91,5 +91,25 @@ export namespace Services {
         params,
       });
     };
+    export interface UpdateParam extends Partial<PersonInfo.ItemInResponse> {
+      uid: string;
+    }
+    export const update = (data: UpdateParam) => {
+      return request('/admin/updateUser', {
+        method: 'post',
+        data,
+      });
+    };
+
+    export interface KickOffParam {
+      uid: string;
+      group: string;
+    }
+    export const kickoff = (data: KickOffParam) => {
+      return request('/admin/kickoff', {
+        method: 'post',
+        data,
+      });
+    };
   }
 }

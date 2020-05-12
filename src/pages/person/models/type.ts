@@ -12,6 +12,19 @@ export namespace PersonModel {
     getPersonInfo = 'getPersonInfo',
     getPersonInfoSuccess = 'getPersonInfoSuccess',
     getPersonInfoFail = 'getPersonInfoFail',
+
+    /** 更新指定人员信息 */
+    updatePersonInfo = 'updatePersonInfo',
+    updatePersonInfoSuccess = 'updatePersonInfoSuccess',
+    updatePersonInfoFail = 'updatePersonInfoFail',
+
+    /** 将指定人员踢出指定组别 */
+    kickoffPerson = 'kickoffPerson',
+    kickoffPersonSuccess = 'kickoffPersonSuccess',
+    kickoffPersonFail = 'kickoffPersonFail',
+
+    /** 修改指定人员的loading状态 */
+    toggleLoadingForPerson = 'toggleLoadingForPerson',
   }
 
   export interface Payload {
@@ -25,6 +38,23 @@ export namespace PersonModel {
       group: Group.Item[];
     };
     [ActionType.getPersonInfoFail]: { error: Error };
+
+    [ActionType.updatePersonInfo]: { uid: string } & Partial<
+      PersonInfo.ItemInResponse
+    >;
+    [ActionType.updatePersonInfoSuccess]: undefined;
+    [ActionType.updatePersonInfoFail]: { error: Error };
+
+    [ActionType.kickoffPerson]: {
+      uid: string;
+      group: string;
+    };
+    [ActionType.kickoffPersonSuccess]: {
+      uid: string;
+      group: string;
+    };
+    [ActionType.kickoffPersonFail]: { error: Error };
+    [ActionType.toggleLoadingForPerson]: { loading?: boolean };
   }
   export interface State {
     personInfo: PersonInfo.Item;

@@ -114,7 +114,11 @@ const reducers: Partial<Record<AppModels.ActionType, Reducer<State>>> = {
     state,
     { payload }: Action<Payload[AppModels.ActionType.getGroupSuccess]>,
   ) {
-    state.group.data = payload.data.map((i) => ({ ...i, key: i.id }));
+    state.group.data = payload.data.map((i) => ({
+      ...i,
+      id: `${i.id}`,
+      key: `${i.id}`,
+    }));
   },
   [AppModels.ActionType.getGroupFail]() {},
 

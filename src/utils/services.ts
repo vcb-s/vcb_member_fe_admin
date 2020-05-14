@@ -35,6 +35,16 @@ export namespace Services {
         method: 'post',
       });
     };
+
+    export type ResetPass = Partial<UserCard.ItemInResponse> & {
+      id: UserCard.ItemInResponse['id'];
+    };
+    export const resetPass = (data: ResetPass) => {
+      return request('/admin/resetPass', {
+        data,
+        method: 'post',
+      });
+    };
   }
   export namespace TinyUserList {
     export type ReadResponse = ResponseData.Ok<{

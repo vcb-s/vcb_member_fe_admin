@@ -67,6 +67,18 @@ $logo-height: (54px * 0.8);
     background-color: $dark-color;
     height: ($logo-height + 10px * 2);
     flex-grow: 0;
+    padding-right: 10px;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+
+    color: #fff;
+
+    .clickAble {
+      cursor: pointer;
+    }
   }
 
   .footer {

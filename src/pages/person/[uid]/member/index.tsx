@@ -179,7 +179,7 @@ export default function PagePerson() {
                   </Button>
                 ) : (
                   <Button
-                    type='danger'
+                    danger
                     ghost
                     onClick={() => handleBan(person.id, GO_BOOL.yes)}
                     loading={!!person.loading}
@@ -208,7 +208,7 @@ export default function PagePerson() {
                   </Menu>
                 }
               >
-                <Button type='danger' ghost>
+                <Button danger ghost>
                   踢出
                   <DownOutlined />
                 </Button>

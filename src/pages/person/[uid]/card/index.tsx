@@ -112,7 +112,7 @@ const PagePersonCard: React.FC = function PagePersonCard() {
               <Button ghost type='primary' onClick={() => editHandle(item.id)}>
                 编辑
               </Button>
-              {/* <Button ghost type='danger'>
+              {/* <Button ghost danger>
               删除
             </Button> */}
             </Button.Group>

@@ -14,7 +14,7 @@ export default defineConfig({
 
   hash: true,
   dynamicImport: {},
-  forkTSCheker: {},
+  forkTSChecker: {},
   nodeModulesTransform: { type: 'none' },
   favicon: `${cdnHost}/wp-content/customRes/favicon@180.png`,
 

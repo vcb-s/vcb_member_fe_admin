@@ -94,7 +94,7 @@ const PagePersonCard: React.FC = function PagePersonCard() {
               {item.hide === GO_BOOL.no ? '可见' : '隐藏'}
             </Tag.CheckableTag>
             <Tag.CheckableTag checked={item.retired === GO_BOOL.no}>
-              {item.hide === GO_BOOL.no ? '活跃' : '退休'}
+              {item.hide === GO_BOOL.no ? '活跃中' : '退休'}
             </Tag.CheckableTag>
           </Space>
         ),

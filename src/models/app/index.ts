@@ -1,14 +1,11 @@
-import { produce } from 'immer';
 import { message } from 'antd';
 
 import type { Action, Reducer, Effect } from '@/utils/types';
 import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
-import { UserCard } from '@/utils/types/UserCard';
 import { emptyList } from '@/utils/types/CommonList';
-import { webpDetect } from '@/utils/webpDetect';
 import { Services } from '@/utils/services';
 import { ModelAdapter } from '@/utils/modelAdapter';
-import { AppModels } from './AppModels';
+import * as AppModels from './AppModels';
 export { AppModels };
 const { namespace, currentState } = AppModels;
 

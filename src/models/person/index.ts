@@ -3,7 +3,7 @@ import { AppModels } from 'umi';
 
 import { Action, Reducer, Effect, GO_BOOL } from '@/utils/types';
 import { Services } from '@/utils/services';
-import { PersonModel } from './type';
+import * as PersonModel from './type';
 import { emptyList } from '@/utils/types/CommonList';
 import { ModelAdapter } from '@/utils/modelAdapter';
 

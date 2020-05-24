@@ -1,54 +1,52 @@
-export namespace PersonModel {
-  export const namespace = 'pages.login';
-  export enum ActionType {
-    reset = 'reset',
-    fieldChange = 'fieldChange',
-    loginWithPass = 'loginWithPass',
-    loginWithPassSuccess = 'loginWithPassSuccess',
-    loginWithPassFail = 'loginWithPassFail',
-  }
+export const namespace = 'pages.login';
+export enum ActionType {
+  reset = 'reset',
+  fieldChange = 'fieldChange',
+  loginWithPass = 'loginWithPass',
+  loginWithPassSuccess = 'loginWithPassSuccess',
+  loginWithPassFail = 'loginWithPassFail',
+}
 
-  const privateSymbol = Symbol();
+const privateSymbol = Symbol();
 
-  export function fieldChangePayloadCreator<F extends keyof State['form']>(
-    form: F,
-  ) {
-    return <N extends keyof State['form'][F]>(name: N) => {
-      return <V extends State['form'][F][N]>(value: V) => {
-        return {
-          /** 用来限制一定要用creator创建 */
-          _symbol: privateSymbol,
-          form,
-          name,
-          value,
-        };
+export function fieldChangePayloadCreator<F extends keyof State['form']>(
+  form: F,
+) {
+  return <N extends keyof State['form'][F]>(name: N) => {
+    return <V extends State['form'][F][N]>(value: V) => {
+      return {
+        /** 用来限制一定要用creator创建 */
+        _symbol: privateSymbol,
+        form,
+        name,
+        value,
       };
-    };
-  }
-
-  export interface Payload {
-    [ActionType.reset]: undefined;
-    /** form修改payload，约定使用fieldChangePayloadCreator创建 */
-    [ActionType.fieldChange]: ReturnType<
-      ReturnType<ReturnType<typeof fieldChangePayloadCreator>>
-    >;
-    [ActionType.loginWithPass]: undefined;
-    [ActionType.loginWithPassSuccess]: undefined;
-    [ActionType.loginWithPassFail]: { err: Error };
-  }
-  export interface State {
-    form: {
-      login: {
-        id: string;
-        pass: string;
-        remember: boolean;
-      };
-    };
-  }
-  export const createAction = <K extends keyof Payload>(key: K) => {
-    return (payload: Payload[K]) => {
-      return { type: `${namespace}/${key}`, payload: payload };
     };
   };
-  export const currentState = (_: any): State => _[namespace];
 }
+
+export interface Payload {
+  [ActionType.reset]: undefined;
+  /** form修改payload，约定使用fieldChangePayloadCreator创建 */
+  [ActionType.fieldChange]: ReturnType<
+    ReturnType<ReturnType<typeof fieldChangePayloadCreator>>
+  >;
+  [ActionType.loginWithPass]: undefined;
+  [ActionType.loginWithPassSuccess]: undefined;
+  [ActionType.loginWithPassFail]: { err: Error };
+}
+export interface State {
+  form: {
+    login: {
+      id: string;
+      pass: string;
+      remember: boolean;
+    };
+  };
+}
+export const createAction = <K extends keyof Payload>(key: K) => {
+  return (payload: Payload[K]) => {
+    return { type: `${namespace}/${key}`, payload: payload };
+  };
+};
+export const currentState = (_: any): State => _[namespace];

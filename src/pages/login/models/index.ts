@@ -6,7 +6,7 @@ import { Services } from '@/utils/services';
 import { MAGIC } from '@/utils/constant';
 import { token } from '@/utils/token';
 import { AppModels } from '@/models/app';
-import { PersonModel } from './utils';
+import * as PersonModel from './utils';
 
 export { PersonModel as LoginModel };
 

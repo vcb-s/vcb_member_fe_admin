@@ -1,8 +1,9 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useSelector, NavLink, useParams, PersonModel } from 'umi';
-import { Menu, Avatar, Space, Dropdown, message, Modal } from 'antd';
+import { Menu, Avatar, Space, Dropdown, message, Modal, Tooltip } from 'antd';
 import { SelectParam } from 'antd/lib/menu';
 import { ApartmentOutlined, IdcardOutlined } from '@ant-design/icons';
+import CopyToClipboard from 'react-copy-to-clipboard';
 
 import styles from './_layout.scss';
 
@@ -60,9 +61,43 @@ const MenuSide: React.FC = function () {
 const PersonLaylout: React.FC = function PersonLaylout({ children }) {
   const personState = useSelector(PersonModel.currentState);
 
-  // const loginHandle = useCallback(() => {}, []);
-  const logoutHandle = useCallback(() => {}, []);
-  const resetPassHandle = useCallback(() => {}, []);
+  const logoutHandle = useCallback(() => {
+    Modal.confirm({
+      title: '退出登录？',
+      centered: true,
+      onOk: () => {
+        message.error('developing');
+      },
+    });
+  }, []);
+  const resetPassHandle = useCallback(() => {
+    Modal.confirm({
+      title: '重置登录密码？',
+      content: '密码将会重置为新的4位数字',
+      centered: true,
+      onOk: () => {
+        Modal.success({
+          title: '重置成功',
+          centered: true,
+          content: (
+            <>
+              新的密码为：
+              <CopyToClipboard text='9999'>
+                <Tooltip
+                  placement='topLeft'
+                  overlay='点击复制'
+                  mouseEnterDelay={0}
+                >
+                  <span className={styles.passCopyBtn}>9999</span>
+                </Tooltip>
+              </CopyToClipboard>
+              , 该密码只会出现一次，请在保存之后再关闭弹窗
+            </>
+          ),
+        });
+      },
+    });
+  }, []);
   const menuChangeHandle = useCallback(
     ({ key }: { key: string }) => {
       switch (key) {

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useCallback, useState } from 'react';
 import { useRouteMatch, useDispatch, useSelector, PersonModel } from 'umi';
-import { useThrottle, useCustomCompareEffect } from 'react-use';
+import { useThrottle } from 'react-use';
 
 import {
   Typography,
@@ -25,8 +25,6 @@ import { PageParam } from '@/pages/person/[uid]/types';
 import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
 
 import styles from './index.scss';
-
-const tableSize = { y: 400 };
 
 export default function PagePerson() {
   const match = useRouteMatch<PageParam>();
@@ -56,8 +54,6 @@ export default function PagePerson() {
   const handleKick = useCallback(
     (groupID: string, item: PersonInfo.Item) => {
       let groupName = '未知';
-
-      console.log('what is groupID', groupID, item);
 
       item.group.forEach((group) => {
         if (`${group.id}` === groupID) {
@@ -143,7 +139,11 @@ export default function PagePerson() {
         },
         render: (groups: Group.Item[]) => {
           return groups.map((group) => (
-            <Tag.CheckableTag checked key={group.key}>
+            <Tag.CheckableTag
+              checked
+              key={group.key}
+              className={styles.notClickable}
+            >
               {group.name}
             </Tag.CheckableTag>
           ));
@@ -236,7 +236,6 @@ export default function PagePerson() {
         dataSource={filtedUserData}
         columns={columns}
         loading={tableLoading}
-        scroll={tableSize}
       />
     </div>
   );

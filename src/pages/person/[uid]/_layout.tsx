@@ -1,18 +1,61 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { useDispatch, useSelector, NavLink, useParams, PersonModel } from 'umi';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import {
+  useDispatch,
+  useSelector,
+  NavLink,
+  useParams,
+  PersonModel,
+  useLocation,
+} from 'umi';
 import { Menu, Avatar, Space, Dropdown, message, Modal, Tooltip } from 'antd';
 import { SelectParam } from 'antd/lib/menu';
 import { ApartmentOutlined, IdcardOutlined } from '@ant-design/icons';
 import CopyToClipboard from 'react-copy-to-clipboard';
+import { compile } from 'path-to-regexp';
 
 import styles from './_layout.scss';
 
-const defaultSelectedKeys: string[] = ['1'];
-const defaultOpenKeys: string[] = [];
+class MenuData {
+  public readonly menuData = [
+    {
+      Icon: IdcardOutlined,
+      router: '/person/:uid/card',
+      name: '我的卡片' as const,
+    },
+    {
+      Icon: ApartmentOutlined,
+      router: '/person/:uid/member',
+      name: '我的组员' as const,
+    },
+  ].map((menu) => ({
+    ...menu,
+    key: menu.router,
+    toPath: compile<{ uid: string }>(menu.router, {
+      encode: encodeURIComponent,
+    }),
+  }));
+}
 
 const MenuSide: React.FC = function () {
-  const [selectedKeys, setSelectedKeys] = useState(defaultSelectedKeys);
-  const [openKeys, setOpenKeys] = useState(defaultOpenKeys);
+  const { uid = '' } = useParams();
+  const location = useLocation();
+
+  const menuData = useMemo(() => {
+    return new MenuData().menuData.map((menuItem) => ({
+      ...menuItem,
+      presetPath: menuItem.toPath({ uid }),
+    }));
+  }, [uid]);
+
+  const [selectedKeys, setSelectedKeys] = useState(() => {
+    for (const menuItem of menuData) {
+      if (menuItem.presetPath === location.pathname) {
+        return [menuItem.key];
+      }
+    }
+
+    return [menuData[0].key];
+  });
 
   const selectHandle = useCallback(
     ({ selectedKeys: selected }: SelectParam) => {
@@ -21,7 +64,19 @@ const MenuSide: React.FC = function () {
     [],
   );
 
-  const { uid } = useParams();
+  useEffect(() => {
+    for (const menuItem of menuData) {
+      if (menuItem.presetPath === location.pathname) {
+        if (menuItem.key === selectedKeys[0]) {
+          return;
+        }
+        setSelectedKeys([menuItem.key]);
+        return;
+      }
+    }
+  }, [location.pathname, menuData, selectedKeys]);
+
+  console.log('MenuSide render', menuData[0].presetPath);
 
   return (
     <div className={styles.menuWrap}>
@@ -36,23 +91,17 @@ const MenuSide: React.FC = function () {
         theme='dark'
         className={styles.menu}
         selectedKeys={selectedKeys}
-        openKeys={openKeys}
-        onOpenChange={setOpenKeys}
         onSelect={selectHandle}
         mode='inline'
       >
-        <Menu.Item key='1'>
-          <NavLink to={`/person/${uid}/card`}>
-            <IdcardOutlined />
-            我的卡片
-          </NavLink>
-        </Menu.Item>
-        <Menu.Item key='2'>
-          <NavLink to={`/person/${uid}/member`}>
-            <ApartmentOutlined />
-            我的组员
-          </NavLink>
-        </Menu.Item>
+        {menuData.map((menuItem) => (
+          <Menu.Item key={menuItem.key}>
+            <NavLink to={menuItem.presetPath} replace>
+              <menuItem.Icon />
+              {menuItem.name}
+            </NavLink>
+          </Menu.Item>
+        ))}
       </Menu>
     </div>
   );

@@ -1,12 +1,13 @@
-import { message } from 'antd';
-import { AppModels } from 'umi';
+import { message, Modal } from 'antd';
+import { AppModels, history } from 'umi';
 
 import { Action, Reducer, Effect, GO_BOOL } from '@/utils/types';
 import { Services } from '@/utils/services';
-import * as PersonModel from './type';
 import { emptyList } from '@/utils/types/CommonList';
 import { ModelAdapter } from '@/utils/modelAdapter';
+import { token } from '@/utils/token';
 
+import * as PersonModel from './type';
 export { PersonModel };
 
 const { namespace, currentState } = PersonModel;
@@ -120,6 +121,57 @@ const effects: Partial<Record<PersonModel.ActionType, Effect>> = {
         createAction(PersonModel.ActionType.kickoffPersonFail)({ error }),
       );
     }
+  },
+
+  *[PersonModel.ActionType.logout](
+    { payload }: Action<Payload['logout']>,
+    { put, call },
+  ) {
+    try {
+      yield call(
+        () =>
+          new Promise((resolve, reject) => {
+            Modal.confirm({
+              title: '退出登录？',
+              centered: true,
+              onOk: () => resolve(),
+              onCancel: () => reject(),
+            });
+          }),
+      );
+    } catch (e) {
+      return;
+    }
+
+    console.log('what is his', history);
+    debugger;
+
+    token.clear();
+
+    history.replace('/login');
+  },
+
+  *[PersonModel.ActionType.restPass](
+    { payload }: Action<Payload['logout']>,
+    { put, call },
+  ) {
+    try {
+      yield call(
+        () =>
+          new Promise((resolve, reject) => {
+            Modal.confirm({
+              title: '退出登录？',
+              centered: true,
+              onOk: () => resolve(),
+              onCancel: () => reject(),
+            });
+          }),
+      );
+    } catch (e) {
+      return;
+    }
+
+    message.warn('debug');
   },
 };
 

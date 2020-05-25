@@ -23,6 +23,14 @@ export enum ActionType {
 
   /** 修改指定人员的loading状态 */
   toggleLoadingForPerson = 'toggleLoadingForPerson',
+
+  /** 退出登录 */
+  logout = 'logout',
+
+  /** 重置登录密码 */
+  restPass = 'restPass',
+  restPassSuccess = 'restPassSuccess',
+  restPassFail = 'restPassFail',
 }
 
 export interface Payload {
@@ -53,6 +61,12 @@ export interface Payload {
   };
   [ActionType.kickoffPersonFail]: { error: Error };
   [ActionType.toggleLoadingForPerson]: { loading?: boolean };
+
+  [ActionType.logout]: undefined;
+
+  [ActionType.restPass]: undefined;
+  [ActionType.restPassSuccess]: undefined;
+  [ActionType.restPassFail]: undefined;
 }
 export interface State {
   personInfo: PersonInfo.Item;

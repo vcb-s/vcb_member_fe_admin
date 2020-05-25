@@ -61,7 +61,7 @@ const effects: Partial<Record<PersonModel.ActionType, Effect>> = {
 
       yield call(Services.Login.login, param);
       message.success('登录成功');
-      history.push(`/person/${param.uid}`);
+      history.replace(`/person/${param.uid}`);
       if (remember) {
         localStorage.setItem(MAGIC.AuthToken, token.token);
       }
@@ -87,6 +87,12 @@ const reducers: Partial<Record<PersonModel.ActionType, Reducer<State>>> = {
   ) {
     // @ts-ignore
     state.form[payload.form][payload.name] = payload.value;
+  },
+  [PersonModel.ActionType.loginWithPassSuccess](
+    state,
+    { payload }: Action<Payload['loginWithPassSuccess']>,
+  ) {
+    state.form.login.pass = '';
   },
 };
 

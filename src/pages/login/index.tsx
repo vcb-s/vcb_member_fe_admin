@@ -125,6 +125,8 @@ const Login = function Login() {
             <Input
               value={loginState.form.login.pass}
               onChange={passChangeHandle}
+              autoFocus
+              onPressEnter={loginHandle}
             />
           </Form.Item>
           <Form.Item style={{ textAlign: 'right' }}>

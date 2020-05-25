@@ -1,6 +1,8 @@
 import { MAGIC } from '@/utils/constant';
 
 class Token {
+  private _token: string = localStorage.getItem(MAGIC.AuthToken) || '';
+
   get token() {
     return this._token || '';
   }
@@ -8,7 +10,11 @@ class Token {
     this._token = token || '';
   }
 
-  private _token: string = localStorage.getItem(MAGIC.AuthToken) || '';
+  /** 清楚本地关于token的储存 */
+  public clear() {
+    this._token = '';
+    localStorage.removeItem(MAGIC.AuthToken);
+  }
 }
 
 export const token = new Token();

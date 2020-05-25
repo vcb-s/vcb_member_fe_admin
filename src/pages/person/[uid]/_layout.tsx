@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { useSelector, NavLink, useParams, PersonModel } from 'umi';
+import { useDispatch, useSelector, NavLink, useParams, PersonModel } from 'umi';
 import { Menu, Avatar, Space, Dropdown, message, Modal, Tooltip } from 'antd';
 import { SelectParam } from 'antd/lib/menu';
 import { ApartmentOutlined, IdcardOutlined } from '@ant-design/icons';
@@ -60,16 +60,13 @@ const MenuSide: React.FC = function () {
 
 const PersonLaylout: React.FC = function PersonLaylout({ children }) {
   const personState = useSelector(PersonModel.currentState);
+  const dispatch = useDispatch();
 
   const logoutHandle = useCallback(() => {
-    Modal.confirm({
-      title: '退出登录？',
-      centered: true,
-      onOk: () => {
-        message.error('developing');
-      },
-    });
-  }, []);
+    dispatch(
+      PersonModel.createAction(PersonModel.ActionType.logout)(undefined),
+    );
+  }, [dispatch]);
   const resetPassHandle = useCallback(() => {
     Modal.confirm({
       title: '重置登录密码？',

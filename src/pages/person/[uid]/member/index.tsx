@@ -40,11 +40,11 @@ export default function PagePerson() {
   );
 
   const handleBan = useCallback(
-    (uid: string, ban: GO_BOOL) => {
+    (uid: string, current: GO_BOOL) => {
       dispatch(
         PersonModel.createAction(PersonModel.ActionType.updatePersonInfo)({
           uid,
-          ban,
+          ban: current === GO_BOOL.yes ? GO_BOOL.no : GO_BOOL.yes,
         }),
       );
     },
@@ -167,23 +167,16 @@ export default function PagePerson() {
         render: (person: PersonInfo.Item) => {
           return (
             <Space>
-              <Popconfirm title='确定？'>
+              <Popconfirm
+                title='确定？'
+                onConfirm={() => handleBan(person.id, person.ban)}
+              >
                 {person.ban === GO_BOOL.yes ? (
-                  <Button
-                    type='primary'
-                    ghost
-                    onClick={() => handleBan(person.id, GO_BOOL.no)}
-                    loading={!!person.loading}
-                  >
+                  <Button type='primary' ghost loading={!!person.loading}>
                     解封
                   </Button>
                 ) : (
-                  <Button
-                    danger
-                    ghost
-                    onClick={() => handleBan(person.id, GO_BOOL.yes)}
-                    loading={!!person.loading}
-                  >
+                  <Button danger ghost loading={!!person.loading}>
                     封禁
                   </Button>
                 )}

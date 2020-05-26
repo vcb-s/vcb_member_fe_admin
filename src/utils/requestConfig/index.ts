@@ -11,5 +11,8 @@ export const config: RequestConfig = {
     adaptor: responseAdaptor.errorConfigAdaptor,
   },
   requestInterceptors: [requestInterceptors.tokenInterceptor],
-  responseInterceptors: [responseInterceptors.tokenInterceptor],
+  responseInterceptors: [
+    responseInterceptors.loginInterceptor,
+    responseInterceptors.tokenInterceptor,
+  ],
 };

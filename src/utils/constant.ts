@@ -39,6 +39,9 @@ export const empty = {
 
 export const MAGIC = {
   AuthToken: 'AuthToken',
+
+  /** 登陆页登陆后跳转链接关键字 */
+  loginPageNavQueryKey: 'nav',
 };
 
 export const color = {

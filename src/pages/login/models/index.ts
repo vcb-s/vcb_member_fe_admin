@@ -1,5 +1,6 @@
 import { message } from 'antd';
 import { history } from 'umi';
+import { parse } from 'query-string';
 
 import type { Action, Reducer, Effect } from '@/utils/types';
 import { Services } from '@/utils/services';
@@ -61,7 +62,18 @@ const effects: Partial<Record<PersonModel.ActionType, Effect>> = {
 
       yield call(Services.Login.login, param);
       message.success('登录成功');
-      history.replace(`/person/${param.uid}`);
+      const { search } = history.location;
+      const query = parse(search);
+      let navQuery = query[MAGIC.loginPageNavQueryKey];
+
+      if (Array.isArray(navQuery)) {
+        navQuery = navQuery.pop();
+      }
+
+      const navURL = navQuery ? JSON.parse(navQuery) : `/person/${param.uid}`;
+
+      history.replace(navURL);
+
       if (remember) {
         localStorage.setItem(MAGIC.AuthToken, token.token);
       }

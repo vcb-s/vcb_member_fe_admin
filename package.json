@@ -16,6 +16,7 @@
   "dependencies": {
     "classnames": "^2.2.6",
     "path-to-regexp": "^6.1.0",
+    "query-string": "^6.12.1",
     "react": "^16.13.1",
     "react-copy-to-clipboard": "^5.0.2",
     "react-dom": "^16.13.1",

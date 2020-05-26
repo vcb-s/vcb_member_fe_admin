@@ -76,8 +76,6 @@ const MenuSide: React.FC = function () {
     }
   }, [location.pathname, menuData, selectedKeys]);
 
-  console.log('MenuSide render', menuData[0].presetPath);
-
   return (
     <div className={styles.menuWrap}>
       <a

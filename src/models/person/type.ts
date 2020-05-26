@@ -72,6 +72,11 @@ export interface State {
   personInfo: PersonInfo.Item;
   cardList: CommonList<UserCard.Item>;
   userList: CommonList<PersonInfo.Item>;
+
+  resetPassSuccessModal: {
+    show: boolean;
+    newPass: string;
+  };
 }
 export const createAction = <K extends keyof Payload>(key: K) => {
   return (payload: Payload[K]) => {

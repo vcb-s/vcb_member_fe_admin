@@ -115,33 +115,10 @@ const PersonLaylout: React.FC = function PersonLaylout({ children }) {
     );
   }, [dispatch]);
   const resetPassHandle = useCallback(() => {
-    Modal.confirm({
-      title: '重置登录密码？',
-      content: '密码将会重置为新的4位数字',
-      centered: true,
-      onOk: () => {
-        Modal.success({
-          title: '重置成功',
-          centered: true,
-          content: (
-            <>
-              新的密码为：
-              <CopyToClipboard text='9999'>
-                <Tooltip
-                  placement='topLeft'
-                  overlay='点击复制'
-                  mouseEnterDelay={0}
-                >
-                  <span className={styles.passCopyBtn}>9999</span>
-                </Tooltip>
-              </CopyToClipboard>
-              , 该密码只会出现一次，请在保存之后再关闭弹窗
-            </>
-          ),
-        });
-      },
-    });
-  }, []);
+    dispatch(
+      PersonModel.createAction(PersonModel.ActionType.restPass)(undefined),
+    );
+  }, [dispatch]);
   const menuChangeHandle = useCallback(
     ({ key }: { key: string }) => {
       switch (key) {
@@ -181,32 +158,62 @@ const PersonLaylout: React.FC = function PersonLaylout({ children }) {
   }, [personState.personInfo.avast]);
 
   return (
-    <main className={styles.main}>
-      <MenuSide />
-      <section className={styles.content}>
-        <header className={styles.header}>
-          <Dropdown
-            className={styles.clickAble}
-            overlay={<Menu onClick={menuChangeHandle}>{menuJsx}</Menu>}
-          >
-            <Space>
-              <Avatar
-                src={personState.personInfo.avast || undefined}
-                shape='circle'
-              />
-              <div>{personState.personInfo.nickname}</div>
-            </Space>
-          </Dropdown>
-        </header>
-        {children}
-        <footer className={styles.footer}>
-          我们的征途是星河大海 Powered By{' '}
-          <a href='https://vcb-s.com' target='_blank'>
-            VCB-Studio
-          </a>
-        </footer>
-      </section>
-    </main>
+    <>
+      <main className={styles.main}>
+        <MenuSide />
+        <section className={styles.content}>
+          <header className={styles.header}>
+            <Dropdown
+              className={styles.clickAble}
+              overlay={<Menu onClick={menuChangeHandle}>{menuJsx}</Menu>}
+            >
+              <Space>
+                <Avatar
+                  src={personState.personInfo.avast || undefined}
+                  shape='circle'
+                />
+                <div>{personState.personInfo.nickname}</div>
+              </Space>
+            </Dropdown>
+          </header>
+          {children}
+          <footer className={styles.footer}>
+            我们的征途是星河大海 Powered By{' '}
+            <a href='https://vcb-s.com' target='_blank'>
+              VCB-Studio
+            </a>
+          </footer>
+        </section>
+      </main>
+
+      <Modal visible={false} centered title='重置用户登录密码'>
+        新的密码为：
+        <CopyToClipboard text={personState.resetPassSuccessModal.newPass}>
+          <Tooltip placement='topLeft' overlay='点击复制' mouseEnterDelay={0}>
+            <span className={styles.passCopyBtn}>
+              {personState.resetPassSuccessModal.newPass}
+            </span>
+          </Tooltip>
+        </CopyToClipboard>
+        , 该密码只会出现一次，请在保存之后再关闭弹窗
+      </Modal>
+
+      <Modal
+        visible={personState.resetPassSuccessModal.show}
+        centered
+        title='重置成功'
+      >
+        新的密码为：
+        <CopyToClipboard text={personState.resetPassSuccessModal.newPass}>
+          <Tooltip placement='topLeft' overlay='点击复制' mouseEnterDelay={0}>
+            <span className={styles.passCopyBtn}>
+              {personState.resetPassSuccessModal.newPass}
+            </span>
+          </Tooltip>
+        </CopyToClipboard>
+        , 该密码只会出现一次，请在保存之后再关闭弹窗
+      </Modal>
+    </>
   );
 };
 

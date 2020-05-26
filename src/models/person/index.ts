@@ -33,6 +33,11 @@ const initalState: State = {
   },
   cardList: emptyList,
   userList: emptyList,
+
+  resetPassSuccessModal: {
+    show: false,
+    newPass: '',
+  },
 };
 
 const effects: Partial<Record<PersonModel.ActionType, Effect>> = {
@@ -160,7 +165,8 @@ const effects: Partial<Record<PersonModel.ActionType, Effect>> = {
         () =>
           new Promise((resolve, reject) => {
             Modal.confirm({
-              title: '退出登录？',
+              title: '重置登录密码？',
+              content: '密码将会重置为新的4位数字',
               centered: true,
               onOk: () => resolve(),
               onCancel: () => reject(),

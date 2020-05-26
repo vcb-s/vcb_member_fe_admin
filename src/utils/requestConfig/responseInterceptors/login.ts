@@ -1,4 +1,5 @@
 import { history } from 'umi';
+import { stringify } from 'query-string';
 import type { ResponseInterceptor } from 'umi-request';
 
 import { MAGIC } from '@/utils/constant';
@@ -21,9 +22,9 @@ export const loginInterceptor: ResponseInterceptor = async function (
 
     history.replace({
       pathname: loginPagePath,
-      search: `${MAGIC.loginPageNavQueryKey}=${encodeURIComponent(
-        JSON.stringify(navDescriptorObject),
-      )}`,
+      search: stringify({
+        [MAGIC.loginPageNavQueryKey]: JSON.stringify(navDescriptorObject),
+      }),
     });
   }
 

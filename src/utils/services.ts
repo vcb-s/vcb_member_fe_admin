@@ -29,7 +29,7 @@ export namespace Services {
     export type UpdateParam = Partial<UserCard.ItemInResponse> & {
       id: UserCard.ItemInResponse['id'];
     };
-    export const update = (data: UpdateParam) => {
+    export const update = (data: UpdateParam): Promise<ResponseData.Ok> => {
       return request('/admin/updateUserCard', {
         data,
         method: 'post',

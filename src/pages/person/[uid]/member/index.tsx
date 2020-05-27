@@ -40,13 +40,18 @@ export default function PagePerson() {
   );
 
   const banHandle = useCallback(
-    (uid: string, current: GO_BOOL) => {
+    (person: PersonInfo.Item) => {
+      const { ban, nickname, id: uid } = person;
       Modal.confirm({
+        title: `${ban === GO_BOOL.yes ? '解封' : '封禁'}该用户: ${nickname}`,
+        okText: ban === GO_BOOL.yes ? '解封' : '封禁',
+        centered: true,
+        okButtonProps: { danger: true, ghost: true },
         onOk: () => {
           dispatch(
             PersonModel.createAction(PersonModel.ActionType.updatePersonInfo)({
               uid,
-              ban: current === GO_BOOL.yes ? GO_BOOL.no : GO_BOOL.yes,
+              ban: ban === GO_BOOL.yes ? GO_BOOL.no : GO_BOOL.yes,
             }),
           );
         },

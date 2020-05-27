@@ -188,32 +188,14 @@ export default function PagePerson() {
           return (
             <Space>
               <Button
-                danger
                 ghost
+                type='primary'
                 loading={!!person.loading}
                 onClick={() => resetPersonPassHandle(person.id)}
               >
                 重置密码
               </Button>
-              {person.ban === GO_BOOL.yes ? (
-                <Button
-                  type='primary'
-                  ghost
-                  loading={!!person.loading}
-                  onClick={() => banHandle(person.id, person.ban)}
-                >
-                  解封
-                </Button>
-              ) : (
-                <Button
-                  danger
-                  ghost
-                  loading={!!person.loading}
-                  onClick={() => banHandle(person.id, person.ban)}
-                >
-                  封禁
-                </Button>
-              )}
+
               <Dropdown
                 overlay={
                   <Menu
@@ -234,11 +216,31 @@ export default function PagePerson() {
                   </Menu>
                 }
               >
-                <Button danger ghost>
+                <Button ghost type='primary'>
                   踢出
                   <DownOutlined />
                 </Button>
               </Dropdown>
+
+              {person.ban === GO_BOOL.yes ? (
+                <Button
+                  ghost
+                  type='primary'
+                  loading={!!person.loading}
+                  onClick={() => banHandle(person)}
+                >
+                  解封
+                </Button>
+              ) : (
+                <Button
+                  danger
+                  ghost
+                  loading={!!person.loading}
+                  onClick={() => banHandle(person)}
+                >
+                  封禁
+                </Button>
+              )}
             </Space>
           );
         },

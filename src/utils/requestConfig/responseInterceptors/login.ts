@@ -13,7 +13,7 @@ export const loginInterceptor: ResponseInterceptor = async function (
   const { pathname, search, hash } = history.location;
   if (
     pathname !== loginPagePath &&
-    response.bodyUsed &&
+    response.ok &&
     (await response.clone().json()).code === 401
   ) {
     // 由于路由前缀的存在不能使用createHref

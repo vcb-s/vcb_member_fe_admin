@@ -39,12 +39,27 @@ export default function PagePerson() {
     ),
   );
 
-  const handleBan = useCallback(
+  const banHandle = useCallback(
     (uid: string, current: GO_BOOL) => {
+      Modal.confirm({
+        onOk: () => {
+          dispatch(
+            PersonModel.createAction(PersonModel.ActionType.updatePersonInfo)({
+              uid,
+              ban: current === GO_BOOL.yes ? GO_BOOL.no : GO_BOOL.yes,
+            }),
+          );
+        },
+      });
+    },
+    [dispatch],
+  );
+
+  const resetPersonPassHandle = useCallback(
+    (uid: string) => {
       dispatch(
-        PersonModel.createAction(PersonModel.ActionType.updatePersonInfo)({
+        PersonModel.createAction(PersonModel.ActionType.restPass)({
           uid,
-          ban: current === GO_BOOL.yes ? GO_BOOL.no : GO_BOOL.yes,
         }),
       );
     },
@@ -167,20 +182,33 @@ export default function PagePerson() {
         render: (person: PersonInfo.Item) => {
           return (
             <Space>
-              <Popconfirm
-                title='确定？'
-                onConfirm={() => handleBan(person.id, person.ban)}
+              <Button
+                danger
+                ghost
+                loading={!!person.loading}
+                onClick={() => resetPersonPassHandle(person.id)}
               >
-                {person.ban === GO_BOOL.yes ? (
-                  <Button type='primary' ghost loading={!!person.loading}>
-                    解封
-                  </Button>
-                ) : (
-                  <Button danger ghost loading={!!person.loading}>
-                    封禁
-                  </Button>
-                )}
-              </Popconfirm>
+                重置密码
+              </Button>
+              {person.ban === GO_BOOL.yes ? (
+                <Button
+                  type='primary'
+                  ghost
+                  loading={!!person.loading}
+                  onClick={() => banHandle(person.id, person.ban)}
+                >
+                  解封
+                </Button>
+              ) : (
+                <Button
+                  danger
+                  ghost
+                  loading={!!person.loading}
+                  onClick={() => banHandle(person.id, person.ban)}
+                >
+                  封禁
+                </Button>
+              )}
               <Dropdown
                 overlay={
                   <Menu
@@ -211,7 +239,7 @@ export default function PagePerson() {
         },
       },
     ];
-  }, [filtedUserGroupMap, handleBan, handleKick]);
+  }, [banHandle, filtedUserGroupMap, handleKick, resetPersonPassHandle]);
 
   return (
     <div className={styles.wrap}>

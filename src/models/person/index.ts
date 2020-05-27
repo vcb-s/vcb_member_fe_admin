@@ -174,7 +174,7 @@ const effects: Partial<Record<PersonModel.ActionType, Effect>> = {
               mask: true,
               maskClosable: false,
               onOk: resolve,
-              onCancel: reject,
+              onCancel: () => reject(),
             });
           }),
       );

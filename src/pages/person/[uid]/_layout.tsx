@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, memo } from 'react';
 import {
   useDispatch,
   useSelector,
@@ -14,6 +14,10 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import { compile } from 'path-to-regexp';
 
 import styles from './_layout.scss';
+enum MenuLevel {
+  all = 0,
+  admin = 1,
+}
 
 class MenuData {
   public readonly menuData = [
@@ -21,11 +25,15 @@ class MenuData {
       Icon: IdcardOutlined,
       router: '/person/:uid/card',
       name: '我的卡片' as const,
+      show: true,
+      level: MenuLevel.all,
     },
     {
       Icon: ApartmentOutlined,
       router: '/person/:uid/member',
       name: '我的组员' as const,
+      show: true,
+      level: MenuLevel.admin,
     },
   ].map((menu) => ({
     ...menu,
@@ -37,15 +45,31 @@ class MenuData {
 }
 
 const MenuSide: React.FC = function () {
+  const personState = useSelector(PersonModel.currentState);
   const { uid = '' } = useParams();
   const location = useLocation();
 
   const menuData = useMemo(() => {
-    return new MenuData().menuData.map((menuItem) => ({
-      ...menuItem,
-      presetPath: menuItem.toPath({ uid }),
-    }));
-  }, [uid]);
+    return new MenuData().menuData
+      .map((menuItem) => ({
+        ...menuItem,
+        presetPath: menuItem.toPath({ uid }),
+      }))
+      .filter((menuItem) => menuItem.show)
+      .filter((menuItem) => {
+        switch (menuItem.level) {
+          case MenuLevel.all: {
+            return true;
+          }
+          case MenuLevel.admin: {
+            return !!personState.personInfo.admin.length;
+          }
+          default: {
+            return false;
+          }
+        }
+      });
+  }, [personState.personInfo.admin.length, uid]);
 
   const [selectedKeys, setSelectedKeys] = useState(() => {
     for (const menuItem of menuData) {

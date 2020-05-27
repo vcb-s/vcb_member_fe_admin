@@ -31,6 +31,9 @@ export enum ActionType {
   restPass = 'restPass',
   restPassSuccess = 'restPassSuccess',
   restPassFail = 'restPassFail',
+
+  /** 关闭重置密码弹层 */
+  closeRSPModel = 'closeRSPModel',
 }
 
 export interface Payload {
@@ -64,9 +67,10 @@ export interface Payload {
 
   [ActionType.logout]: undefined;
 
-  [ActionType.restPass]: undefined;
-  [ActionType.restPassSuccess]: undefined;
+  [ActionType.restPass]: { uid?: PersonInfo.ItemInResponse['id'] };
+  [ActionType.restPassSuccess]: { newPass: string };
   [ActionType.restPassFail]: undefined;
+  [ActionType.closeRSPModel]: undefined;
 }
 export interface State {
   personInfo: PersonInfo.Item;

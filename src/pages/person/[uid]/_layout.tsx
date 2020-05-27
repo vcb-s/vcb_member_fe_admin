@@ -115,9 +115,7 @@ const PersonLaylout: React.FC = function PersonLaylout({ children }) {
     );
   }, [dispatch]);
   const resetPassHandle = useCallback(() => {
-    dispatch(
-      PersonModel.createAction(PersonModel.ActionType.restPass)(undefined),
-    );
+    dispatch(PersonModel.createAction(PersonModel.ActionType.restPass)({}));
   }, [dispatch]);
   const menuChangeHandle = useCallback(
     ({ key }: { key: string }) => {
@@ -135,12 +133,18 @@ const PersonLaylout: React.FC = function PersonLaylout({ children }) {
         //   break;
         // }
         default: {
-          message.error('未知选单');
+          message.error('未知选项');
         }
       }
     },
     [logoutHandle, resetPassHandle],
   );
+
+  const closeRSPModelHandle = useCallback(() => {
+    dispatch(
+      PersonModel.createAction(PersonModel.ActionType.closeRSPModel)(undefined),
+    );
+  }, [dispatch]);
 
   const menuJsx = useMemo((): JSX.Element[] => {
     if (personState.personInfo.avast) {
@@ -186,25 +190,19 @@ const PersonLaylout: React.FC = function PersonLaylout({ children }) {
         </section>
       </main>
 
-      <Modal visible={false} centered title='重置用户登录密码'>
-        新的密码为：
-        <CopyToClipboard text={personState.resetPassSuccessModal.newPass}>
-          <Tooltip placement='topLeft' overlay='点击复制' mouseEnterDelay={0}>
-            <span className={styles.passCopyBtn}>
-              {personState.resetPassSuccessModal.newPass}
-            </span>
-          </Tooltip>
-        </CopyToClipboard>
-        , 该密码只会出现一次，请在保存之后再关闭弹窗
-      </Modal>
-
       <Modal
         visible={personState.resetPassSuccessModal.show}
         centered
         title='重置成功'
+        onOk={closeRSPModelHandle}
+        cancelButtonProps={{ style: { display: 'none' } }}
+        okText='保存好了'
       >
         新的密码为：
-        <CopyToClipboard text={personState.resetPassSuccessModal.newPass}>
+        <CopyToClipboard
+          text={personState.resetPassSuccessModal.newPass}
+          onCopy={() => message.success('复制成功')}
+        >
           <Tooltip placement='topLeft' overlay='点击复制' mouseEnterDelay={0}>
             <span className={styles.passCopyBtn}>
               {personState.resetPassSuccessModal.newPass}

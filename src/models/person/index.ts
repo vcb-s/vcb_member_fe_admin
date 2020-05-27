@@ -157,19 +157,24 @@ const effects: Partial<Record<PersonModel.ActionType, Effect>> = {
   },
 
   *[PersonModel.ActionType.restPass](
-    { payload }: Action<Payload['logout']>,
-    { put, call },
+    { payload }: Action<Payload['restPass']>,
+    { put, call, select },
   ) {
+    const { personInfo }: State = yield select(currentState);
+    let modal: ReturnType<typeof Modal.confirm> | undefined;
+
     try {
       yield call(
         () =>
           new Promise((resolve, reject) => {
-            Modal.confirm({
+            modal = Modal.confirm({
               title: '重置登录密码？',
               content: '密码将会重置为新的4位数字',
               centered: true,
-              onOk: () => resolve(),
-              onCancel: () => reject(),
+              mask: true,
+              maskClosable: false,
+              onOk: resolve,
+              onCancel: reject,
             });
           }),
       );
@@ -177,7 +182,33 @@ const effects: Partial<Record<PersonModel.ActionType, Effect>> = {
       return;
     }
 
-    message.warn('debug');
+    modal?.update({
+      keyboard: false,
+      okButtonProps: { loading: true },
+      cancelButtonProps: { disabled: true },
+    });
+
+    const param: Services.Person.ResetPassParam = {
+      uid: payload.uid || personInfo.id,
+    };
+
+    try {
+      const { data }: Services.Person.ResetPassResponse = yield call(
+        Services.Person.resetPass,
+        param,
+      );
+
+      modal?.destroy();
+      yield put(
+        createAction(PersonModel.ActionType.restPassSuccess)({
+          newPass: data.newPass,
+        }),
+      );
+    } catch (e) {
+      modal?.destroy();
+      message.error(e.message);
+      yield put(createAction(PersonModel.ActionType.restPassFail)(undefined));
+    }
   },
 };
 
@@ -223,6 +254,20 @@ const reducers: Partial<Record<PersonModel.ActionType, Reducer<State>>> = {
         user.loading = !!loading;
       }
     });
+  },
+  [PersonModel.ActionType.restPassSuccess](
+    state,
+    { payload }: Action<Payload[PersonModel.ActionType.restPassSuccess]>,
+  ) {
+    const { newPass } = payload;
+    state.resetPassSuccessModal.newPass = newPass;
+    state.resetPassSuccessModal.show = true;
+  },
+  [PersonModel.ActionType.closeRSPModel](
+    state,
+    { payload }: Action<Payload[PersonModel.ActionType.closeRSPModel]>,
+  ) {
+    state.resetPassSuccessModal.show = false;
   },
 };
 

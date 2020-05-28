@@ -1,10 +1,10 @@
 import { message } from 'antd';
-import { AppModels } from 'umi';
+import { AppModels, PersonModel } from 'umi';
+import { Modal } from 'antd';
 
 import { Action, Reducer, Effect, GO_BOOL } from '@/utils/types';
 import { Services } from '@/utils/services';
 import * as PersonCardEditModel from './utils';
-import { emptyList } from '@/utils/types/CommonList';
 import { ModelAdapter } from '@/utils/modelAdapter';
 
 export { PersonCardEditModel };
@@ -101,6 +101,9 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
     const { form: allForm }: PersonCardEditModel.State = yield select(
       PersonCardEditModel.currentState,
     );
+    const { personInfo }: PersonModel.State = yield select(
+      PersonModel.currentState,
+    );
 
     const form = allForm.card;
     const param: Services.UserList.UpdateParam = {
@@ -115,6 +118,24 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
     if (!param.id) {
       message.error('卡片信息缺少id, 无法提交');
       return;
+    }
+
+    if (!param.avast || !param.avast.replace(/https?:\/\//, '')) {
+      try {
+        yield call(
+          () =>
+            new Promise((resolve, reject) => {
+              Modal.confirm({
+                title: '卡片头像地址为空，将使用个人信息头像',
+                centered: true,
+                onOk: () => resolve(),
+                onCancel: () => reject(),
+              });
+            }),
+        );
+      } catch (e) {
+        return;
+      }
     }
 
     try {

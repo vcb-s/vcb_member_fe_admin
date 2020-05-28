@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useCallback } from 'react';
+import React, { useEffect, useMemo, useCallback, useState } from 'react';
 import {
   useParams,
   useDispatch,
   useSelector,
   PersonCardEditModel,
   AppModels,
+  PersonModel,
 } from 'umi';
 import {
   Form,
@@ -33,15 +34,43 @@ const yesIcon = <CheckOutlined />;
 const noIcon = <CloseOutlined />;
 
 export default function PagePerson() {
-  const { editID: editID } = useParams<PageParam>();
+  const { editID: editID, uid } = useParams<PageParam>();
   const dispatch = useDispatch();
-  const { form: allForm } = useSelector(PersonCardEditModel.currentState);
-  const form = allForm.card;
+  const { card: form } = useSelector(PersonCardEditModel.currentState).form;
+  const { personInfo } = useSelector(PersonModel.currentState);
   const { group: groups } = useSelector(AppModels.currentState);
   const formLoading = useSelector(
     dvaLoadingSelector.model(PersonCardEditModel.namespace),
+    dvaLoadingSelector.model(PersonModel.namespace),
   );
 
+  const [avatarProtocol, setAvatarProtocol] = useState<'http://' | 'https://'>(
+    'http://',
+  );
+
+  /** 刷新个人信息 */
+  useEffect(() => {
+    if (personInfo.id !== uid) {
+      dispatch(
+        PersonModel.createAction(PersonModel.ActionType.getPersonInfo)({ uid }),
+      );
+    }
+  }, [dispatch, personInfo.id, uid]);
+
+  /** 头像协议选择 */
+  const protocolSelector = useMemo(() => {
+    return (
+      <Select
+        value={avatarProtocol}
+        onChange={(value) => setAvatarProtocol(value)}
+      >
+        <Select.Option value='http://'>http://</Select.Option>
+        <Select.Option value='https://'>https://</Select.Option>
+      </Select>
+    );
+  }, [avatarProtocol]);
+
+  /** 刷新/重置 */
   const refreshHandle = useCallback(() => {
     dispatch(
       PersonCardEditModel.createAction(
@@ -50,12 +79,14 @@ export default function PagePerson() {
     );
   }, [dispatch, editID]);
 
+  /** 当路由的editID参数变化时就刷新个人信息 */
   useEffect(() => {
     if (form.id !== editID) {
       refreshHandle();
     }
   }, [dispatch, editID, form.id, refreshHandle]);
 
+  /** 重置按钮 */
   const resetHandle = useCallback(() => {
     Modal.confirm({
       title: '操作确认',
@@ -64,6 +95,8 @@ export default function PagePerson() {
       centered: true,
     });
   }, [refreshHandle]);
+
+  /** 提交按钮 */
   const submitHandle = useCallback(() => {
     dispatch(
       PersonCardEditModel.createAction(
@@ -72,21 +105,22 @@ export default function PagePerson() {
     );
   }, [dispatch]);
 
-  const groupOptions = useMemo((): JSX.Element[] => {
-    return groups.data.map((group) => (
-      <Select.Option key={group.key} value={group.id}>
-        {group.name}
-      </Select.Option>
-    ));
-  }, [groups.data]);
-
-  const selectedGroup = useMemo(
-    (): string[] => form.group.map((group) => group.id),
-    [form.group],
-  );
-
+  /** 头像链接 */
   const avastChangeHandle = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
+      const url = event.target.value;
+      let urlWithProtocol = '';
+      if ('http://'.indexOf(url) === 0) {
+        // 是一个完整的url
+        setAvatarProtocol('http://');
+        urlWithProtocol = url;
+      } else if ('https://'.indexOf(url) === 0) {
+        // 是一个完整的url
+        setAvatarProtocol('https://');
+        urlWithProtocol = url;
+      } else {
+        urlWithProtocol = `${avatarProtocol}${url}`;
+      }
       dispatch(
         PersonCardEditModel.createAction(
           PersonCardEditModel.ActionType.fieldChange,
@@ -97,9 +131,16 @@ export default function PagePerson() {
         ),
       );
     },
-    [dispatch],
+    [avatarProtocol, dispatch],
   );
 
+  /** 不含协议类型的头像地址 */
+  const urlWithoutProtocol = useMemo(
+    () => form.originAvast.replace(/https?\:\/\//, ''),
+    [form.originAvast],
+  );
+
+  /** 昵称 */
   const nicknameChangeHandle = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       dispatch(
@@ -115,6 +156,22 @@ export default function PagePerson() {
     [dispatch],
   );
 
+  /** 组别选项 */
+  const groupOptions = useMemo((): JSX.Element[] => {
+    return groups.data.map((group) => (
+      <Select.Option key={group.key} value={group.id}>
+        {group.name}
+      </Select.Option>
+    ));
+  }, [groups.data]);
+
+  /** 选择的组别 */
+  const selectedGroup = useMemo(
+    (): string[] => form.group.map((group) => group.id),
+    [form.group],
+  );
+
+  /** 职位 */
   const jobChangeHandle = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       dispatch(
@@ -130,6 +187,7 @@ export default function PagePerson() {
     [dispatch],
   );
 
+  /** 个人介绍 */
   const bioChangeHandle = useCallback(
     (event: React.ChangeEvent<HTMLTextAreaElement>) => {
       dispatch(
@@ -145,6 +203,7 @@ export default function PagePerson() {
     [dispatch],
   );
 
+  /** 组别选择 */
   const groupChangeHandle = useCallback(
     (groupIDs: typeof selectedGroup) => {
       dispatch(
@@ -160,6 +219,7 @@ export default function PagePerson() {
     [dispatch, selectedGroup],
   );
 
+  /** 退休 */
   const retiredChangeHandle = useCallback(
     (checked: boolean) => {
       dispatch(
@@ -175,6 +235,7 @@ export default function PagePerson() {
     [dispatch],
   );
 
+  /** 隐藏 */
   const hideChangeHandle = useCallback(
     (checked: boolean) => {
       dispatch(
@@ -205,12 +266,18 @@ export default function PagePerson() {
           <Form.Item
             label='头像'
             required
-            help='文件上传支持正紧张开发中; 请完整填写包括 http:// 在内的整个url'
+            help={
+              <>
+                <div>文件上传支持正紧张开发中</div>
+                <div>留空则使用个人信息中的头像</div>
+              </>
+            }
           >
             <Input
-              value={form.originAvast}
+              value={urlWithoutProtocol}
               disabled={formLoading}
               onChange={avastChangeHandle}
+              addonBefore={protocolSelector}
             />
           </Form.Item>
 

@@ -50,7 +50,7 @@ export default function PagePerson() {
         onOk: () => {
           dispatch(
             PersonModel.createAction(PersonModel.ActionType.updatePersonInfo)({
-              uid,
+              id: uid,
               ban: ban === GO_BOOL.yes ? GO_BOOL.no : GO_BOOL.yes,
             }),
           );
@@ -71,7 +71,7 @@ export default function PagePerson() {
     [dispatch],
   );
 
-  const handleKick = useCallback(
+  const kickHandle = useCallback(
     (groupID: string, item: PersonInfo.Item) => {
       let groupName = '未知';
 
@@ -180,6 +180,7 @@ export default function PagePerson() {
         title: '状态',
         key: 'status',
         align: 'center',
+        width: 200,
         render: (item: PersonInfo.Item) => (
           <Space>
             <Tag>{!!item.admin.length ? '组长' : '组员'}</Tag>
@@ -190,7 +191,8 @@ export default function PagePerson() {
       {
         title: '操作',
         key: 'action',
-        align: 'center',
+        align: 'left',
+        width: 350,
         render: (person: PersonInfo.Item) => {
           return (
             <Space>
@@ -206,7 +208,7 @@ export default function PagePerson() {
               <Dropdown
                 overlay={
                   <Menu
-                    onClick={({ key: groupID }) => handleKick(groupID, person)}
+                    onClick={({ key: groupID }) => kickHandle(groupID, person)}
                   >
                     {person.group.map((group) => (
                       <Menu.Item
@@ -253,7 +255,7 @@ export default function PagePerson() {
         },
       },
     ];
-  }, [banHandle, filtedUserGroupMap, handleKick, resetPersonPassHandle]);
+  }, [banHandle, filtedUserGroupMap, kickHandle, resetPersonPassHandle]);
 
   return (
     <div className={styles.wrap}>

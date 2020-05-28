@@ -48,7 +48,7 @@ export interface Payload {
   };
   [ActionType.getPersonInfoFail]: { error: Error };
 
-  [ActionType.updatePersonInfo]: { uid: string } & Partial<
+  [ActionType.updatePersonInfo]: { id: string } & Partial<
     PersonInfo.ItemInResponse
   >;
   [ActionType.updatePersonInfoSuccess]: undefined;
@@ -73,8 +73,11 @@ export interface Payload {
   [ActionType.closeRSPModel]: undefined;
 }
 export interface State {
+  /** 用户信息 */
   personInfo: PersonInfo.Item;
+  /** 卡片信息 */
   cardList: CommonList<UserCard.Item>;
+  /** 管理组员信息 */
   userList: CommonList<PersonInfo.Item>;
 
   resetPassSuccessModal: {

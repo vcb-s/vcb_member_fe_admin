@@ -92,9 +92,9 @@ export namespace Services {
       });
     };
     export interface UpdateParam extends Partial<PersonInfo.ItemInResponse> {
-      uid: string;
+      id: string;
     }
-    export const update = (data: UpdateParam) => {
+    export const update = (data: UpdateParam): Promise<ResponseData.Ok> => {
       return request('/admin/updateUser', {
         method: 'post',
         data,

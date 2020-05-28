@@ -147,6 +147,7 @@ export default function PagePerson() {
         title: '组别',
         dataIndex: 'group',
         align: 'center',
+        width: 200,
         filters: [...filtedUserGroupMap.keys()].map((id) => ({
           text: filtedUserGroupMap.get(id),
           value: id,
@@ -158,15 +159,21 @@ export default function PagePerson() {
           return false;
         },
         render: (groups: Group.Item[]) => {
-          return groups.map((group) => (
-            <Tag.CheckableTag
-              checked
-              key={group.key}
-              className={styles.notClickable}
-            >
-              {group.name}
-            </Tag.CheckableTag>
-          ));
+          return (
+            <div className={styles.groupTagsWrap}>
+              {groups.map((group) => (
+                <Tag.CheckableTag
+                  checked
+                  key={group.key}
+                  className={styles.groupTag}
+                >
+                  {group.name}
+                </Tag.CheckableTag>
+              ))}
+
+              <div className={styles.groupTagsLastlineAdjust} />
+            </div>
+          );
         },
       },
       {

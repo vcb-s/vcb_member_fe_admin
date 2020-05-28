@@ -63,7 +63,7 @@ export interface Payload {
     group: string;
   };
   [ActionType.kickoffPersonFail]: { error: Error };
-  [ActionType.toggleLoadingForPerson]: { loading?: boolean };
+  [ActionType.toggleLoadingForPerson]: { loading?: boolean; id: string };
 
   [ActionType.logout]: undefined;
 

@@ -92,6 +92,11 @@ const effects: Partial<Record<PersonModel.ActionType, Effect>> = {
   ) {
     try {
       const param = payload;
+      yield put(
+        createAction(PersonModel.ActionType.toggleLoadingForPerson)({
+          id: param.id,
+        }),
+      );
       yield call(Services.Person.update, param);
       const { personInfo }: State = yield select(currentState);
       yield put(
@@ -246,8 +251,11 @@ const reducers: Partial<Record<PersonModel.ActionType, Reducer<State>>> = {
     state,
     { payload }: Action<Payload[PersonModel.ActionType.toggleLoadingForPerson]>,
   ) {
-    const { loading } = payload;
+    const { loading, id } = payload;
     state.userList.data.forEach((user) => {
+      if (user.id !== id) {
+        return;
+      }
       if (loading === undefined) {
         user.loading = !user.loading;
       } else {

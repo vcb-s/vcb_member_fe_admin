@@ -42,9 +42,17 @@ export default function PagePerson() {
   const banHandle = useCallback(
     (person: PersonInfo.Item) => {
       const { ban, nickname, id: uid } = person;
+      let okText = `封禁`;
+      let content = '封禁用户无法登录，也不会出现在展示列表';
+
+      if (ban === GO_BOOL.yes) {
+        okText = '解封';
+        content = '解封后用户可以正常登录，展示列表也会恢复展示';
+      }
       Modal.confirm({
-        title: `${ban === GO_BOOL.yes ? '解封' : '封禁'}该用户: ${nickname}`,
-        okText: ban === GO_BOOL.yes ? '解封' : '封禁',
+        title: `${okText}该用户: ${nickname}`,
+        content,
+        okText,
         centered: true,
         okButtonProps: { danger: true, ghost: true },
         onOk: () => {

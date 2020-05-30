@@ -226,7 +226,7 @@ export default function PagePerson() {
                 }
               >
                 <Button ghost type='primary'>
-                  踢出
+                  离组
                   <DownOutlined />
                 </Button>
               </Dropdown>

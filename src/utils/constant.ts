@@ -42,6 +42,10 @@ export const MAGIC = {
 
   /** 登陆页登陆后跳转链接关键字 */
   loginPageNavQueryKey: 'nav',
+  /** 登陆页默认登录名 */
+  loginPageUserNameQueryKey: 'card',
+  /** 登陆页默认登陆密码 */
+  loginPageAuthCodeQueryKey: 'code',
 };
 
 export const color = {

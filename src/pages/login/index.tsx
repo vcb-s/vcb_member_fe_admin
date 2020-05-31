@@ -1,7 +1,9 @@
-import React, { useEffect, useCallback } from 'react';
-import { useSelector, useDispatch } from 'umi';
+import React, { useEffect, useCallback, useMemo } from 'react';
+import { useSelector, useDispatch, useLocation } from 'umi';
+import { parse } from 'query-string';
 import { Form, Input, Button, Select, Avatar, message } from 'antd';
 
+import { MAGIC } from '@/utils/constant';
 import { AppModels } from '@/models/app';
 import { UserCard } from '@/utils/types/UserCard';
 import { LoginModel } from './models';
@@ -30,6 +32,8 @@ const Login = function Login() {
   const dispatch = useDispatch();
   const loginState = useSelector(LoginModel.currentState);
   const appState = useSelector(AppModels.currentState);
+  const { search } = useLocation();
+
   const userlistLoading = useSelector(
     dvaLoadingSelector.effect(
       AppModels.namespace,
@@ -83,6 +87,20 @@ const Login = function Login() {
     },
     [dispatch],
   );
+
+  useEffect(() => {
+    const query = parse(search);
+    const username = query[MAGIC.loginPageUserNameQueryKey];
+    const code = query[MAGIC.loginPageAuthCodeQueryKey];
+    if (typeof username === 'string' && typeof code === 'string') {
+      nameChangeHandle(username);
+      dispatch(
+        LoginModel.createAction(LoginModel.ActionType.fieldChange)(
+          LoginModel.fieldChangePayloadCreator('login')('pass')(code),
+        ),
+      );
+    }
+  }, [dispatch, nameChangeHandle, search]);
 
   /** 主站关联登录 */
   // const loginWithWpHandle = useCallback(() => {}, []);

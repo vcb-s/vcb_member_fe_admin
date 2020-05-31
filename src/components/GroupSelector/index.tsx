@@ -58,6 +58,7 @@ export const GroupSelector: React.FC<Props> = React.memo(
         mode='multiple'
         value={selectedGroup}
         loading={selectorLoading}
+        disabled={selectorLoading}
         onChange={groupChangeHandle}
         placeholder='选择组别'
         className={className}

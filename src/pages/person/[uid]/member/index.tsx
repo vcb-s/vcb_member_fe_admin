@@ -1,5 +1,11 @@
 import React, { useEffect, useMemo, useCallback, useState } from 'react';
-import { useRouteMatch, useDispatch, useSelector, PersonModel } from 'umi';
+import {
+  useRouteMatch,
+  useDispatch,
+  useSelector,
+  PersonModel,
+  AppModels,
+} from 'umi';
 import { useThrottle } from 'react-use';
 
 import {
@@ -11,7 +17,6 @@ import {
   Dropdown,
   Space,
   Menu,
-  Popconfirm,
   Modal,
   Input,
 } from 'antd';
@@ -23,6 +28,7 @@ import { Group } from '@/utils/types/Group';
 import { PersonInfo } from '@/utils/types/PersonInfo';
 import { PageParam } from '@/pages/person/[uid]/types';
 import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
+import { GroupSelector } from '@/components/GroupSelector';
 
 import styles from './index.scss';
 
@@ -30,7 +36,9 @@ export default function PagePerson() {
   const match = useRouteMatch<PageParam>();
   const uid = match.params.uid;
   const dispatch = useDispatch();
-  const { personInfo, userList } = useSelector(PersonModel.currentState);
+  const { personInfo, userList, addMemberModal } = useSelector(
+    PersonModel.currentState,
+  );
 
   const tableLoading = useSelector(
     dvaLoadingSelector.effect(
@@ -38,6 +46,18 @@ export default function PagePerson() {
       PersonModel.ActionType.getPersonInfo,
     ),
   );
+
+  useEffect(() => {
+    dispatch(
+      AppModels.createAction(AppModels.ActionType.ensureGroupData)(undefined),
+    );
+  }, [dispatch]);
+
+  const addMemberHandle = useCallback(() => {
+    dispatch(
+      PersonModel.createAction(PersonModel.ActionType.preAddMember)(undefined),
+    );
+  }, [dispatch]);
 
   const banHandle = useCallback(
     (person: PersonInfo.Item) => {
@@ -205,8 +225,6 @@ export default function PagePerson() {
           return (
             <Space>
               <Button
-                ghost
-                type='primary'
                 loading={!!person.loading}
                 onClick={() => resetPersonPassHandle(person.id)}
               >
@@ -233,7 +251,7 @@ export default function PagePerson() {
                   </Menu>
                 }
               >
-                <Button ghost type='primary'>
+                <Button>
                   离组
                   <DownOutlined />
                 </Button>
@@ -265,6 +283,32 @@ export default function PagePerson() {
     ];
   }, [banHandle, filtedUserGroupMap, kickHandle, resetPersonPassHandle]);
 
+  const AMModalLoading = useSelector(
+    dvaLoadingSelector.effect(
+      PersonModel.namespace,
+      PersonModel.ActionType.addMember,
+    ),
+  );
+  const AMModalFooterProps = useMemo(() => ({ loading: AMModalLoading }), [
+    AMModalLoading,
+  ]);
+  const [memberToGroup, setMemberToGroup] = useState<Group.Item[]>([]);
+  const closeModalHandle = useCallback(() => {
+    dispatch(
+      PersonModel.createAction(PersonModel.ActionType.closeAMModel)(undefined),
+    );
+  }, [dispatch]);
+  const submitAMModalHandle = useCallback(() => {
+    dispatch(
+      PersonModel.createAction(PersonModel.ActionType.addMember)({
+        groupIDs: memberToGroup.map((g) => g.id),
+      }),
+    );
+  }, [dispatch, memberToGroup]);
+  const resetMemberToGroup = useCallback(() => {
+    setMemberToGroup([]);
+  }, []);
+
   return (
     <div className={styles.wrap}>
       <Typography.Title level={4}>我的组员</Typography.Title>
@@ -275,6 +319,9 @@ export default function PagePerson() {
           placeholder='可搜索 用户id/昵称'
           onSearch={setKeyword}
         />
+        {personInfo.admin.length ? (
+          <Button onClick={addMemberHandle}>新增组员</Button>
+        ) : null}
       </Space>
       <Table
         className={styles.table}
@@ -282,6 +329,27 @@ export default function PagePerson() {
         columns={columns}
         loading={tableLoading}
       />
+
+      <Modal
+        visible={addMemberModal.show}
+        title='新增一名组员'
+        onCancel={closeModalHandle}
+        onOk={submitAMModalHandle}
+        afterClose={resetMemberToGroup}
+        okButtonProps={AMModalFooterProps}
+        cancelButtonProps={AMModalFooterProps}
+      >
+        <Space direction='vertical'>
+          <div>新增组员将自动关联到以下组别：</div>
+          <GroupSelector
+            value={memberToGroup}
+            onChange={setMemberToGroup}
+            style={{ minWidth: '12em' }}
+            loading={AMModalLoading}
+          />
+          <div>新增成功后将会出现一个登录用链接，访问即可登录(注意保密)</div>
+        </Space>
+      </Modal>
     </div>
   );
 }

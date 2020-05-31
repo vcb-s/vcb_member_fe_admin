@@ -34,6 +34,15 @@ export enum ActionType {
 
   /** 关闭重置密码弹层 */
   closeRSPModel = 'closeRSPModel',
+
+  preAddMember = 'preAddMember',
+  /** 添加新组员 */
+  addMember = 'addMember',
+  addMemberSuccess = 'addMemberSuccess',
+  addMemberFail = 'addMemberFail',
+
+  /** 关闭添加弹层 */
+  closeAMModel = 'closeRSPModel',
 }
 
 export interface Payload {
@@ -70,7 +79,14 @@ export interface Payload {
   [ActionType.restPass]: { uid?: PersonInfo.ItemInResponse['id'] };
   [ActionType.restPassSuccess]: { newPass: string };
   [ActionType.restPassFail]: undefined;
+
+  [ActionType.preAddMember]: undefined;
+  [ActionType.addMember]: { groupIDs: string[] };
+  [ActionType.addMemberSuccess]: undefined;
+  [ActionType.addMemberFail]: undefined;
+
   [ActionType.closeRSPModel]: undefined;
+  [ActionType.closeAMModel]: undefined;
 }
 export interface State {
   /** 用户信息 */
@@ -83,6 +99,9 @@ export interface State {
   resetPassSuccessModal: {
     show: boolean;
     newPass: string;
+  };
+  addMemberModal: {
+    show: boolean;
   };
 }
 export const createAction = <K extends keyof Payload>(key: K) => {

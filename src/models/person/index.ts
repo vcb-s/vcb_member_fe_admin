@@ -38,6 +38,10 @@ const initalState: State = {
     show: false,
     newPass: '',
   },
+
+  addMemberModal: {
+    show: false,
+  },
 };
 
 const effects: Partial<Record<PersonModel.ActionType, Effect>> = {
@@ -215,6 +219,25 @@ const effects: Partial<Record<PersonModel.ActionType, Effect>> = {
       yield put(createAction(PersonModel.ActionType.restPassFail)(undefined));
     }
   },
+
+  *[PersonModel.ActionType.addMember](
+    { payload }: Action<Payload['addMember']>,
+    { put, call, select },
+  ) {
+    /** @todo */
+    // 发请求
+    try {
+      yield call(
+        () =>
+          new Promise((resolve, reject) => {
+            setTimeout(resolve, 2000);
+          }),
+      );
+    } catch (e) {
+      return;
+    }
+    // 展示登录链接
+  },
 };
 
 const reducers: Partial<Record<PersonModel.ActionType, Reducer<State>>> = {
@@ -276,6 +299,18 @@ const reducers: Partial<Record<PersonModel.ActionType, Reducer<State>>> = {
     { payload }: Action<Payload[PersonModel.ActionType.closeRSPModel]>,
   ) {
     state.resetPassSuccessModal.show = false;
+  },
+  [PersonModel.ActionType.preAddMember](
+    state,
+    { payload }: Action<Payload[PersonModel.ActionType.preAddMember]>,
+  ) {
+    state.addMemberModal.show = true;
+  },
+  [PersonModel.ActionType.closeAMModel](
+    state,
+    { payload }: Action<Payload[PersonModel.ActionType.closeAMModel]>,
+  ) {
+    state.addMemberModal.show = false;
   },
 };
 

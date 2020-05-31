@@ -18,17 +18,18 @@ import {
   Input,
   Select,
   Modal,
-  Popover,
 } from 'antd';
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
 
 import { defaultFormLayout, textareaAutoSize } from '@/utils/constant';
 import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
 import { groupAdapter } from '@/utils/modelAdapter';
+import { GroupSelector } from '@/components/GroupSelector';
 
 import { PageParam } from './types';
 import styles from './[editID].scss';
 import { GO_BOOL } from '@/utils/types';
+import { Group } from '@/utils/types/Group';
 
 const yesIcon = <CheckOutlined />;
 const noIcon = <CloseOutlined />;
@@ -156,15 +157,6 @@ export default function PagePerson() {
     [dispatch],
   );
 
-  /** 组别选项 */
-  const groupOptions = useMemo((): JSX.Element[] => {
-    return groups.data.map((group) => (
-      <Select.Option key={group.key} value={group.id}>
-        {group.name}
-      </Select.Option>
-    ));
-  }, [groups.data]);
-
   /** 选择的组别 */
   const selectedGroup = useMemo(
     (): string[] => form.group.map((group) => group.id),
@@ -205,18 +197,18 @@ export default function PagePerson() {
 
   /** 组别选择 */
   const groupChangeHandle = useCallback(
-    (groupIDs: typeof selectedGroup) => {
+    (groups: Group.Item[]) => {
       dispatch(
         PersonCardEditModel.createAction(
           PersonCardEditModel.ActionType.fieldChange,
         )(
           PersonCardEditModel.fieldChangePayloadCreator('card')('group')(
-            groupIDs.map(groupAdapter.getGroup),
+            groups,
           ),
         ),
       );
     },
-    [dispatch, selectedGroup],
+    [dispatch],
   );
 
   /** 退休 */
@@ -311,14 +303,11 @@ export default function PagePerson() {
             required
             help='注意不要与别的卡片重合，否则会出现一个组中有多个您的卡片'
           >
-            <Select
-              mode='multiple'
-              value={selectedGroup}
+            <GroupSelector
+              value={form.group}
               loading={formLoading}
               onChange={groupChangeHandle}
-            >
-              {groupOptions}
-            </Select>
+            />
           </Form.Item>
 
           <Form.Item label='退休'>

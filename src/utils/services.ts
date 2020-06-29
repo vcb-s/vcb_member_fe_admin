@@ -37,13 +37,16 @@ export namespace Services {
     };
   }
   export namespace TinyUserList {
+    export type ReadParam = {
+      includeHide?: boolean
+    }
     export type ReadResponse = ResponseData.Ok<{
       res: UserCard.TinyItemInResponse[];
       total: number;
     }>;
-    export const read = (): Promise<ReadResponse> => {
+    export const read = ({ includeHide }: ReadParam): Promise<ReadResponse> => {
       return request('/user/list', {
-        params: { tiny: GO_BOOL.yes },
+        params: { tiny: GO_BOOL.yes, includeHide: includeHide ? GO_BOOL.yes : GO_BOOL.no },
       });
     };
   }
@@ -122,6 +125,23 @@ export namespace Services {
       data: ResetPassParam,
     ): Promise<ResetPassResponse> => {
       return request('/admin/resetPass', {
+        data,
+        method: 'post',
+      });
+    };
+
+    export type CreateParam = {
+      group: string[];
+    };
+    export type CreateResponse = ResponseData.Ok<{
+      cardID: UserCard.ItemInResponse['id'];
+      UID: PersonInfo.ItemInResponse['id'];
+      pass: string
+    }>;
+    export const create = (
+      data: ResetPassParam,
+    ): Promise<ResetPassResponse> => {
+      return request('/admin/user/create', {
         data,
         method: 'post',
       });

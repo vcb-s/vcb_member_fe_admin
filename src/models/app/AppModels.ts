@@ -46,7 +46,7 @@ export interface Payload {
 }
 /** 统一导出State，降低引用Model时心智负担，统一都使用State就行了 */
 export interface State {
-  users: UserCard.TinyList;
+  userCards: UserCard.TinyList;
   group: Group.List;
 }
 export const createAction = <K extends keyof Payload>(key: K) => {

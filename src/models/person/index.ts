@@ -1,19 +1,22 @@
 import { message, Modal } from 'antd';
 import { AppModels, history } from 'umi';
+import { createPath } from 'history'
+import { stringify } from 'query-string'
 
 import { Action, Reducer, Effect, GO_BOOL } from '@/utils/types';
 import { Services } from '@/utils/services';
 import { emptyList } from '@/utils/types/CommonList';
 import { ModelAdapter } from '@/utils/modelAdapter';
 import { token } from '@/utils/token';
+import { MAGIC } from '@/utils/constant';
 
 import * as PersonModel from './type';
 export { PersonModel };
 
 const { namespace, currentState } = PersonModel;
 
-interface Payload extends PersonModel.Payload {}
-interface State extends PersonModel.State {}
+interface Payload extends PersonModel.Payload { }
+interface State extends PersonModel.State { }
 
 const createAction = <K extends keyof Payload>(key: K) => {
   return (payload: Payload[K]) => {
@@ -157,9 +160,6 @@ const effects: Partial<Record<PersonModel.ActionType, Effect>> = {
       return;
     }
 
-    console.log('what is his', history);
-    debugger;
-
     token.clear();
 
     history.replace('/login');
@@ -224,19 +224,41 @@ const effects: Partial<Record<PersonModel.ActionType, Effect>> = {
     { payload }: Action<Payload['addMember']>,
     { put, call, select },
   ) {
-    /** @todo */
-    // 发请求
+    if (!payload.groupIDs.length) {
+      message.error('请至少指定一个组别')
+      return
+    }
+
     try {
-      yield call(
-        () =>
-          new Promise((resolve, reject) => {
-            setTimeout(resolve, 2000);
-          }),
+      const param: Services.Person.CreateParam = {
+        group: payload.groupIDs
+      }
+      const { data }: Services.Person.CreateResponse = yield call(
+        Services.Person.create,
+        param,
       );
+
+      // 关闭弹层
+      yield put(createAction(PersonModel.ActionType.closeAMModel)(undefined))
+
+      // 展示登录链接弹层
+      yield call(() => {
+        const { origin } = window.location
+        Modal.info({
+          title: '登录链接',
+          centered: true,
+          content: `${origin}${window.routerBase.replace(/\/$/, '')}${createPath({
+            pathname: '/login', search: stringify({
+              [MAGIC.loginPageUserNameQueryKey]: data.cardID,
+              [MAGIC.loginPageAuthCodeQueryKey]: data.pass,
+            })
+          })}`
+        })
+      })
     } catch (e) {
+      message.error(e.message || '未知错误')
       return;
     }
-    // 展示登录链接
   },
 };
 

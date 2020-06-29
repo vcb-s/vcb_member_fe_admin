@@ -13,3 +13,7 @@ declare const cdnHost: string;
 declare const publicPath: string;
 /** 当前部署时间戳 */
 declare const buildTimestmap: string;
+
+interface Window {
+  routerBase: string
+}

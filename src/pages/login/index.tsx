@@ -61,18 +61,18 @@ const Login = function Login() {
         ),
       );
 
-      for (user of appState.users.data) {
+      for (user of appState.userCards.data) {
         if (user.id === id) {
           if (!user.uid) {
             message.warn(
-              '该用户尚未关联用户，请联系组长或网络组进行关联后登录',
+              '该卡片尚未关联用户，请联系组长或网络组进行关联后登录',
             );
           }
           break;
         }
       }
     },
-    [appState.users.data, dispatch],
+    [appState.userCards.data, dispatch],
   );
 
   const passChangeHandle = useCallback(
@@ -129,7 +129,7 @@ const Login = function Login() {
               onChange={nameChangeHandle}
               filterOption={userFilterOption}
             >
-              {appState.users.data.map((user) => (
+              {appState.userCards.data.map((user) => (
                 <Select.Option key={user.key} value={user.id} data-user={user}>
                   <Avatar src={user.avast} size='small' />
                   <span className={styles.userSeletorNickname}>

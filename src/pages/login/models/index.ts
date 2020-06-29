@@ -13,8 +13,8 @@ export { PersonModel as LoginModel };
 
 const { namespace, currentState } = PersonModel;
 
-interface Payload extends PersonModel.Payload {}
-interface State extends PersonModel.State {}
+interface Payload extends PersonModel.Payload { }
+interface State extends PersonModel.State { }
 
 const createAction = <K extends keyof Payload>(key: K) => {
   return (payload: Payload[K]) => {
@@ -41,7 +41,7 @@ const effects: Partial<Record<PersonModel.ActionType, Effect>> = {
     { select, put, call },
   ) {
     const { form }: PersonModel.State = yield select(PersonModel.currentState);
-    const { users }: AppModels.State = yield select(AppModels.currentState);
+    const { userCards: users }: AppModels.State = yield select(AppModels.currentState);
     const { id, pass, remember } = form.login;
     try {
       const param: Services.Login.LoginParam = {
@@ -56,7 +56,7 @@ const effects: Partial<Record<PersonModel.ActionType, Effect>> = {
       }
 
       if (!param.uid) {
-        message.error('该用户尚未关联用户，请联系组长或网络组进行关联后登录');
+        message.error('该卡片尚未关联用户，请联系组长或网络组进行关联后登录');
         return;
       }
 

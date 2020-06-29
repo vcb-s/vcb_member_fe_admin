@@ -32,6 +32,8 @@ import { GroupSelector } from '@/components/GroupSelector';
 
 import styles from './index.scss';
 
+const AMModalStyle: React.CSSProperties = { minWidth: '12em' }
+
 export default function PagePerson() {
   const match = useRouteMatch<PageParam>();
   const uid = match.params.uid;
@@ -267,15 +269,15 @@ export default function PagePerson() {
                   解封
                 </Button>
               ) : (
-                <Button
-                  danger
-                  ghost
-                  loading={!!person.loading}
-                  onClick={() => banHandle(person)}
-                >
-                  封禁
-                </Button>
-              )}
+                  <Button
+                    danger
+                    ghost
+                    loading={!!person.loading}
+                    onClick={() => banHandle(person)}
+                  >
+                    封禁
+                  </Button>
+                )}
             </Space>
           );
         },
@@ -333,6 +335,7 @@ export default function PagePerson() {
       <Modal
         visible={addMemberModal.show}
         title='新增一名组员'
+        centered
         onCancel={closeModalHandle}
         onOk={submitAMModalHandle}
         afterClose={resetMemberToGroup}
@@ -344,7 +347,7 @@ export default function PagePerson() {
           <GroupSelector
             value={memberToGroup}
             onChange={setMemberToGroup}
-            style={{ minWidth: '12em' }}
+            style={AMModalStyle}
             loading={AMModalLoading}
           />
           <div>新增成功后将会出现一个登录用链接，访问即可登录(注意保密)</div>

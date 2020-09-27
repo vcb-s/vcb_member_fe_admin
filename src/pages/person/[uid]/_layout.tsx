@@ -8,7 +8,7 @@ import {
   useLocation,
 } from 'umi';
 import { Menu, Avatar, Space, Dropdown, message, Modal, Tooltip } from 'antd';
-import { SelectParam } from 'antd/lib/menu';
+import { SelectInfo as SelectParam } from 'rc-menu/lib/interface';
 import { ApartmentOutlined, IdcardOutlined } from '@ant-design/icons';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { compile } from 'path-to-regexp';
@@ -46,7 +46,7 @@ class MenuData {
 
 const MenuSide: React.FC = function () {
   const personState = useSelector(PersonModel.currentState);
-  const { uid = '' } = useParams();
+  const { uid = '' } = useParams<any>();
   const location = useLocation();
 
   const menuData = useMemo(() => {
@@ -71,7 +71,7 @@ const MenuSide: React.FC = function () {
       });
   }, [personState.personInfo.admin.length, uid]);
 
-  const [selectedKeys, setSelectedKeys] = useState(() => {
+  const [selectedKeys, setSelectedKeys] = useState<string[]>(() => {
     for (const menuItem of menuData) {
       if (menuItem.presetPath === location.pathname) {
         return [menuItem.key];
@@ -83,7 +83,9 @@ const MenuSide: React.FC = function () {
 
   const selectHandle = useCallback(
     ({ selectedKeys: selected }: SelectParam) => {
-      setSelectedKeys(selected);
+      if (selected) {
+        setSelectedKeys(selected.map((i) => `${i}`));
+      }
     },
     [],
   );
@@ -142,8 +144,8 @@ const PersonLaylout: React.FC = function PersonLaylout({ children }) {
     dispatch(PersonModel.createAction(PersonModel.ActionType.restPass)({}));
   }, [dispatch]);
   const menuChangeHandle = useCallback(
-    ({ key }: { key: string }) => {
-      switch (key) {
+    ({ key }: { key: string | number }) => {
+      switch (`${key}`) {
         case 'resetPass': {
           resetPassHandle();
           break;

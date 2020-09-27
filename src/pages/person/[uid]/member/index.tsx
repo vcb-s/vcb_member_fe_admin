@@ -32,7 +32,7 @@ import { GroupSelector } from '@/components/GroupSelector';
 
 import styles from './index.scss';
 
-const AMModalStyle: React.CSSProperties = { minWidth: '12em' }
+const AMModalStyle: React.CSSProperties = { minWidth: '12em' };
 
 export default function PagePerson() {
   const match = useRouteMatch<PageParam>();
@@ -102,11 +102,11 @@ export default function PagePerson() {
   );
 
   const kickHandle = useCallback(
-    (groupID: string, item: PersonInfo.Item) => {
+    (groupID: string | number, item: PersonInfo.Item) => {
       let groupName = '未知';
 
       item.group.forEach((group) => {
-        if (`${group.id}` === groupID) {
+        if (`${group.id}` === `${groupID}`) {
           groupName = group.name;
         }
       });
@@ -119,7 +119,7 @@ export default function PagePerson() {
           dispatch(
             PersonModel.createAction(PersonModel.ActionType.kickoffPerson)({
               uid: item.id,
-              group: groupID,
+              group: `${groupID}`,
             }),
           );
         },
@@ -269,15 +269,15 @@ export default function PagePerson() {
                   解封
                 </Button>
               ) : (
-                  <Button
-                    danger
-                    ghost
-                    loading={!!person.loading}
-                    onClick={() => banHandle(person)}
-                  >
-                    封禁
-                  </Button>
-                )}
+                <Button
+                  danger
+                  ghost
+                  loading={!!person.loading}
+                  onClick={() => banHandle(person)}
+                >
+                  封禁
+                </Button>
+              )}
             </Space>
           );
         },

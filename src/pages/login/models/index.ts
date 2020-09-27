@@ -13,8 +13,8 @@ export { PersonModel as LoginModel };
 
 const { namespace, currentState } = PersonModel;
 
-interface Payload extends PersonModel.Payload { }
-interface State extends PersonModel.State { }
+interface Payload extends PersonModel.Payload {}
+interface State extends PersonModel.State {}
 
 const createAction = <K extends keyof Payload>(key: K) => {
   return (payload: Payload[K]) => {
@@ -41,7 +41,9 @@ const effects: Partial<Record<PersonModel.ActionType, Effect>> = {
     { select, put, call },
   ) {
     const { form }: PersonModel.State = yield select(PersonModel.currentState);
-    const { userCards: users }: AppModels.State = yield select(AppModels.currentState);
+    const { userCards: users }: AppModels.State = yield select(
+      AppModels.currentState,
+    );
     const { id, pass, remember } = form.login;
     try {
       const param: Services.Login.LoginParam = {
@@ -64,10 +66,10 @@ const effects: Partial<Record<PersonModel.ActionType, Effect>> = {
       message.success('登录成功');
       const { search } = history.location;
       const query = parse(search);
-      let navQuery = query[MAGIC.loginPageNavQueryKey];
+      let navQuery = query[MAGIC.loginPageNavQueryKey] || '';
 
       if (Array.isArray(navQuery)) {
-        navQuery = navQuery.pop();
+        navQuery = navQuery.pop() || '';
       }
 
       const navURL = navQuery ? JSON.parse(navQuery) : `/person/${param.uid}`;

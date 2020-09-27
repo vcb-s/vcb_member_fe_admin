@@ -1,4 +1,5 @@
-import { AutoSizeType } from 'antd/lib/input/ResizableTextArea';
+import type { AutoSizeType } from 'rc-textarea';
+
 export const defaultFormLayout = {
   normal: {
     labelCol: {

@@ -16,8 +16,8 @@
   },
   "dependencies": {
     "classnames": "^2.2.6",
-    "path-to-regexp": "^6.1.0",
-    "query-string": "^6.13.2",
+    "path-to-regexp": "^6.2.0",
+    "query-string": "^6.13.5",
     "react": "^16.13.1",
     "react-copy-to-clipboard": "^5.0.2",
     "react-dom": "^16.13.1",
@@ -28,12 +28,12 @@
   },
   "devDependencies": {
     "@types/classnames": "^2.2.10",
-    "@types/react": "^16.9.49",
+    "@types/react": "^16.9.50",
     "@types/react-copy-to-clipboard": "^4.3.0",
     "@types/react-dom": "^16.9.8",
     "@types/react-loadable": "^5.5.3",
-    "@typescript-eslint/eslint-plugin": "^4.2.0",
-    "@typescript-eslint/parser": "^4.2.0",
+    "@typescript-eslint/eslint-plugin": "^4.3.0",
+    "@typescript-eslint/parser": "^4.3.0",
     "@umijs/plugin-sass": "^1.1.1",
     "@umijs/preset-react": "^1.6.8",
     "@umijs/test": "^3.2.22",
@@ -41,7 +41,7 @@
     "eslint": "^7.10.0",
     "eslint-plugin-react-hooks": "^4.1.2",
     "fibers": "^5.0.0",
-    "npm-check-updates": "^9.0.2",
+    "npm-check-updates": "^9.0.3",
     "prettier": "^2.1.2",
     "typescript": "^4.0.3"
   }

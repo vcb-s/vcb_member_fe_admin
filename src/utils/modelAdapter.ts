@@ -50,7 +50,7 @@ export namespace ModelAdapter {
         result = `${originURL.replace(/^(.+)(\..+?)$/, '$1@600$2')}`;
       }
 
-      result = `${cdnHost}/vcbs_member/uploads/${result}`;
+      result = `${picHost}/vcbs_member/uploads/${result}`;
     }
 
     return result;

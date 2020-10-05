@@ -11,7 +11,7 @@ import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
 
 import styles from './index.scss';
 
-// const logoImage = `${cdnHost}/wp-content/themes/zanblog2_1_0/ui/images/logo.png`;
+// const logoImage = `${picHost}/wp-content/themes/zanblog2_1_0/ui/images/logo.png`;
 
 // 缓存变量降低重复创建销毁的消耗
 let user: UserCard.TinyItem;

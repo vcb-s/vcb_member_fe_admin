@@ -3,7 +3,7 @@ import fiber from 'fibers';
 
 const __DEV__ = process.env.NODE_ENV === 'development';
 
-const cdnHost = 'https://cache.cswsadlab.com';
+const picHost = 'https://cache.cswsadlab.com';
 const base = '/vcbs_member/admin/';
 const publicPath = base;
 const cdnDomain = 'https://cdn.staticfile.org';
@@ -17,11 +17,7 @@ export default defineConfig({
   dynamicImport: {},
   forkTSChecker: {},
   nodeModulesTransform: { type: 'none' },
-  favicon: `${cdnHost}/wp-content/customRes/favicon@180.png`,
-
-  theme: {
-    // 'primary-color': '#e74c3c',
-  },
+  favicon: `${picHost}/wp-content/customRes/favicon@180.png`,
 
   analyze: {
     analyzerMode: 'static',
@@ -40,7 +36,7 @@ export default defineConfig({
 
   define: {
     __DEV__,
-    cdnHost,
+    picHost,
     publicPath,
     buildTimestmap: Date.now(),
   },

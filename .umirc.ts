@@ -6,7 +6,6 @@ const __DEV__ = process.env.NODE_ENV === 'development';
 const picHost = 'https://cache.cswsadlab.com';
 const base = '/vcbs_member/admin/';
 const publicPath = base;
-const cdnDomain = 'https://cdn.staticfile.org';
 
 export default defineConfig({
   title: 'vcb-s成员介绍',
@@ -43,15 +42,19 @@ export default defineConfig({
 
   externals: {
     immer: 'window.immer',
+    react: 'window.React',
     'react-dom': 'window.ReactDOM',
   },
 
   scripts: [
     {
-      src: `${cdnDomain}/immer/6.0.0/immer.umd.production.min.js`,
+      src: `https://cdn.staticfile.org/immer/7.0.9/immer.umd.production.min.js`,
     },
     {
-      src: `${cdnDomain}/react-dom/16.13.1/umd/react-dom.production.min.js`,
+      src: `https://cdn.staticfile.org/react/16.13.1/umd/react.production.min.js`,
+    },
+    {
+      src: `https://cdn.staticfile.org/react-dom/16.13.1/umd/react-dom.production.min.js`,
     },
   ],
 

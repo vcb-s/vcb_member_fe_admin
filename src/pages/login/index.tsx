@@ -140,10 +140,11 @@ const Login = function Login() {
             </Select>
           </Form.Item>
           <Form.Item label='密码'>
-            <Input
+            <Input.Password
               value={loginState.form.login.pass}
               onChange={passChangeHandle}
               onPressEnter={loginHandle}
+              autoComplete='new-password'
             />
           </Form.Item>
           <Form.Item style={{ textAlign: 'right' }}>

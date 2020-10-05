@@ -8,7 +8,7 @@ import { GO_BOOL } from './types';
 import { Group as GroupType } from './types/Group';
 
 export namespace Services {
-  export namespace UserList {
+  export namespace CardList {
     export interface ReadParam extends Partial<PaginationParam> {
       group?: GroupType.Item['id'];
       id?: UserCard.Item['id'];
@@ -23,7 +23,7 @@ export namespace Services {
       total: number;
     }>;
     export const read = (params: ReadParam): Promise<ReadResponse> => {
-      return request('/user/list', { params });
+      return request('/user-card/list', { params });
     };
 
     export type UpdateParam = Partial<UserCard.ItemInResponse> & {
@@ -36,17 +36,20 @@ export namespace Services {
       });
     };
   }
-  export namespace TinyUserList {
+  export namespace TinyCardList {
     export type ReadParam = {
-      includeHide?: boolean
-    }
+      includeHide?: boolean;
+    };
     export type ReadResponse = ResponseData.Ok<{
       res: UserCard.TinyItemInResponse[];
       total: number;
     }>;
     export const read = ({ includeHide }: ReadParam): Promise<ReadResponse> => {
       return request('/user/list', {
-        params: { tiny: GO_BOOL.yes, includeHide: includeHide ? GO_BOOL.yes : GO_BOOL.no },
+        params: {
+          tiny: GO_BOOL.yes,
+          includeHide: includeHide ? GO_BOOL.yes : GO_BOOL.no,
+        },
       });
     };
   }
@@ -90,7 +93,7 @@ export namespace Services {
     }
     export type InfoResponse = ResponseData.Ok<InfoData>;
     export const info = (params: InfoParam) => {
-      return request('/admin/personInfo', {
+      return request('/admin/user/info', {
         params,
       });
     };
@@ -136,7 +139,7 @@ export namespace Services {
     export type CreateResponse = ResponseData.Ok<{
       cardID: UserCard.ItemInResponse['id'];
       UID: PersonInfo.ItemInResponse['id'];
-      pass: string
+      pass: string;
     }>;
     export const create = (
       data: ResetPassParam,

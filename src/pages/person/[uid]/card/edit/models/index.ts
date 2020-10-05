@@ -51,12 +51,12 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
     );
 
     try {
-      const param: Services.UserList.ReadParam = {
+      const param: Services.CardList.ReadParam = {
         id,
         includeHide: GO_BOOL.yes,
       };
       const { person, g } = yield all({
-        person: call(Services.UserList.read, param),
+        person: call(Services.CardList.read, param),
         g: race({
           s: take(AppModels.ActionType.ensureGroupDataSuccess),
           f: take(AppModels.ActionType.ensureGroupDataFail),
@@ -74,7 +74,7 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
 
       const { group }: AppModels.State = yield select(AppModels.currentState);
 
-      const { data }: Services.UserList.ReadResponse = person;
+      const { data }: Services.CardList.ReadResponse = person;
 
       if (data.res.length !== 1) {
         throw new Error('卡片id无效');
@@ -106,7 +106,7 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
     );
 
     const form = allForm.card;
-    const param: Services.UserList.UpdateParam = {
+    const param: Services.CardList.UpdateParam = {
       id: form.id,
       nickname: form.nickname,
       job: form.job,
@@ -144,7 +144,7 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
       // 修正、校验头像信息
       param.avast = form.originAvast;
 
-      yield call(Services.UserList.update, param);
+      yield call(Services.CardList.update, param);
 
       yield put(
         createAction(PersonCardEditModel.ActionType.submitCardInfoSuccess)(

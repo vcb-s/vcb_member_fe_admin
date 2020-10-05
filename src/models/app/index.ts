@@ -9,8 +9,8 @@ import * as AppModels from './AppModels';
 export { AppModels };
 const { namespace, currentState } = AppModels;
 
-interface Payload extends AppModels.Payload { }
-interface State extends AppModels.State { }
+interface Payload extends AppModels.Payload {}
+interface State extends AppModels.State {}
 
 const createAction = <K extends keyof Payload>(key: K) => {
   return (payload: Payload[K]) => {
@@ -29,12 +29,12 @@ const effects: Partial<Record<AppModels.ActionType, Effect>> = {
     { call, put },
   ) {
     try {
-      const param: Services.TinyUserList.ReadParam = {
-        includeHide: true
-      }
-      const { data }: Services.TinyUserList.ReadResponse = yield call(
-        Services.TinyUserList.read,
-        param
+      const param: Services.TinyCardList.ReadParam = {
+        includeHide: true,
+      };
+      const { data }: Services.TinyCardList.ReadResponse = yield call(
+        Services.TinyCardList.read,
+        param,
       );
 
       yield put(
@@ -121,7 +121,7 @@ const reducers: Partial<Record<AppModels.ActionType, Reducer<State>>> = {
       key: `${i.id}`,
     }));
   },
-  [AppModels.ActionType.getGroupFail]() { },
+  [AppModels.ActionType.getGroupFail]() {},
 
   [AppModels.ActionType.getAllUserlistSuccess](
     state,

@@ -39,16 +39,21 @@ export namespace Services {
   export namespace TinyCardList {
     export type ReadParam = {
       includeHide?: boolean;
+      inOrder?: boolean;
     };
     export type ReadResponse = ResponseData.Ok<{
       res: UserCard.TinyItemInResponse[];
       total: number;
     }>;
-    export const read = ({ includeHide }: ReadParam): Promise<ReadResponse> => {
-      return request('/user/list', {
+    export const read = ({
+      includeHide,
+      inOrder = true,
+    }: ReadParam): Promise<ReadResponse> => {
+      return request('/user-card/list', {
         params: {
           tiny: GO_BOOL.yes,
           includeHide: includeHide ? GO_BOOL.yes : GO_BOOL.no,
+          inOrder: inOrder ? GO_BOOL.yes : GO_BOOL.no,
         },
       });
     };

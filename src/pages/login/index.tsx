@@ -1,7 +1,14 @@
-import React, { useEffect, useCallback, useMemo } from 'react';
+import React, {
+  useEffect,
+  useCallback,
+  useState,
+  useRef,
+  useMemo,
+} from 'react';
 import { useSelector, useDispatch, useLocation } from 'umi';
 import { parse } from 'query-string';
 import { Form, Input, Button, Select, Avatar, message } from 'antd';
+import classnames from 'classnames';
 
 import { MAGIC } from '@/utils/constant';
 import { AppModels } from '@/models/app';
@@ -11,17 +18,11 @@ import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
 
 import styles from './index.scss';
 
-// const logoImage = `${picHost}/wp-content/themes/zanblog2_1_0/ui/images/logo.png`;
-
-// 缓存变量降低重复创建销毁的消耗
-let user: UserCard.TinyItem;
-let keyword;
-let nickname, bio, job;
 /** 用户选择器 - 过滤器 */
 const userFilterOption = (value: string, option: any) => {
-  user = option['data-user'];
-  keyword = value.toLowerCase();
-  nickname = user.nickname.toLowerCase();
+  const user = option['data-user'];
+  const keyword = value.toLowerCase();
+  const nickname = user.nickname.toLowerCase();
   // bio = user.bio.toLowerCase();
   // job = user.job.toLowerCase();
 
@@ -53,27 +54,37 @@ const Login = function Login() {
     );
   }, [dispatch]);
 
-  const nameChangeHandle = useCallback(
-    (id: UserCard.Item['id']) => {
+  // 最后输入的搜索值，为了让antd的select在没有选择的时候也保留输入值
+  const [lastSearchValue, setLastSearchValue] = useState('');
+  const currentSelectedUser = useRef<UserCard.TinyItem | null>(null);
+
+  const filtedUsers = useMemo(() => {
+    return appState.userCards.data.filter((user) => {
+      return (
+        user.id === lastSearchValue ||
+        user.nickname.indexOf(lastSearchValue) >= 0
+      );
+    });
+  }, [appState.userCards.data, lastSearchValue]);
+
+  const nameSelectHandle = useCallback(
+    (id: UserCard.TinyItem['id']) => {
       dispatch(
         LoginModel.createAction(LoginModel.ActionType.fieldChange)(
           LoginModel.fieldChangePayloadCreator('login')('id')(id),
         ),
       );
-
-      for (user of appState.userCards.data) {
-        if (user.id === id) {
-          if (!user.uid) {
-            message.warn(
-              '该卡片尚未关联用户，请联系组长或网络组进行关联后登录',
-            );
-          }
-          break;
-        }
-      }
     },
-    [appState.userCards.data, dispatch],
+    [dispatch],
   );
+
+  const dropdownVisibleChangeHandle = useCallback(() => {
+    if (!currentSelectedUser.current && lastSearchValue) {
+      nameSelectHandle(lastSearchValue);
+
+      setLastSearchValue('');
+    }
+  }, [lastSearchValue, nameSelectHandle]);
 
   const passChangeHandle = useCallback(
     (evt: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,17 +101,23 @@ const Login = function Login() {
 
   useEffect(() => {
     const query = parse(search);
-    const username = query[MAGIC.loginPageUserNameQueryKey];
-    const code = query[MAGIC.loginPageAuthCodeQueryKey];
-    if (typeof username === 'string' && typeof code === 'string') {
-      nameChangeHandle(username);
+    const username = query[MAGIC.loginPageUserNameQueryKey] || '';
+    const code = query[MAGIC.loginPageAuthCodeQueryKey] || '';
+    if (
+      // 有可能因为参数错误而parse产生一个数组
+      typeof username === 'string' &&
+      typeof code === 'string' &&
+      username &&
+      code
+    ) {
+      nameSelectHandle(username);
       dispatch(
         LoginModel.createAction(LoginModel.ActionType.fieldChange)(
           LoginModel.fieldChangePayloadCreator('login')('pass')(code),
         ),
       );
     }
-  }, [dispatch, nameChangeHandle, search]);
+  }, [dispatch, nameSelectHandle, search]);
 
   /** 主站关联登录 */
   // const loginWithWpHandle = useCallback(() => {}, []);
@@ -113,24 +130,51 @@ const Login = function Login() {
 
   return (
     <div className={styles.wrap}>
-      {/* <a
-        href='https://vcb-s.com'
-        className={styles.logo}
-        // style={{ backgroundImage: `url(${logoImage})` }}
-      /> */}
+      <div className={styles.loginInfoPreview}>
+        <Avatar src={currentSelectedUser.current?.avast} size={80} />
+        <div
+          className={classnames(
+            styles.loginInfoPreviewUserName,
+            currentSelectedUser.current?.nickname &&
+              styles.loginInfoPreviewUserNameActive,
+          )}
+        >
+          {currentSelectedUser.current?.nickname
+            ? `欢迎回来，${currentSelectedUser.current.nickname}`
+            : 'お風呂にする？ご飯にする？それとも……わ・た・し？'}
+        </div>
+      </div>
+
       <div className={styles.mainForm}>
-        <Form className={styles.mainForm} layout='vertical'>
+        <Form
+          className={styles.mainForm}
+          layout='vertical'
+          onSubmitCapture={loginHandle}
+        >
           <Form.Item label='用户'>
             <Select
               showSearch
-              placeholder='输入用户名搜索'
+              placeholder='可输入用户昵称进行搜索'
               loading={userlistLoading}
               value={loginState.form.login.id || undefined}
-              onChange={nameChangeHandle}
-              filterOption={userFilterOption}
+              filterOption={false}
+              // onChange={nameChangeHandle}
+              onSelect={nameSelectHandle}
+              onSearch={setLastSearchValue}
+              onDropdownVisibleChange={dropdownVisibleChangeHandle}
+              optionLabelProp='value'
             >
-              {appState.userCards.data.map((user) => (
-                <Select.Option key={user.key} value={user.id} data-user={user}>
+              {filtedUsers.map((user) => (
+                <Select.Option
+                  key={user.key}
+                  value={user.id}
+                  disabled={!user.uid}
+                  title={
+                    !user.uid
+                      ? '该卡片尚未关联用户，请联系组长或网络组进行关联'
+                      : ''
+                  }
+                >
                   <Avatar src={user.avast} size='small' />
                   <span className={styles.userSeletorNickname}>
                     {user.nickname}
@@ -161,7 +205,8 @@ const Login = function Login() {
                 type='primary'
                 ghost
                 loading={loginWithPassLoading}
-                onClick={loginHandle}
+                // onClick={loginHandle}
+                htmlType='submit'
                 disabled={!loginState.form.login.pass}
               >
                 登录

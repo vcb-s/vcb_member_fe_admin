@@ -4,18 +4,24 @@
   margin-right: auto;
   padding-top: 100px;
 
-  .logo {
-    display: block;
-    text-decoration: none;
+  .loginInfoPreview {
+    text-align: center;
+  }
 
-    height: 50px;
-    border-radius: 4px;
-    overflow: hidden;
+  .loginInfoPreviewUserName {
+    margin-top: 20px;
+    font-size: 13px;
+    color: #ccc;
+    opacity: 0.6;
+    transition: all 0.3s linear;
+    cursor: default;
+    // cursor: pointer;
 
-    // background-color: #d2322d;
-    background-size: contain;
-    background-position: center -5px;
-    background-repeat: no-repeat;
+    &.loginInfoPreviewUserNameActive,
+    &:hover {
+      color: #333;
+      opacity: 1;
+    }
   }
 
   .mainForm {

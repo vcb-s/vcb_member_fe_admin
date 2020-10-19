@@ -34,28 +34,15 @@ export interface Action<T extends any = any> extends AnyAction {
   payload: T;
 }
 
-export type Effect = <A extends Action = Action>(
-  action: A,
-  effects: EffectsCommandMap,
-) => void;
-export type Reducer<S = any, A extends Action = Action> = (
-  state: S,
-  action: A,
-) => void;
-
-export function withPayloadType<T>() {
-  return (t: T) => ({ payload: t });
+export interface Effect<A extends Action = Action> {
+  (action: A, effects: EffectsCommandMap): void;
 }
 
-export type Promised<S extends Promise<any>> = S extends Promise<infer RT>
-  ? RT
-  : never;
+export interface Reducer<S = any, A extends Action = Action> {
+  (state: S, action: A): void;
+}
 
 export enum GO_BOOL {
   yes = 1,
   no = 2,
-}
-
-export function PromisedType<T extends any>(promise: Promise<T>): T {
-  return (promise as any) as T;
 }

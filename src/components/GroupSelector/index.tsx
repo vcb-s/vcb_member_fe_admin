@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from 'react';
-import { useSelector, AppModels } from 'umi';
+import { useSelector, AppModel } from 'umi';
 import { Select } from 'antd';
 
 import { groupAdapter } from '@/utils/modelAdapter';
@@ -16,12 +16,12 @@ interface Props {
 }
 export const GroupSelector: React.FC<Props> = React.memo(
   ({ loading = false, value, onChange, className, style }) => {
-    const { group: groups } = useSelector(AppModels.currentState);
+    const { group: groups } = useSelector(AppModel.currentState);
 
     const groupLoading = useSelector(
       dvaLoadingSelector.effect(
-        AppModels.namespace,
-        AppModels.ActionType.getGroup,
+        AppModel.namespace,
+        AppModel.ActionType.getGroup,
       ),
     );
 

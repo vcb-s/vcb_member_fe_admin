@@ -11,7 +11,7 @@ import { Form, Input, Button, Select, Avatar, message } from 'antd';
 import classnames from 'classnames';
 
 import { MAGIC } from '@/utils/constant';
-import { AppModels } from '@/models/app';
+import { AppModel } from '@/models/app';
 import { UserCard } from '@/utils/types/UserCard';
 import { LoginModel } from './models';
 import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
@@ -32,13 +32,13 @@ const userFilterOption = (value: string, option: any) => {
 const Login = function Login() {
   const dispatch = useDispatch();
   const loginState = useSelector(LoginModel.currentState);
-  const appState = useSelector(AppModels.currentState);
+  const appState = useSelector(AppModel.currentState);
   const { search } = useLocation();
 
   const userlistLoading = useSelector(
     dvaLoadingSelector.effect(
-      AppModels.namespace,
-      AppModels.ActionType.getAllUserlist,
+      AppModel.namespace,
+      AppModel.ActionType.getAllUserlist,
     ),
   );
   const loginWithPassLoading = useSelector(
@@ -50,7 +50,7 @@ const Login = function Login() {
 
   useEffect(() => {
     dispatch(
-      AppModels.createAction(AppModels.ActionType.getAllUserlist)(undefined),
+      AppModel.createAction(AppModel.ActionType.getAllUserlist)(undefined),
     );
   }, [dispatch]);
 

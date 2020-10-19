@@ -6,7 +6,7 @@ import type { Action, Reducer, Effect } from '@/utils/types';
 import { Services } from '@/utils/services';
 import { MAGIC } from '@/utils/constant';
 import { token } from '@/utils/token';
-import { AppModels } from '@/models/app';
+import { AppModel } from '@/models/app';
 import * as PersonModel from './utils';
 
 export { PersonModel as LoginModel };
@@ -41,8 +41,8 @@ const effects: Partial<Record<PersonModel.ActionType, Effect>> = {
     { select, put, call },
   ) {
     const { form }: PersonModel.State = yield select(PersonModel.currentState);
-    const { userCards: users }: AppModels.State = yield select(
-      AppModels.currentState,
+    const { userCards: users }: AppModel.State = yield select(
+      AppModel.currentState,
     );
     const { id, pass, remember } = form.login;
     try {

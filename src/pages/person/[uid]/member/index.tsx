@@ -4,7 +4,7 @@ import {
   useDispatch,
   useSelector,
   PersonModel,
-  AppModels,
+  AppModel,
 } from 'umi';
 import { useThrottle } from 'react-use';
 
@@ -51,7 +51,7 @@ export default function PagePerson() {
 
   useEffect(() => {
     dispatch(
-      AppModels.createAction(AppModels.ActionType.ensureGroupData)(undefined),
+      AppModel.createAction(AppModel.ActionType.ensureGroupData)(undefined),
     );
   }, [dispatch]);
 

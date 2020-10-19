@@ -4,7 +4,7 @@ import {
   useDispatch,
   useSelector,
   PersonCardEditModel,
-  AppModels,
+  AppModel,
   PersonModel,
 } from 'umi';
 import {
@@ -39,7 +39,7 @@ export default function PagePerson() {
   const dispatch = useDispatch();
   const { card: form } = useSelector(PersonCardEditModel.currentState).form;
   const { personInfo } = useSelector(PersonModel.currentState);
-  const { group: groups } = useSelector(AppModels.currentState);
+  const { group: groups } = useSelector(AppModel.currentState);
   const formLoading = useSelector(
     dvaLoadingSelector.model(PersonCardEditModel.namespace),
     dvaLoadingSelector.model(PersonModel.namespace),

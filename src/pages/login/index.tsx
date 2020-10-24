@@ -5,40 +5,28 @@ import React, {
   useRef,
   useMemo,
 } from 'react';
-import { useSelector, useDispatch, useLocation } from 'umi';
+import { useSelector, useDispatch, useLocation, UsersModel } from 'umi';
 import { parse } from 'query-string';
-import { Form, Input, Button, Select, Avatar, message } from 'antd';
+import { Form, Input, Button, Select, Avatar } from 'antd';
 import classnames from 'classnames';
 
+import { User } from '@/utils/types/user';
 import { MAGIC } from '@/utils/constant';
-import { AppModel } from '@/models/app';
-import { UserCard } from '@/utils/types/UserCard';
 import { LoginModel } from './models';
 import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
 
 import styles from './index.scss';
 
-/** 用户选择器 - 过滤器 */
-const userFilterOption = (value: string, option: any) => {
-  const user = option['data-user'];
-  const keyword = value.toLowerCase();
-  const nickname = user.nickname.toLowerCase();
-  // bio = user.bio.toLowerCase();
-  // job = user.job.toLowerCase();
-
-  return nickname.indexOf(keyword) >= 0;
-};
-
 const Login = function Login() {
   const dispatch = useDispatch();
   const loginState = useSelector(LoginModel.currentState);
-  const appState = useSelector(AppModel.currentState);
+  const userState = useSelector(UsersModel.currentState);
   const { search } = useLocation();
 
   const userlistLoading = useSelector(
     dvaLoadingSelector.effect(
-      AppModel.namespace,
-      AppModel.ActionType.getAllUserlist,
+      UsersModel.namespace,
+      UsersModel.ActionType.getUserList,
     ),
   );
   const loginWithPassLoading = useSelector(
@@ -48,27 +36,40 @@ const Login = function Login() {
     ),
   );
 
+  const currentSelectedUser = useMemo(() => {
+    const [user] = userState.usersList.data.filter((user) => {
+      return user.id === loginState.form.login.id;
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    return user;
+  }, [loginState.form.login.id, userState.usersList.data]);
+
   useEffect(() => {
     dispatch(
-      AppModel.createAction(AppModel.ActionType.getAllUserlist)(undefined),
+      UsersModel.createAction(UsersModel.ActionType.getUserList)(undefined),
     );
   }, [dispatch]);
 
   // 最后输入的搜索值，为了让antd的select在没有选择的时候也保留输入值
   const [lastSearchValue, setLastSearchValue] = useState('');
-  const currentSelectedUser = useRef<UserCard.TinyItem | null>(null);
+  const hasSelectAfterTypeSearch = useRef<boolean>(false);
 
   const filtedUsers = useMemo(() => {
-    return appState.userCards.data.filter((user) => {
+    return userState.usersList.data.filter((user) => {
       return (
         user.id === lastSearchValue ||
         user.nickname.indexOf(lastSearchValue) >= 0
       );
     });
-  }, [appState.userCards.data, lastSearchValue]);
+  }, [lastSearchValue, userState.usersList.data]);
 
   const nameSelectHandle = useCallback(
-    (id: UserCard.TinyItem['id']) => {
+    (id: User.Item['id']) => {
+      hasSelectAfterTypeSearch.current = true;
       dispatch(
         LoginModel.createAction(LoginModel.ActionType.fieldChange)(
           LoginModel.fieldChangePayloadCreator('login')('id')(id),
@@ -79,11 +80,16 @@ const Login = function Login() {
   );
 
   const dropdownVisibleChangeHandle = useCallback(() => {
-    if (!currentSelectedUser.current && lastSearchValue) {
-      nameSelectHandle(lastSearchValue);
-
-      setLastSearchValue('');
+    if (hasSelectAfterTypeSearch.current) {
+      hasSelectAfterTypeSearch.current = false;
+      return;
     }
+
+    if (lastSearchValue) {
+      nameSelectHandle(lastSearchValue);
+    }
+
+    setLastSearchValue(() => '');
   }, [lastSearchValue, nameSelectHandle]);
 
   const passChangeHandle = useCallback(
@@ -131,16 +137,16 @@ const Login = function Login() {
   return (
     <div className={styles.wrap}>
       <div className={styles.loginInfoPreview}>
-        <Avatar src={currentSelectedUser.current?.avast} size={80} />
+        <Avatar src={currentSelectedUser?.avast} size={80} />
         <div
           className={classnames(
             styles.loginInfoPreviewUserName,
-            currentSelectedUser.current?.nickname &&
+            currentSelectedUser?.nickname &&
               styles.loginInfoPreviewUserNameActive,
           )}
         >
-          {currentSelectedUser.current?.nickname
-            ? `欢迎回来，${currentSelectedUser.current.nickname}`
+          {currentSelectedUser?.nickname
+            ? `欢迎回来，${currentSelectedUser.nickname}`
             : 'お風呂にする？ご飯にする？それとも……わ・た・し？'}
         </div>
       </div>
@@ -165,16 +171,7 @@ const Login = function Login() {
               optionLabelProp='value'
             >
               {filtedUsers.map((user) => (
-                <Select.Option
-                  key={user.key}
-                  value={user.id}
-                  disabled={!user.uid}
-                  title={
-                    !user.uid
-                      ? '该卡片尚未关联用户，请联系组长或网络组进行关联'
-                      : ''
-                  }
-                >
+                <Select.Option key={user.key} value={user.id}>
                   <Avatar src={user.avast} size='small' />
                   <span className={styles.userSeletorNickname}>
                     {user.nickname}

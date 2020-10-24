@@ -1,5 +1,6 @@
 import type { Group } from '@/utils/types/Group';
-import type { UserCard } from '@/utils/types/UserCard';
+import type { User } from '@/utils/types/user';
+import type { UserCard } from '@/utils/types/userCard';
 import type { PersonInfo } from '@/utils/types/PersonInfo';
 
 const unknowGroup: Group.Item = {
@@ -131,5 +132,30 @@ export namespace ModelAdapter {
         .filter((_) => !!_)
         .map(groupAdapter.getGroup),
     }));
+  }
+
+  export function UserList(
+    users: User.ItemInResponse[],
+    groups: Group.Item[],
+  ): User.Item[] {
+    groupAdapter.refreshGroupMap(groups);
+
+    return users.map((_user) => {
+      const user: User.Item = {
+        ..._user,
+        key: _user.id,
+        avast: ImageURLAdapter(_user.avast),
+        group: _user.group
+          .split(',')
+          .filter((_) => !!_)
+          .map(groupAdapter.getGroup),
+        admin: _user.admin
+          .split(',')
+          .filter((_) => !!_)
+          .map(groupAdapter.getGroup),
+      };
+
+      return user;
+    });
   }
 }

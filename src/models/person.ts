@@ -5,7 +5,7 @@ import { stringify } from 'query-string';
 
 import { Action, Reducer, Effect, GO_BOOL } from '@/utils/types';
 import type { CommonList } from '@/utils/types/CommonList';
-import type { UserCard } from '@/utils/types/UserCard';
+import type { UserCard } from '@/utils/types/userCard';
 import type { PersonInfo } from '@/utils/types/PersonInfo';
 import type { Group } from '@/utils/types/Group';
 import { Services } from '@/utils/services';
@@ -24,7 +24,7 @@ export namespace PersonModel {
     };
   }
 
-  export const createAction: CreateAction = (key, withNamespace = false) => {
+  export const createAction: CreateAction = (key, withNamespace = true) => {
     return (payload) => {
       return {
         type: withNamespace ? `${namespace}/${key}` : key,
@@ -94,7 +94,7 @@ export namespace PersonModel {
   }
   export const currentState = (_: any): State => _[namespace];
 
-  export const namespace = 'pages.person';
+  export const namespace = 'global.personinfo';
   export enum ActionType {
     reset = 'reset',
 
@@ -168,7 +168,10 @@ export namespace PersonModel {
       const { uid } = payload;
 
       yield put(
-        AppModel.createAction(AppModel.ActionType.ensureGroupData)(undefined),
+        AppModel.createAction(
+          AppModel.ActionType.ensureGroupData,
+          false,
+        )(undefined),
       );
 
       try {
@@ -189,7 +192,10 @@ export namespace PersonModel {
         const { data }: Services.Person.InfoResponse = person;
 
         yield put(
-          createAction(ActionType.getPersonInfoSuccess)({
+          createAction(
+            ActionType.getPersonInfoSuccess,
+            false,
+          )({
             info: data.info,
             cards: data.cards.res,
             users: data.users.res,
@@ -198,7 +204,10 @@ export namespace PersonModel {
         );
       } catch (error) {
         yield put(
-          createAction(ActionType.getPersonInfoFail)({
+          createAction(
+            ActionType.getPersonInfoFail,
+            false,
+          )({
             error,
           }),
         );
@@ -213,21 +222,31 @@ export namespace PersonModel {
       try {
         const param = payload;
         yield put(
-          createAction(ActionType.toggleLoadingForPerson)({
+          createAction(
+            ActionType.toggleLoadingForPerson,
+            false,
+          )({
             id: param.id,
           }),
         );
         yield call(Services.Person.update, param);
         const { personInfo }: State = yield select(currentState);
-        yield put(createAction(ActionType.updatePersonInfoSuccess)(undefined));
         yield put(
-          createAction(ActionType.getPersonInfo)({
+          createAction(ActionType.updatePersonInfoSuccess, false)(undefined),
+        );
+        yield put(
+          createAction(
+            ActionType.getPersonInfo,
+            false,
+          )({
             uid: personInfo.id,
           }),
         );
       } catch (error) {
         message.error(error.message);
-        yield put(createAction(ActionType.updatePersonInfoFail)({ error }));
+        yield put(
+          createAction(ActionType.updatePersonInfoFail, false)({ error }),
+        );
       }
     },
 
@@ -238,10 +257,12 @@ export namespace PersonModel {
       try {
         const param = payload;
         yield call(Services.Person.kickoff, param);
-        yield put(createAction(ActionType.kickoffPersonSuccess)(payload));
+        yield put(
+          createAction(ActionType.kickoffPersonSuccess, false)(payload),
+        );
       } catch (error) {
         message.error(error.message);
-        yield put(createAction(ActionType.kickoffPersonFail)({ error }));
+        yield put(createAction(ActionType.kickoffPersonFail, false)({ error }));
       }
     },
 
@@ -314,14 +335,17 @@ export namespace PersonModel {
 
         modal?.destroy();
         yield put(
-          createAction(ActionType.restPassSuccess)({
+          createAction(
+            ActionType.restPassSuccess,
+            false,
+          )({
             newPass: data.newPass,
           }),
         );
       } catch (e) {
         modal?.destroy();
         message.error(e.message);
-        yield put(createAction(ActionType.restPassFail)(undefined));
+        yield put(createAction(ActionType.restPassFail, false)(undefined));
       }
     },
 
@@ -344,7 +368,7 @@ export namespace PersonModel {
         );
 
         // 关闭弹层
-        yield put(createAction(ActionType.closeAMModel)(undefined));
+        yield put(createAction(ActionType.closeAMModel, false)(undefined));
 
         // 展示登录链接弹层
         yield call(() => {

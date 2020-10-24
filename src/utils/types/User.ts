@@ -13,6 +13,8 @@ export namespace User {
     group: string;
   }
   export interface Item extends Omit<ItemInResponse, 'admin' | 'group'> {
+    key: string;
+
     group: Group.Item[];
 
     admin: Group.Item[];

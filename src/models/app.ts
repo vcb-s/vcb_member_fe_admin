@@ -2,14 +2,14 @@ import { message } from 'antd';
 
 import type { Action, Reducer, Effect } from '@/utils/types';
 import type { Group } from '@/utils/types/Group';
-import type { UserCard } from '@/utils/types/UserCard';
+import type { UserCard } from '@/utils/types/userCard';
 import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
 import { emptyList } from '@/utils/types/CommonList';
 import { Services } from '@/utils/services';
 import { ModelAdapter } from '@/utils/modelAdapter';
 
 export namespace AppModel {
-  export const namespace = 'app';
+  export const namespace = 'global.app';
   export enum ActionType {
     reset = 'reset',
 
@@ -21,11 +21,26 @@ export namespace AppModel {
     getGroupSuccess = 'getGroupSuccess',
     getGroupFail = 'getGroupFail',
     // changeGroup = 'changeGroup',
-
-    getAllUserlist = 'getUserlist',
-    getAllUserlistSuccess = 'getUserlistSuccess',
-    getAllUserlistFail = 'getUserlistFail',
   }
+
+  export interface CreateAction {
+    <K extends keyof Payload>(key: K, withNamespace?: boolean): (
+      payload: Payload[K],
+    ) => {
+      type: string;
+      payload: Payload[K];
+    };
+  }
+
+  export const createAction: CreateAction = (key, withNamespace = true) => {
+    return (payload) => {
+      return {
+        type: withNamespace ? `${namespace}/${key}` : key,
+        payload: payload,
+      };
+    };
+  };
+
   export interface Payload {
     [ActionType.reset]: undefined;
 
@@ -43,25 +58,13 @@ export namespace AppModel {
     // [ActionType.changeGroup]: {
     //   groupID?: Group.Item['id'];
     // };
-
-    [ActionType.getAllUserlist]: undefined;
-    [ActionType.getAllUserlistSuccess]: {
-      data: UserCard.TinyItemInResponse[];
-    };
-    [ActionType.getAllUserlistFail]: {
-      error: Error;
-    };
   }
   /** 统一导出State，降低引用Model时心智负担，统一都使用State就行了 */
   export interface State {
     userCards: UserCard.TinyList;
     group: Group.List;
   }
-  export const createAction = <K extends keyof Payload>(key: K) => {
-    return (payload: Payload[K]) => {
-      return { type: `${namespace}/${key}`, payload: payload };
-    };
-  };
+
   export const currentState = (_: any): State => _[namespace];
 
   export const initalState: State = {
@@ -70,31 +73,6 @@ export namespace AppModel {
   };
 
   export const effects: Partial<Record<AppModel.ActionType, Effect>> = {
-    *[AppModel.ActionType.getAllUserlist](
-      { payload }: Action<Payload[AppModel.ActionType.getAllUserlist]>,
-      { call, put },
-    ) {
-      try {
-        const param: Services.TinyCardList.ReadParam = {
-          includeHide: true,
-        };
-        const { data }: Services.TinyCardList.ReadResponse = yield call(
-          Services.TinyCardList.read,
-          param,
-        );
-
-        yield put(
-          createAction(AppModel.ActionType.getAllUserlistSuccess)({
-            data: data.res,
-          }),
-        );
-      } catch (err) {
-        yield put(
-          createAction(AppModel.ActionType.getAllUserlistFail)({ error: err }),
-        );
-        message.error(err.message);
-      }
-    },
     *[AppModel.ActionType.ensureGroupData](
       action,
       { take, put, select, race },
@@ -106,13 +84,16 @@ export namespace AppModel {
       const { group }: AppModel.State = yield select(currentState);
       if (group.data.length) {
         yield put(
-          createAction(AppModel.ActionType.ensureGroupDataSuccess)(undefined),
+          createAction(
+            AppModel.ActionType.ensureGroupDataSuccess,
+            false,
+          )(undefined),
         );
         return;
       }
 
       if (!loading) {
-        yield put(createAction(AppModel.ActionType.getGroup)(undefined));
+        yield put(createAction(AppModel.ActionType.getGroup, false)(undefined));
       }
 
       const { s, f } = yield race({
@@ -122,16 +103,22 @@ export namespace AppModel {
 
       if (s) {
         yield put(
-          createAction(AppModel.ActionType.ensureGroupDataSuccess)(undefined),
+          createAction(
+            AppModel.ActionType.ensureGroupDataSuccess,
+            false,
+          )(undefined),
         );
       } else if (f) {
         yield put(
-          createAction(AppModel.ActionType.ensureGroupDataFail)(f.payload),
+          createAction(
+            AppModel.ActionType.ensureGroupDataFail,
+            false,
+          )(f.payload),
         );
       }
     },
     *[AppModel.ActionType.getGroup](
-      { payload }: Action<Payload[AppModel.ActionType.getAllUserlist]>,
+      { payload }: Action<Payload[AppModel.ActionType.getGroup]>,
       { call, put },
     ) {
       try {
@@ -140,13 +127,19 @@ export namespace AppModel {
         );
 
         yield put(
-          createAction(AppModel.ActionType.getGroupSuccess)({
+          createAction(
+            AppModel.ActionType.getGroupSuccess,
+            false,
+          )({
             data: data.res,
           }),
         );
       } catch (err) {
         yield put(
-          createAction(AppModel.ActionType.getGroupFail)({
+          createAction(
+            AppModel.ActionType.getGroupFail,
+            false,
+          )({
             error: err,
           }),
         );
@@ -172,17 +165,6 @@ export namespace AppModel {
         id: `${i.id}`,
         key: `${i.id}`,
       }));
-    },
-    [AppModel.ActionType.getGroupFail]() {},
-
-    [AppModel.ActionType.getAllUserlistSuccess](
-      state,
-      { payload }: Action<Payload[AppModel.ActionType.getAllUserlistSuccess]>,
-    ) {
-      state.userCards.data = ModelAdapter.TinyUserCards(payload.data);
-    },
-    [AppModel.ActionType.getAllUserlistFail]() {
-      return initalState;
     },
   };
 }

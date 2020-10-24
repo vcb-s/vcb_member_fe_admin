@@ -3,6 +3,7 @@ import { request } from 'umi';
 import { PaginationParam } from './types/Pagination';
 import { ResponseData } from './types/ResponseData';
 import { UserCard } from './types/UserCard';
+import { User } from './types/User';
 import { PersonInfo } from './types/PersonInfo';
 import { GO_BOOL } from './types';
 import { Group as GroupType } from './types/Group';
@@ -152,6 +153,26 @@ export namespace Services {
       return request('/admin/user/create', {
         data,
         method: 'post',
+      });
+    };
+  }
+  export namespace UsersList {
+    export interface ReadParam extends PaginationParam {
+      id: string;
+      keyword: string;
+      /** group id */
+      group: number;
+      retired: GO_BOOL;
+      includeBan: GO_BOOL;
+    }
+    export type ReadResponse = ResponseData.Ok<{
+      res: User.ItemInResponse[];
+      total: number;
+    }>;
+    export const read = (data: ReadParam): Promise<ReadResponse> => {
+      return request('/user/list', {
+        data,
+        method: 'get',
       });
     };
   }

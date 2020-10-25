@@ -134,7 +134,7 @@ export namespace PersonModel {
     addMemberFail = 'addMemberFail',
 
     /** 关闭添加弹层 */
-    closeAMModel = 'closeRSPModel',
+    closeAMModel = 'closeAMModel',
   }
 
   export const initalState: State = {

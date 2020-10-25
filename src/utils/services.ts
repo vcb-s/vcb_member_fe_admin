@@ -134,7 +134,7 @@ export namespace Services {
     export const resetPass = (
       data: ResetPassParam,
     ): Promise<ResetPassResponse> => {
-      return request('/admin/resetPass', {
+      return request('/admin/password/reset', {
         data,
         method: 'post',
       });

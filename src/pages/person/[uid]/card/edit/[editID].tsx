@@ -260,7 +260,7 @@ export default function PagePerson() {
             required
             help={
               <>
-                <div>文件上传支持正紧张开发中</div>
+                {/* <div>文件上传支持正紧张开发中</div> */}
                 <div>留空则使用个人信息中的头像</div>
               </>
             }

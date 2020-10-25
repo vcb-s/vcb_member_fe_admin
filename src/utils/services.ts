@@ -31,7 +31,7 @@ export namespace Services {
       id: UserCard.ItemInResponse['id'];
     };
     export const update = (data: UpdateParam): Promise<ResponseData.Ok> => {
-      return request('/admin/updateUserCard', {
+      return request('/admin/user-card/update', {
         data,
         method: 'post',
       });
@@ -108,7 +108,7 @@ export namespace Services {
       id: string;
     }
     export const update = (data: UpdateParam): Promise<ResponseData.Ok> => {
-      return request('/admin/updateUser', {
+      return request('/admin/user/update', {
         method: 'post',
         data,
       });
@@ -119,7 +119,7 @@ export namespace Services {
       group: string;
     }
     export const kickoff = (data: KickOffParam) => {
-      return request('/admin/kickoff', {
+      return request('/admin/user/kickoff', {
         method: 'post',
         data,
       });

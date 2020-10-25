@@ -120,6 +120,11 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
       return;
     }
 
+    // 修正组别信息
+    param.group = form.group.map((g) => g.id).join(',');
+    // 修正、校验头像信息
+    param.avast = form.originAvast;
+
     if (!param.avast || !param.avast.replace(/https?:\/\//, '')) {
       try {
         yield call(
@@ -130,6 +135,8 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
                 centered: true,
                 onOk: () => resolve(),
                 onCancel: () => reject(),
+                okText: '继续提交',
+                cancelText: '返回填写',
               });
             }),
         );
@@ -139,11 +146,6 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
     }
 
     try {
-      // 修正组别信息
-      param.group = form.group.map((g) => g.id).join(',');
-      // 修正、校验头像信息
-      param.avast = form.originAvast;
-
       yield call(Services.CardList.update, param);
 
       yield put(

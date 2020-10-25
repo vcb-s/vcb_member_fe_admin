@@ -20,6 +20,7 @@ import {
   Modal,
   Input,
 } from 'antd';
+import { ButtonProps } from 'antd/es/button';
 import { DownOutlined } from '@ant-design/icons';
 import { ColumnsType } from 'antd/lib/table';
 
@@ -285,17 +286,39 @@ export default function PagePerson() {
     ];
   }, [banHandle, filtedUserGroupMap, kickHandle, resetPersonPassHandle]);
 
+  const [memberToGroup, setMemberToGroup] = useState<Group.Item[]>([]);
+
   const AMModalLoading = useSelector(
     dvaLoadingSelector.effect(
       PersonModel.namespace,
       PersonModel.ActionType.addMember,
     ),
   );
-  const AMModalFooterProps = useMemo(() => ({ loading: AMModalLoading }), [
-    AMModalLoading,
-  ]);
-  const [memberToGroup, setMemberToGroup] = useState<Group.Item[]>([]);
+  const AMModalFooterSubmitProps: Partial<ButtonProps> = useMemo(
+    () => ({
+      loading: AMModalLoading,
+      disabled: !memberToGroup.length,
+      title: !memberToGroup.length ? '至少选择一个组' : '',
+    }),
+    [AMModalLoading, memberToGroup.length],
+  );
+  const AMModalFooterCancelProps: Partial<ButtonProps> = useMemo(
+    () => ({
+      loading: AMModalLoading,
+    }),
+    [AMModalLoading],
+  );
+
+  const [nickname, setNickname] = useState<string>('');
+  const nicknameChangeHandle = useCallback(
+    (evt: React.ChangeEvent<HTMLInputElement>) => {
+      setNickname(evt.target.value);
+    },
+    [],
+  );
   const closeModalHandle = useCallback(() => {
+    setNickname('');
+    setMemberToGroup([]);
     dispatch(
       PersonModel.createAction(PersonModel.ActionType.closeAMModel)(undefined),
     );
@@ -304,9 +327,10 @@ export default function PagePerson() {
     dispatch(
       PersonModel.createAction(PersonModel.ActionType.addMember)({
         groupIDs: memberToGroup.map((g) => g.id),
+        nickname: nickname,
       }),
     );
-  }, [dispatch, memberToGroup]);
+  }, [dispatch, memberToGroup, nickname]);
   const resetMemberToGroup = useCallback(() => {
     setMemberToGroup([]);
   }, []);
@@ -336,14 +360,26 @@ export default function PagePerson() {
         visible={addMemberModal.show}
         title='新增一名组员'
         centered
+        maskClosable={false}
         onCancel={closeModalHandle}
         onOk={submitAMModalHandle}
         afterClose={resetMemberToGroup}
-        okButtonProps={AMModalFooterProps}
-        cancelButtonProps={AMModalFooterProps}
+        okButtonProps={AMModalFooterSubmitProps}
+        cancelButtonProps={AMModalFooterCancelProps}
       >
         <Space direction='vertical'>
-          <div>新增组员将自动关联到以下组别：</div>
+          <div>默认用户名：</div>
+          <Input
+            value={nickname}
+            onChange={nicknameChangeHandle}
+            size='middle'
+            // style={AMModalStyle}
+            disabled={AMModalLoading}
+            placeholder='新用户'
+          />
+          <div>
+            新增组员将自动关联到以下组别（会出现在相关组的组员列表中）：
+          </div>
           <GroupSelector
             value={memberToGroup}
             onChange={setMemberToGroup}

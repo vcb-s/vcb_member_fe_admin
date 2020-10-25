@@ -142,15 +142,14 @@ export namespace Services {
 
     export type CreateParam = {
       group: string[];
+      nickname: string;
     };
     export type CreateResponse = ResponseData.Ok<{
       cardID: UserCard.ItemInResponse['id'];
       UID: PersonInfo.ItemInResponse['id'];
       pass: string;
     }>;
-    export const create = (
-      data: ResetPassParam,
-    ): Promise<ResetPassResponse> => {
+    export const create = (data: CreateParam): Promise<CreateResponse> => {
       return request('/admin/user/create', {
         data,
         method: 'post',

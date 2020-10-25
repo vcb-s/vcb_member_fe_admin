@@ -69,7 +69,7 @@ export namespace PersonModel {
     [ActionType.restPassFail]: undefined;
 
     [ActionType.preAddMember]: undefined;
-    [ActionType.addMember]: { groupIDs: string[] };
+    [ActionType.addMember]: { groupIDs: string[]; nickname: string };
     [ActionType.addMemberSuccess]: undefined;
     [ActionType.addMemberFail]: undefined;
 
@@ -361,6 +361,7 @@ export namespace PersonModel {
       try {
         const param: Services.Person.CreateParam = {
           group: payload.groupIDs,
+          nickname: payload.nickname,
         };
         const { data }: Services.Person.CreateResponse = yield call(
           Services.Person.create,
@@ -382,7 +383,7 @@ export namespace PersonModel {
             )}${createPath({
               pathname: '/login',
               search: stringify({
-                [MAGIC.loginPageUserNameQueryKey]: data.cardID,
+                [MAGIC.loginPageUserNameQueryKey]: data.UID,
                 [MAGIC.loginPageAuthCodeQueryKey]: data.pass,
               }),
             })}`,

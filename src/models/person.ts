@@ -170,7 +170,7 @@ export namespace PersonModel {
       yield put(
         AppModel.createAction(
           AppModel.ActionType.ensureGroupData,
-          false,
+          true,
         )(undefined),
       );
 

@@ -101,6 +101,7 @@ export namespace Services {
     export const info = (params: InfoParam) => {
       return request('/admin/user/info', {
         params,
+        method: 'post',
       });
     };
     export interface UpdateParam extends Partial<PersonInfo.ItemInResponse> {

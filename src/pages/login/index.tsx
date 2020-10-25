@@ -79,18 +79,19 @@ const Login = function Login() {
     [dispatch],
   );
 
-  const dropdownVisibleChangeHandle = useCallback(() => {
-    if (hasSelectAfterTypeSearch.current) {
-      hasSelectAfterTypeSearch.current = false;
-      return;
-    }
+  // 暂时关闭ID显示这个设定，放弃keepass之类的填充；太小众然后使用起来有点怪怪的
+  // const dropdownVisibleChangeHandle = useCallback(() => {
+  //   if (hasSelectAfterTypeSearch.current) {
+  //     hasSelectAfterTypeSearch.current = false;
+  //     return;
+  //   }
 
-    if (lastSearchValue) {
-      nameSelectHandle(lastSearchValue);
-    }
+  //   if (lastSearchValue) {
+  //     nameSelectHandle(lastSearchValue);
+  //   }
 
-    setLastSearchValue(() => '');
-  }, [lastSearchValue, nameSelectHandle]);
+  //   setLastSearchValue(() => '');
+  // }, [lastSearchValue, nameSelectHandle]);
 
   const passChangeHandle = useCallback(
     (evt: React.ChangeEvent<HTMLInputElement>) => {
@@ -167,8 +168,8 @@ const Login = function Login() {
               // onChange={nameChangeHandle}
               onSelect={nameSelectHandle}
               onSearch={setLastSearchValue}
-              onDropdownVisibleChange={dropdownVisibleChangeHandle}
-              optionLabelProp='value'
+              // onDropdownVisibleChange={dropdownVisibleChangeHandle}
+              // optionLabelProp='value'
             >
               {filtedUsers.map((user) => (
                 <Select.Option key={user.key} value={user.id}>
@@ -186,6 +187,7 @@ const Login = function Login() {
               onChange={passChangeHandle}
               onPressEnter={loginHandle}
               autoComplete='new-password'
+              // autoComplete='off'
             />
           </Form.Item>
           <Form.Item style={{ textAlign: 'right' }}>

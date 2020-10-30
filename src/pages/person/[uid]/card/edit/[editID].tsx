@@ -4,7 +4,6 @@ import {
   useDispatch,
   useSelector,
   PersonCardEditModel,
-  AppModel,
   PersonModel,
 } from 'umi';
 import {
@@ -23,7 +22,6 @@ import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
 
 import { defaultFormLayout, textareaAutoSize } from '@/utils/constant';
 import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
-import { groupAdapter } from '@/utils/modelAdapter';
 import { GroupSelector } from '@/components/GroupSelector';
 
 import { PageParam } from './types';
@@ -39,7 +37,6 @@ export default function PagePerson() {
   const dispatch = useDispatch();
   const { card: form } = useSelector(PersonCardEditModel.currentState).form;
   const { personInfo } = useSelector(PersonModel.currentState);
-  const { group: groups } = useSelector(AppModel.currentState);
   const formLoading = useSelector(
     dvaLoadingSelector.model(PersonCardEditModel.namespace),
     dvaLoadingSelector.model(PersonModel.namespace),
@@ -225,16 +222,7 @@ export default function PagePerson() {
         </Row>
 
         <Form {...defaultFormLayout.normal}>
-          <Form.Item
-            label='头像'
-            required
-            help={
-              <>
-                {/* <div>文件上传支持正紧张开发中</div> */}
-                <div>留空则使用个人信息中的头像</div>
-              </>
-            }
-          >
+          <Form.Item label='头像' required>
             <Input
               value={form.originAvast}
               disabled={formLoading}
@@ -270,7 +258,7 @@ export default function PagePerson() {
           <Form.Item
             label='组别'
             required
-            help='注意不要与别的卡片重合，否则会出现一个组中有多个您的卡片'
+            help='主要不要跟你的别的卡片重叠选择，不然会出现一个组别重复出现多个您的卡片'
           >
             <GroupSelector
               value={form.group}

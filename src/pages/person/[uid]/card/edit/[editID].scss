@@ -1,7 +1,14 @@
 .wrap {
   flex-grow: 1;
-  padding: 40px 10px;
+  padding: 0;
   max-width: 680px;
+  flex-basis: 0;
+  overflow: auto;
+}
+
+.form {
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 .table {

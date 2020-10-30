@@ -218,95 +218,85 @@ export default function PagePerson() {
   return (
     <div className={styles.wrap}>
       <PageHeader title='编辑卡片' onBack={goBackHandle} />
-      <Space direction='vertical' style={{ width: '100%' }}>
-        <Form {...defaultFormLayout.normal}>
-          <Form.Item label='头像' required>
-            <Input
-              value={form.originAvast}
-              disabled={formLoading}
-              onChange={avastChangeHandle}
-            />
-          </Form.Item>
+      <Form {...defaultFormLayout.normal} className={styles.form}>
+        <Form.Item label='头像' required>
+          <Input
+            value={form.originAvast}
+            disabled={formLoading}
+            onChange={avastChangeHandle}
+          />
+        </Form.Item>
 
-          <Form.Item label='昵称' required>
-            <Input
-              value={form.nickname}
-              disabled={formLoading}
-              onChange={nicknameChangeHandle}
-            />
-          </Form.Item>
+        <Form.Item label='昵称' required>
+          <Input
+            value={form.nickname}
+            disabled={formLoading}
+            onChange={nicknameChangeHandle}
+          />
+        </Form.Item>
 
-          <Form.Item label='职称' required>
-            <Input
-              value={form.job}
-              disabled={formLoading}
-              onChange={jobChangeHandle}
-            />
-          </Form.Item>
+        <Form.Item label='职称' required>
+          <Input
+            value={form.job}
+            disabled={formLoading}
+            onChange={jobChangeHandle}
+          />
+        </Form.Item>
 
-          <Form.Item label='个人简介' required>
-            <Input.TextArea
-              value={form.bio}
-              autoSize={textareaAutoSize}
-              disabled={formLoading}
-              onChange={bioChangeHandle}
-            />
-          </Form.Item>
+        <Form.Item label='个人简介' required>
+          <Input.TextArea
+            value={form.bio}
+            autoSize={textareaAutoSize}
+            disabled={formLoading}
+            onChange={bioChangeHandle}
+          />
+        </Form.Item>
 
-          <Form.Item
-            label='组别'
-            required
-            help='主要不要跟你的别的卡片重叠选择，不然会出现一个组别重复出现多个您的卡片'
-          >
-            <GroupSelector
-              value={form.group}
-              loading={formLoading}
-              onChange={groupChangeHandle}
-            />
-          </Form.Item>
+        <Form.Item
+          label='组别'
+          required
+          help='主要不要跟你的别的卡片重叠选择，不然会出现一个组别重复出现多个您的卡片'
+        >
+          <GroupSelector
+            value={form.group}
+            loading={formLoading}
+            onChange={groupChangeHandle}
+          />
+        </Form.Item>
 
-          <Form.Item label='退休'>
-            <Switch
-              loading={formLoading}
-              checked={form.retired === GO_BOOL.yes}
-              checkedChildren={yesIcon}
-              unCheckedChildren={noIcon}
-              onChange={retiredChangeHandle}
-            />
-          </Form.Item>
+        <Form.Item label='退休'>
+          <Switch
+            loading={formLoading}
+            checked={form.retired === GO_BOOL.yes}
+            checkedChildren={yesIcon}
+            unCheckedChildren={noIcon}
+            onChange={retiredChangeHandle}
+          />
+        </Form.Item>
 
-          <Form.Item label='隐藏' help='隐藏后将不会被展示在前台'>
-            <Switch
-              loading={formLoading}
-              checked={form.hide === GO_BOOL.yes}
-              checkedChildren={yesIcon}
-              unCheckedChildren={noIcon}
-              onChange={hideChangeHandle}
-            />
-          </Form.Item>
+        <Form.Item label='隐藏' help='隐藏后将不会被展示在前台'>
+          <Switch
+            loading={formLoading}
+            checked={form.hide === GO_BOOL.yes}
+            checkedChildren={yesIcon}
+            unCheckedChildren={noIcon}
+            onChange={hideChangeHandle}
+          />
+        </Form.Item>
 
-          <div style={{ height: '20px' }} />
+        <div style={{ height: '20px' }} />
 
-          <Form.Item {...defaultFormLayout.tail}>
-            <Space>
-              <Button
-                type='default'
-                loading={formLoading}
-                onClick={resetHandle}
-              >
-                重置
-              </Button>
-              <Button
-                type='primary'
-                loading={formLoading}
-                onClick={submitHandle}
-              >
-                提交
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Space>
+        <Form.Item {...defaultFormLayout.tail}>
+          <Space>
+            <Button type='default' loading={formLoading} onClick={resetHandle}>
+              重置
+            </Button>
+            <Button type='primary' loading={formLoading} onClick={submitHandle}>
+              提交
+            </Button>
+          </Space>
+        </Form.Item>
+      </Form>
     </div>
   );
 }

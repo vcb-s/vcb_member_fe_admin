@@ -4,7 +4,7 @@ import {
   useDispatch,
   useSelector,
   PersonModel,
-  AppModel,
+  UsersModel,
 } from 'umi';
 import { useThrottle } from 'react-use';
 
@@ -19,6 +19,7 @@ import {
   Menu,
   Modal,
   Input,
+  Select,
 } from 'antd';
 import { ButtonProps } from 'antd/es/button';
 import { DownOutlined } from '@ant-design/icons';
@@ -49,7 +50,7 @@ const ErrorTag: React.FC<TagProps> = React.memo(function ErrorTag({
   return <Tag color='error'>{title}</Tag>;
 });
 
-/** 新建组员 */
+/** 新建组员按钮及其弹层 */
 const CreateUserBtn = React.memo(function CreateUserBtn() {
   const dispatch = useDispatch();
   const match = useRouteMatch<PageParam>();
@@ -57,7 +58,7 @@ const CreateUserBtn = React.memo(function CreateUserBtn() {
 
   const { addMemberModal } = useSelector(PersonModel.currentState);
 
-  const [memberToGroup, setMemberToGroup] = useState<Group.Item[]>([]);
+  const [selectedGroups, setSelectedGroups] = useState<Group.Item[]>([]);
 
   const [nickname, setNickname] = useState<string>('');
 
@@ -67,25 +68,25 @@ const CreateUserBtn = React.memo(function CreateUserBtn() {
     );
   }, [dispatch]);
 
-  const AMModalLoading = useSelector(
+  const ModalLoading = useSelector(
     dvaLoadingSelector.effect(
       PersonModel.namespace,
       PersonModel.ActionType.addMember,
     ),
   );
-  const AMModalFooterSubmitProps: Partial<ButtonProps> = useMemo(
+  const ModalFooterSubmitProps: Partial<ButtonProps> = useMemo(
     () => ({
-      loading: AMModalLoading,
-      disabled: !memberToGroup.length,
-      title: !memberToGroup.length ? '至少选择一个组' : '',
+      loading: ModalLoading,
+      disabled: !selectedGroups.length,
+      title: !selectedGroups.length ? '至少选择一个组' : '',
     }),
-    [AMModalLoading, memberToGroup.length],
+    [ModalLoading, selectedGroups.length],
   );
-  const AMModalFooterCancelProps: Partial<ButtonProps> = useMemo(
+  const ModalFooterCancelProps: Partial<ButtonProps> = useMemo(
     () => ({
-      loading: AMModalLoading,
+      loading: ModalLoading,
     }),
-    [AMModalLoading],
+    [ModalLoading],
   );
 
   const nicknameChangeHandle = useCallback(
@@ -96,36 +97,36 @@ const CreateUserBtn = React.memo(function CreateUserBtn() {
   );
   const closeModalHandle = useCallback(() => {
     setNickname('');
-    setMemberToGroup([]);
+    setSelectedGroups([]);
     dispatch(
       PersonModel.createAction(PersonModel.ActionType.closeAMModel)(undefined),
     );
   }, [dispatch]);
-  const submitAMModalHandle = useCallback(() => {
+  const submitModalHandle = useCallback(() => {
     dispatch(
       PersonModel.createAction(PersonModel.ActionType.addMember)({
-        groupIDs: memberToGroup.map((g) => g.id),
+        groupIDs: selectedGroups.map((g) => g.id),
         nickname: nickname,
       }),
     );
-  }, [dispatch, memberToGroup, nickname]);
-  const resetMemberToGroup = useCallback(() => {
-    setMemberToGroup([]);
+  }, [dispatch, selectedGroups, nickname]);
+  const resetHandle = useCallback(() => {
+    setSelectedGroups([]);
   }, []);
 
   return (
     <>
-      <Button onClick={addMemberHandle}>新增组员</Button>
+      <Button onClick={addMemberHandle}>萌新入组</Button>
       <Modal
         visible={addMemberModal.show}
         title='新增一名组员'
         centered
         maskClosable={false}
         onCancel={closeModalHandle}
-        onOk={submitAMModalHandle}
-        afterClose={resetMemberToGroup}
-        okButtonProps={AMModalFooterSubmitProps}
-        cancelButtonProps={AMModalFooterCancelProps}
+        onOk={submitModalHandle}
+        afterClose={resetHandle}
+        okButtonProps={ModalFooterSubmitProps}
+        cancelButtonProps={ModalFooterCancelProps}
       >
         <Space direction='vertical'>
           <div>默认用户名：</div>
@@ -134,21 +135,155 @@ const CreateUserBtn = React.memo(function CreateUserBtn() {
             onChange={nicknameChangeHandle}
             size='middle'
             // style={AMModalStyle}
-            disabled={AMModalLoading}
+            disabled={ModalLoading}
             placeholder='新用户'
           />
           <div>
             新增组员将自动关联到以下组别（会出现在相关组的组员列表中）：
           </div>
           <GroupSelector
-            value={memberToGroup}
-            onChange={setMemberToGroup}
+            value={selectedGroups}
+            onChange={setSelectedGroups}
             style={AMModalStyle}
-            loading={AMModalLoading}
+            loading={ModalLoading}
             underCurrentUser={uid}
             undeAdmin
           />
           <div>新增成功后将会出现一个登录用链接，访问即可登录(注意保密)</div>
+        </Space>
+      </Modal>
+    </>
+  );
+});
+
+/** 从别的组招募人员 */
+const RecruitFromOtherGroups = React.memo(function RecruitFromOtherGroups() {
+  const dispatch = useDispatch();
+  const match = useRouteMatch<PageParam>();
+  const uid = match.params.uid;
+
+  useEffect(() => {
+    dispatch(
+      UsersModel.createAction(UsersModel.ActionType.getUserList)(undefined),
+    );
+  }, [dispatch]);
+
+  const [show, setShow] = useState(false);
+
+  const [selectedGroups, setSelectedGroups] = useState<Group.Item[]>([]);
+
+  const addMemberHandle = useCallback(() => {
+    setShow(true);
+  }, []);
+
+  const submitLoading = useSelector(
+    dvaLoadingSelector.effect(
+      PersonModel.namespace,
+      PersonModel.ActionType.addMember,
+    ),
+  );
+  const fetchLoading = useSelector(
+    dvaLoadingSelector.effect(
+      UsersModel.namespace,
+      UsersModel.ActionType.getUserList,
+    ),
+  );
+  const loading = submitLoading || fetchLoading;
+
+  const ModalFooterSubmitProps: Partial<ButtonProps> = useMemo(
+    () => ({
+      loading: loading,
+      disabled: !selectedGroups.length,
+      title: !selectedGroups.length ? '至少选择一个组' : '',
+    }),
+    [loading, selectedGroups.length],
+  );
+  const ModalFooterCancelProps: Partial<ButtonProps> = useMemo(
+    () => ({
+      loading: loading,
+    }),
+    [loading],
+  );
+
+  const { usersList } = useSelector(UsersModel.currentState);
+
+  const [lastSearchValue, setLastSearchValue] = useState('');
+  const [newUID, setNewUID] = useState('');
+
+  const filtedUsers = useMemo(() => {
+    if (!lastSearchValue) {
+      return usersList.data;
+    }
+    return usersList.data.filter((user) => {
+      return (
+        user.id === lastSearchValue ||
+        user.nickname.indexOf(lastSearchValue) >= 0
+      );
+    });
+  }, [lastSearchValue, usersList.data]);
+
+  const closeModalHandle = useCallback(() => {
+    setShow(false);
+  }, []);
+  const submitModalHandle = useCallback(() => {
+    // dispatch(
+    //   PersonModel.createAction(PersonModel.ActionType.addMember)({
+    //     groupIDs: memberToGroup.map((g) => g.id),
+    //     nickname: nickname,
+    //   }),
+    // );
+  }, []);
+  const resetModal = useCallback(() => {
+    setSelectedGroups([]);
+    setNewUID('');
+    setLastSearchValue('');
+  }, []);
+
+  return (
+    <>
+      <Button onClick={addMemberHandle} title='指定某位组员加入本组'>
+        大佬换户口
+      </Button>
+      <Modal
+        visible={show}
+        title='招募一名组员'
+        centered
+        maskClosable={false}
+        onCancel={closeModalHandle}
+        onOk={submitModalHandle}
+        afterClose={resetModal}
+        okButtonProps={ModalFooterSubmitProps}
+        cancelButtonProps={ModalFooterCancelProps}
+      >
+        <Space direction='vertical'>
+          <Select
+            showSearch
+            placeholder='可输入用户昵称进行搜索'
+            loading={loading}
+            value={newUID || undefined}
+            filterOption={false}
+            onSelect={setNewUID}
+            onSearch={setLastSearchValue}
+            style={{ minWidth: '14em' }}
+          >
+            {filtedUsers.map((user) => (
+              <Select.Option key={user.key} value={user.id}>
+                <Avatar src={user.avast} size='small' />
+                <span className={styles.userSeletorNickname}>
+                  {user.nickname}
+                </span>
+              </Select.Option>
+            ))}
+          </Select>
+          <div>该组员将关联到以下组别（会出现在相关组的组员列表中）：</div>
+          <GroupSelector
+            value={selectedGroups}
+            onChange={setSelectedGroups}
+            style={AMModalStyle}
+            loading={loading}
+            underCurrentUser={uid}
+            undeAdmin
+          />
         </Space>
       </Modal>
     </>
@@ -405,7 +540,12 @@ export default function PagePerson() {
           placeholder='可搜索 用户id/昵称'
           onSearch={setKeyword}
         />
-        {personInfo.admin.length ? <CreateUserBtn /> : null}
+        {personInfo.admin.length ? (
+          <Space>
+            <CreateUserBtn />
+            <RecruitFromOtherGroups />
+          </Space>
+        ) : null}
       </Space>
       <Table
         className={styles.table}

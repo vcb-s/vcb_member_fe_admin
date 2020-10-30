@@ -14,8 +14,7 @@
       "@/*": ["src/*"],
       "@@/*": ["src/.umi/*"]
     },
-    "allowSyntheticDefaultImports": true,
-    "preserveConstEnums": true
+    "allowSyntheticDefaultImports": true
   },
   "include": ["src", ".umirc.ts"]
 }

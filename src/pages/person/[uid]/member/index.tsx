@@ -35,6 +35,127 @@ import styles from './index.scss';
 
 const AMModalStyle: React.CSSProperties = { minWidth: '12em' };
 
+interface TagProps {
+  title: string;
+}
+const NormalTag: React.FC<TagProps> = React.memo(function NormalTag({
+  title = '',
+}) {
+  return <Tag color='default'>{title}</Tag>;
+});
+const ErrorTag: React.FC<TagProps> = React.memo(function ErrorTag({
+  title = '',
+}) {
+  return <Tag color='error'>{title}</Tag>;
+});
+
+const CreateUserBtn = React.memo(function CreateUserBtn() {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(
+      AppModel.createAction(AppModel.ActionType.ensureGroupData)(undefined),
+    );
+  }, [dispatch]);
+
+  const { addMemberModal } = useSelector(PersonModel.currentState);
+
+  const [memberToGroup, setMemberToGroup] = useState<Group.Item[]>([]);
+
+  const [nickname, setNickname] = useState<string>('');
+
+  const addMemberHandle = useCallback(() => {
+    dispatch(
+      PersonModel.createAction(PersonModel.ActionType.preAddMember)(undefined),
+    );
+  }, [dispatch]);
+
+  const AMModalLoading = useSelector(
+    dvaLoadingSelector.effect(
+      PersonModel.namespace,
+      PersonModel.ActionType.addMember,
+    ),
+  );
+  const AMModalFooterSubmitProps: Partial<ButtonProps> = useMemo(
+    () => ({
+      loading: AMModalLoading,
+      disabled: !memberToGroup.length,
+      title: !memberToGroup.length ? '至少选择一个组' : '',
+    }),
+    [AMModalLoading, memberToGroup.length],
+  );
+  const AMModalFooterCancelProps: Partial<ButtonProps> = useMemo(
+    () => ({
+      loading: AMModalLoading,
+    }),
+    [AMModalLoading],
+  );
+
+  const nicknameChangeHandle = useCallback(
+    (evt: React.ChangeEvent<HTMLInputElement>) => {
+      setNickname(evt.target.value);
+    },
+    [],
+  );
+  const closeModalHandle = useCallback(() => {
+    setNickname('');
+    setMemberToGroup([]);
+    dispatch(
+      PersonModel.createAction(PersonModel.ActionType.closeAMModel)(undefined),
+    );
+  }, [dispatch]);
+  const submitAMModalHandle = useCallback(() => {
+    dispatch(
+      PersonModel.createAction(PersonModel.ActionType.addMember)({
+        groupIDs: memberToGroup.map((g) => g.id),
+        nickname: nickname,
+      }),
+    );
+  }, [dispatch, memberToGroup, nickname]);
+  const resetMemberToGroup = useCallback(() => {
+    setMemberToGroup([]);
+  }, []);
+
+  return (
+    <>
+      <Button onClick={addMemberHandle}>新增组员</Button>
+      <Modal
+        visible={addMemberModal.show}
+        title='新增一名组员'
+        centered
+        maskClosable={false}
+        onCancel={closeModalHandle}
+        onOk={submitAMModalHandle}
+        afterClose={resetMemberToGroup}
+        okButtonProps={AMModalFooterSubmitProps}
+        cancelButtonProps={AMModalFooterCancelProps}
+      >
+        <Space direction='vertical'>
+          <div>默认用户名：</div>
+          <Input
+            value={nickname}
+            onChange={nicknameChangeHandle}
+            size='middle'
+            // style={AMModalStyle}
+            disabled={AMModalLoading}
+            placeholder='新用户'
+          />
+          <div>
+            新增组员将自动关联到以下组别（会出现在相关组的组员列表中）：
+          </div>
+          <GroupSelector
+            value={memberToGroup}
+            onChange={setMemberToGroup}
+            style={AMModalStyle}
+            loading={AMModalLoading}
+          />
+          <div>新增成功后将会出现一个登录用链接，访问即可登录(注意保密)</div>
+        </Space>
+      </Modal>
+    </>
+  );
+});
+
 export default function PagePerson() {
   const match = useRouteMatch<PageParam>();
   const uid = match.params.uid;
@@ -49,18 +170,6 @@ export default function PagePerson() {
       PersonModel.ActionType.getPersonInfo,
     ),
   );
-
-  useEffect(() => {
-    dispatch(
-      AppModel.createAction(AppModel.ActionType.ensureGroupData)(undefined),
-    );
-  }, [dispatch]);
-
-  const addMemberHandle = useCallback(() => {
-    dispatch(
-      PersonModel.createAction(PersonModel.ActionType.preAddMember)(undefined),
-    );
-  }, [dispatch]);
 
   const banHandle = useCallback(
     (person: PersonInfo.Item) => {
@@ -193,13 +302,9 @@ export default function PagePerson() {
           return (
             <div className={styles.groupTagsWrap}>
               {groups.map((group) => (
-                <Tag.CheckableTag
-                  checked
-                  key={group.key}
-                  className={styles.groupTag}
-                >
+                <Tag key={group.key} className={styles.groupTag}>
                   {group.name}
-                </Tag.CheckableTag>
+                </Tag>
               ))}
 
               <div className={styles.groupTagsLastlineAdjust} />
@@ -214,8 +319,12 @@ export default function PagePerson() {
         width: 200,
         render: (item: PersonInfo.Item) => (
           <Space>
-            <Tag>{!!item.admin.length ? '组长' : '组员'}</Tag>
-            {item.ban === GO_BOOL.yes ? <Tag>封禁</Tag> : null}
+            {/* <NormalTag title={!!item.admin.length ? '组长' : '组员'} /> */}
+            {item.ban === GO_BOOL.yes ? (
+              <ErrorTag title='封禁' />
+            ) : (
+              <NormalTag title='可登录' />
+            )}
           </Space>
         ),
       },
@@ -286,55 +395,6 @@ export default function PagePerson() {
     ];
   }, [banHandle, filtedUserGroupMap, kickHandle, resetPersonPassHandle]);
 
-  const [memberToGroup, setMemberToGroup] = useState<Group.Item[]>([]);
-
-  const AMModalLoading = useSelector(
-    dvaLoadingSelector.effect(
-      PersonModel.namespace,
-      PersonModel.ActionType.addMember,
-    ),
-  );
-  const AMModalFooterSubmitProps: Partial<ButtonProps> = useMemo(
-    () => ({
-      loading: AMModalLoading,
-      disabled: !memberToGroup.length,
-      title: !memberToGroup.length ? '至少选择一个组' : '',
-    }),
-    [AMModalLoading, memberToGroup.length],
-  );
-  const AMModalFooterCancelProps: Partial<ButtonProps> = useMemo(
-    () => ({
-      loading: AMModalLoading,
-    }),
-    [AMModalLoading],
-  );
-
-  const [nickname, setNickname] = useState<string>('');
-  const nicknameChangeHandle = useCallback(
-    (evt: React.ChangeEvent<HTMLInputElement>) => {
-      setNickname(evt.target.value);
-    },
-    [],
-  );
-  const closeModalHandle = useCallback(() => {
-    setNickname('');
-    setMemberToGroup([]);
-    dispatch(
-      PersonModel.createAction(PersonModel.ActionType.closeAMModel)(undefined),
-    );
-  }, [dispatch]);
-  const submitAMModalHandle = useCallback(() => {
-    dispatch(
-      PersonModel.createAction(PersonModel.ActionType.addMember)({
-        groupIDs: memberToGroup.map((g) => g.id),
-        nickname: nickname,
-      }),
-    );
-  }, [dispatch, memberToGroup, nickname]);
-  const resetMemberToGroup = useCallback(() => {
-    setMemberToGroup([]);
-  }, []);
-
   return (
     <div className={styles.wrap}>
       <Typography.Title level={4}>我的组员</Typography.Title>
@@ -345,9 +405,7 @@ export default function PagePerson() {
           placeholder='可搜索 用户id/昵称'
           onSearch={setKeyword}
         />
-        {personInfo.admin.length ? (
-          <Button onClick={addMemberHandle}>新增组员</Button>
-        ) : null}
+        {personInfo.admin.length ? <CreateUserBtn /> : null}
       </Space>
       <Table
         className={styles.table}
@@ -355,40 +413,6 @@ export default function PagePerson() {
         columns={columns}
         loading={tableLoading}
       />
-
-      <Modal
-        visible={addMemberModal.show}
-        title='新增一名组员'
-        centered
-        maskClosable={false}
-        onCancel={closeModalHandle}
-        onOk={submitAMModalHandle}
-        afterClose={resetMemberToGroup}
-        okButtonProps={AMModalFooterSubmitProps}
-        cancelButtonProps={AMModalFooterCancelProps}
-      >
-        <Space direction='vertical'>
-          <div>默认用户名：</div>
-          <Input
-            value={nickname}
-            onChange={nicknameChangeHandle}
-            size='middle'
-            // style={AMModalStyle}
-            disabled={AMModalLoading}
-            placeholder='新用户'
-          />
-          <div>
-            新增组员将自动关联到以下组别（会出现在相关组的组员列表中）：
-          </div>
-          <GroupSelector
-            value={memberToGroup}
-            onChange={setMemberToGroup}
-            style={AMModalStyle}
-            loading={AMModalLoading}
-          />
-          <div>新增成功后将会出现一个登录用链接，访问即可登录(注意保密)</div>
-        </Space>
-      </Modal>
     </div>
   );
 }

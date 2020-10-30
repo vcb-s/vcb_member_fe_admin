@@ -49,14 +49,11 @@ const ErrorTag: React.FC<TagProps> = React.memo(function ErrorTag({
   return <Tag color='error'>{title}</Tag>;
 });
 
+/** 新建组员 */
 const CreateUserBtn = React.memo(function CreateUserBtn() {
   const dispatch = useDispatch();
-
-  useEffect(() => {
-    dispatch(
-      AppModel.createAction(AppModel.ActionType.ensureGroupData)(undefined),
-    );
-  }, [dispatch]);
+  const match = useRouteMatch<PageParam>();
+  const uid = match.params.uid;
 
   const { addMemberModal } = useSelector(PersonModel.currentState);
 
@@ -148,6 +145,8 @@ const CreateUserBtn = React.memo(function CreateUserBtn() {
             onChange={setMemberToGroup}
             style={AMModalStyle}
             loading={AMModalLoading}
+            underCurrentUser={uid}
+            undeAdmin
           />
           <div>新增成功后将会出现一个登录用链接，访问即可登录(注意保密)</div>
         </Space>
@@ -156,6 +155,7 @@ const CreateUserBtn = React.memo(function CreateUserBtn() {
   );
 });
 
+/** 主页面 */
 export default function PagePerson() {
   const match = useRouteMatch<PageParam>();
   const uid = match.params.uid;

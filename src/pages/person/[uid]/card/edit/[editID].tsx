@@ -261,6 +261,7 @@ export default function PagePerson() {
             value={form.group}
             loading={formLoading}
             onChange={groupChangeHandle}
+            underCurrentUser={uid}
           />
         </Form.Item>
 

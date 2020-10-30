@@ -125,7 +125,7 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
     // 修正、校验头像信息
     param.avast = form.originAvast;
 
-    if (!param.avast || !param.avast.replace(/https?:\/\//, '')) {
+    if (!param.avast) {
       try {
         yield call(
           () =>
@@ -140,6 +140,8 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
               });
             }),
         );
+
+        param.avast = personInfo.originAvast;
       } catch (e) {
         return;
       }

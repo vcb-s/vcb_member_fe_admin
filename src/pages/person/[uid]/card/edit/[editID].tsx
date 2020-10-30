@@ -16,7 +16,7 @@ import {
   Row,
   Col,
   Input,
-  Select,
+  message,
   Modal,
 } from 'antd';
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
@@ -45,10 +45,6 @@ export default function PagePerson() {
     dvaLoadingSelector.model(PersonModel.namespace),
   );
 
-  const [avatarProtocol, setAvatarProtocol] = useState<'http://' | 'https://'>(
-    'http://',
-  );
-
   /** 刷新个人信息 */
   useEffect(() => {
     if (personInfo.id !== uid) {
@@ -57,19 +53,6 @@ export default function PagePerson() {
       );
     }
   }, [dispatch, personInfo.id, uid]);
-
-  /** 头像协议选择 */
-  const protocolSelector = useMemo(() => {
-    return (
-      <Select
-        value={avatarProtocol}
-        onChange={(value) => setAvatarProtocol(value)}
-      >
-        <Select.Option value='http://'>http://</Select.Option>
-        <Select.Option value='https://'>https://</Select.Option>
-      </Select>
-    );
-  }, [avatarProtocol]);
 
   /** 刷新/重置 */
   const refreshHandle = useCallback(() => {
@@ -110,18 +93,11 @@ export default function PagePerson() {
   const avastChangeHandle = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const url = event.target.value;
-      let urlWithProtocol = '';
-      if ('http://'.indexOf(url) === 0) {
-        // 是一个完整的url
-        setAvatarProtocol('http://');
-        urlWithProtocol = url;
-      } else if ('https://'.indexOf(url) === 0) {
-        // 是一个完整的url
-        setAvatarProtocol('https://');
-        urlWithProtocol = url;
-      } else {
-        urlWithProtocol = `${avatarProtocol}${url}`;
+      if (url && '/'.indexOf(url) > -1 && 'https://'.indexOf(url) !== 0) {
+        message.error('请填写完整链接');
+        return;
       }
+
       dispatch(
         PersonCardEditModel.createAction(
           PersonCardEditModel.ActionType.fieldChange,
@@ -132,13 +108,7 @@ export default function PagePerson() {
         ),
       );
     },
-    [avatarProtocol, dispatch],
-  );
-
-  /** 不含协议类型的头像地址 */
-  const urlWithoutProtocol = useMemo(
-    () => form.originAvast.replace(/https?\:\/\//, ''),
-    [form.originAvast],
+    [dispatch],
   );
 
   /** 昵称 */
@@ -266,10 +236,9 @@ export default function PagePerson() {
             }
           >
             <Input
-              value={urlWithoutProtocol}
+              value={form.originAvast}
               disabled={formLoading}
               onChange={avastChangeHandle}
-              addonBefore={protocolSelector}
             />
           </Form.Item>
 

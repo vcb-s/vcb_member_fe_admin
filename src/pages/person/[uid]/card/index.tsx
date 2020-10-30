@@ -1,5 +1,12 @@
 import React, { useEffect, useMemo, useCallback } from 'react';
-import { useParams, history, useDispatch, useSelector, PersonModel } from 'umi';
+import {
+  Link,
+  useParams,
+  history,
+  useDispatch,
+  useSelector,
+  PersonModel,
+} from 'umi';
 import { Typography, Table, Avatar, Button, Tag, Switch, Space } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 
@@ -32,6 +39,11 @@ const PagePersonCard: React.FC = function PagePersonCard() {
   }, [dispatch, personInfo.id, uid]);
 
   /** 退休 */
+
+  /** 新增 */
+  const createHandle = useCallback(() => {
+    history.push(`/person/${uid}/card/edit`);
+  }, [uid]);
 
   /** 编辑 */
   const editHandle = useCallback(
@@ -125,6 +137,9 @@ const PagePersonCard: React.FC = function PagePersonCard() {
   return (
     <div className={styles.wrap}>
       <Typography.Title level={4}>我的卡片</Typography.Title>
+      <Space style={{ marginBottom: 16 }}>
+        <Button onClick={createHandle}>新增卡片</Button>
+      </Space>
       <Table
         className={styles.table}
         dataSource={cardList.data}

@@ -143,6 +143,7 @@ export namespace PersonModel {
       key: '',
       nickname: '',
       avast: '',
+      originAvast: '',
       admin: [],
       group: [],
       ban: GO_BOOL.no,

@@ -14,6 +14,9 @@ export namespace PersonInfo {
   }
   export interface Item extends Omit<ItemInResponse, 'admin' | 'group'> {
     key: string;
+
+    originAvast: string;
+
     /** 分组ID */
     admin: Group.Item[];
     /** 分组ID */

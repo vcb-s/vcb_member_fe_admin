@@ -1,22 +1,21 @@
-import React, { useEffect, useMemo, useCallback, useState } from 'react';
+import React, { useEffect, useMemo, useCallback } from 'react';
 import {
   useParams,
   useDispatch,
   useSelector,
   PersonCardEditModel,
   PersonModel,
+  useHistory,
 } from 'umi';
 import {
   Form,
   Switch,
   Button,
   Space,
-  Typography,
-  Row,
-  Col,
   Input,
   message,
   Modal,
+  PageHeader,
 } from 'antd';
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
 
@@ -35,6 +34,7 @@ const noIcon = <CloseOutlined />;
 export default function PagePerson() {
   const { editID: editID, uid } = useParams<PageParam>();
   const dispatch = useDispatch();
+  const history = useHistory();
   const { card: form } = useSelector(PersonCardEditModel.currentState).form;
   const { personInfo } = useSelector(PersonModel.currentState);
   const formLoading = useSelector(
@@ -210,17 +210,15 @@ export default function PagePerson() {
     [dispatch],
   );
 
+  /** 返回上一页 */
+  const goBackHandle = useCallback(() => {
+    history.goBack();
+  }, [history]);
+
   return (
     <div className={styles.wrap}>
+      <PageHeader title='编辑卡片' onBack={goBackHandle} />
       <Space direction='vertical' style={{ width: '100%' }}>
-        <Row>
-          <Col {...defaultFormLayout.normal.labelCol}>
-            <Typography.Title style={{ textAlign: 'right' }} level={3}>
-              编辑卡片
-            </Typography.Title>
-          </Col>
-        </Row>
-
         <Form {...defaultFormLayout.normal}>
           <Form.Item label='头像' required>
             <Input

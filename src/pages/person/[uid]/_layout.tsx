@@ -6,14 +6,17 @@ import {
   useParams,
   PersonModel,
   useLocation,
+  useHistory,
 } from 'umi';
 import { Menu, Avatar, Space, Dropdown, message, Modal, Tooltip } from 'antd';
 import { SelectInfo as SelectParam } from 'rc-menu/lib/interface';
 import { ApartmentOutlined, IdcardOutlined } from '@ant-design/icons';
 import CopyToClipboard from 'react-copy-to-clipboard';
+import { PageParam } from './types';
 import { compile } from 'path-to-regexp';
 
 import styles from './_layout.scss';
+
 enum MenuLevel {
   all = 0,
   admin = 1,
@@ -134,6 +137,8 @@ const MenuSide: React.FC = function () {
 const PersonLaylout: React.FC = function PersonLaylout({ children }) {
   const personState = useSelector(PersonModel.currentState);
   const dispatch = useDispatch();
+  const { uid } = useParams<PageParam>();
+  const history = useHistory();
 
   const logoutHandle = useCallback(() => {
     dispatch(
@@ -143,9 +148,16 @@ const PersonLaylout: React.FC = function PersonLaylout({ children }) {
   const resetPassHandle = useCallback(() => {
     dispatch(PersonModel.createAction(PersonModel.ActionType.restPass)({}));
   }, [dispatch]);
+  const editUserHandle = useCallback(() => {
+    history.push(`/person/${uid}/edit`);
+  }, [history, uid]);
   const menuChangeHandle = useCallback(
     ({ key }: { key: string | number }) => {
       switch (`${key}`) {
+        case 'editUser': {
+          editUserHandle();
+          break;
+        }
         case 'resetPass': {
           resetPassHandle();
           break;
@@ -163,7 +175,7 @@ const PersonLaylout: React.FC = function PersonLaylout({ children }) {
         }
       }
     },
-    [logoutHandle, resetPassHandle],
+    [editUserHandle, logoutHandle, resetPassHandle],
   );
 
   const closeRSPModelHandle = useCallback(() => {
@@ -175,6 +187,7 @@ const PersonLaylout: React.FC = function PersonLaylout({ children }) {
   const menuJsx = useMemo((): JSX.Element[] => {
     if (personState.personInfo.avast) {
       return [
+        <Menu.Item key='editUser'>修改信息</Menu.Item>,
         <Menu.Item key='resetPass'>重置密码</Menu.Item>,
         <Menu.Item key='logout'>退出登录</Menu.Item>,
       ];

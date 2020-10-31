@@ -114,6 +114,20 @@ export namespace Services {
       });
     };
 
+    export interface PullMemberParam {
+      uid: string;
+      /** 组别id数组 */
+      group: string[];
+    }
+    export const pullMember = (
+      data: PullMemberParam,
+    ): Promise<ResponseData.Ok> => {
+      return request('/admin/user/group/add', {
+        method: 'post',
+        data,
+      });
+    };
+
     export interface KickOffParam {
       uid: string;
       group: string;

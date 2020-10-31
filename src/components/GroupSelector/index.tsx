@@ -13,6 +13,8 @@ interface Props {
   underCurrentUser?: false | string;
   /** 根据当前用户的管理组别而不是所属组别 */
   undeAdmin?: boolean;
+  disabled?: boolean;
+  placeholder?: string;
   onChange: (value: Group.Item[]) => void;
 
   className?: string;
@@ -24,6 +26,8 @@ export const GroupSelector: React.FC<Props> = React.memo(
     value,
     underCurrentUser,
     undeAdmin,
+    disabled,
+    placeholder,
     onChange,
     className,
     style,
@@ -111,16 +115,14 @@ export const GroupSelector: React.FC<Props> = React.memo(
       [onChange],
     );
 
-    console.log('what is selectedGroup', selectedGroup);
-
     return (
       <Select
         mode='multiple'
         value={selectedGroup}
         loading={selectorLoading}
-        disabled={selectorLoading}
+        disabled={selectorLoading || disabled}
         onChange={groupChangeHandle}
-        placeholder='选择组别'
+        placeholder={placeholder || '选择组别'}
         className={className}
         style={style}
       >

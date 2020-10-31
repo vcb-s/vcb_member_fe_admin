@@ -20,6 +20,7 @@ import {
   Modal,
   Input,
   Select,
+  message,
 } from 'antd';
 import { ButtonProps } from 'antd/es/button';
 import { DownOutlined } from '@ant-design/icons';
@@ -28,6 +29,7 @@ import { ColumnsType } from 'antd/lib/table';
 import { GO_BOOL } from '@/utils/types';
 import { Group } from '@/utils/types/Group';
 import { PersonInfo } from '@/utils/types/PersonInfo';
+import { User } from '@/utils/types/User';
 import { PageParam } from '@/pages/person/[uid]/types';
 import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
 import { GroupSelector } from '@/components/GroupSelector';
@@ -134,13 +136,10 @@ const CreateUserBtn = React.memo(function CreateUserBtn() {
             value={nickname}
             onChange={nicknameChangeHandle}
             size='middle'
-            // style={AMModalStyle}
             disabled={ModalLoading}
             placeholder='新用户'
           />
-          <div>
-            新增组员将自动关联到以下组别（会出现在相关组的组员列表中）：
-          </div>
+          <div>新增组员将自动关联到以下组别：</div>
           <GroupSelector
             value={selectedGroups}
             onChange={setSelectedGroups}
@@ -179,7 +178,7 @@ const RecruitFromOtherGroups = React.memo(function RecruitFromOtherGroups() {
   const submitLoading = useSelector(
     dvaLoadingSelector.effect(
       PersonModel.namespace,
-      PersonModel.ActionType.addMember,
+      PersonModel.ActionType.updatePersonInfo,
     ),
   );
   const fetchLoading = useSelector(
@@ -208,34 +207,57 @@ const RecruitFromOtherGroups = React.memo(function RecruitFromOtherGroups() {
   const { usersList } = useSelector(UsersModel.currentState);
 
   const [lastSearchValue, setLastSearchValue] = useState('');
-  const [newUID, setNewUID] = useState('');
-
+  const [newUser, setNewUser] = useState<User.Item | undefined>(undefined);
   const filtedUsers = useMemo(() => {
+    let resultUsers = usersList.data.filter((user) => user.id !== uid);
+
     if (!lastSearchValue) {
-      return usersList.data;
+      return resultUsers;
     }
-    return usersList.data.filter((user) => {
+    resultUsers = resultUsers.filter((user) => {
       return (
         user.id === lastSearchValue ||
         user.nickname.indexOf(lastSearchValue) >= 0
       );
     });
-  }, [lastSearchValue, usersList.data]);
+
+    return resultUsers;
+  }, [lastSearchValue, uid, usersList.data]);
+
+  const selectUserHandle = useCallback(
+    (uid: string) => {
+      const selectedUser = filtedUsers.filter((user) => user.id === uid)[0];
+      if (!selectedUser) {
+        message.error('uid无效，数据错误');
+        return;
+      }
+
+      setNewUser(selectedUser);
+    },
+    [filtedUsers],
+  );
 
   const closeModalHandle = useCallback(() => {
     setShow(false);
   }, []);
   const submitModalHandle = useCallback(() => {
-    // dispatch(
-    //   PersonModel.createAction(PersonModel.ActionType.addMember)({
-    //     groupIDs: memberToGroup.map((g) => g.id),
-    //     nickname: nickname,
-    //   }),
-    // );
-  }, []);
+    if (!newUser) {
+      message.error('uid无效，数据错误');
+      return;
+    }
+    dispatch(
+      PersonModel.createAction(PersonModel.ActionType.pullMember)({
+        id: newUser.id,
+        group: [...new Set(newUser.group.concat(selectedGroups))],
+      }),
+    )
+      // @ts-expect-error
+      .then(() => closeModalHandle())
+      .catch(() => {});
+  }, [closeModalHandle, dispatch, newUser, selectedGroups]);
   const resetModal = useCallback(() => {
     setSelectedGroups([]);
-    setNewUID('');
+    setNewUser(undefined);
     setLastSearchValue('');
   }, []);
 
@@ -256,13 +278,14 @@ const RecruitFromOtherGroups = React.memo(function RecruitFromOtherGroups() {
         cancelButtonProps={ModalFooterCancelProps}
       >
         <Space direction='vertical'>
+          <div>将该组员：</div>
           <Select
             showSearch
             placeholder='可输入用户昵称进行搜索'
             loading={loading}
-            value={newUID || undefined}
+            value={newUser?.id}
             filterOption={false}
-            onSelect={setNewUID}
+            onSelect={selectUserHandle}
             onSearch={setLastSearchValue}
             style={{ minWidth: '14em' }}
           >
@@ -275,7 +298,7 @@ const RecruitFromOtherGroups = React.memo(function RecruitFromOtherGroups() {
               </Select.Option>
             ))}
           </Select>
-          <div>该组员将关联到以下组别（会出现在相关组的组员列表中）：</div>
+          <div>关联到以下组别：</div>
           <GroupSelector
             value={selectedGroups}
             onChange={setSelectedGroups}
@@ -283,6 +306,8 @@ const RecruitFromOtherGroups = React.memo(function RecruitFromOtherGroups() {
             loading={loading}
             underCurrentUser={uid}
             undeAdmin
+            disabled={!newUser}
+            placeholder={!newUser ? '请选择大佬' : undefined}
           />
         </Space>
       </Modal>
@@ -295,9 +320,7 @@ export default function PagePerson() {
   const match = useRouteMatch<PageParam>();
   const uid = match.params.uid;
   const dispatch = useDispatch();
-  const { personInfo, userList, addMemberModal } = useSelector(
-    PersonModel.currentState,
-  );
+  const { personInfo, userList } = useSelector(PersonModel.currentState);
 
   const tableLoading = useSelector(
     dvaLoadingSelector.effect(

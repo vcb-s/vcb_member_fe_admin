@@ -8,6 +8,7 @@ import type { CommonList } from '@/utils/types/CommonList';
 import type { UserCard } from '@/utils/types/userCard';
 import type { PersonInfo } from '@/utils/types/PersonInfo';
 import type { Group } from '@/utils/types/Group';
+import type { User } from '@/utils/types/User';
 import { Services } from '@/utils/services';
 import { emptyList } from '@/utils/types/CommonList';
 import { ModelAdapter } from '@/utils/modelAdapter';
@@ -50,6 +51,10 @@ export namespace PersonModel {
     >;
     [ActionType.updatePersonInfoSuccess]: undefined;
     [ActionType.updatePersonInfoFail]: { error: Error };
+
+    [ActionType.pullMember]: { id: string; group: User.Item['group'] };
+    [ActionType.pullMemberSuccess]: undefined;
+    [ActionType.pullMemberFail]: { error: Error };
 
     [ActionType.kickoffPerson]: {
       uid: string;
@@ -98,7 +103,7 @@ export namespace PersonModel {
   export enum ActionType {
     reset = 'reset',
 
-    /** 获取个人信息，不传uid则为获取自己的个人信息 */
+    /** 获取个人信息列表 */
     getPersonInfo = 'getPersonInfo',
     getPersonInfoSuccess = 'getPersonInfoSuccess',
     getPersonInfoFail = 'getPersonInfoFail',
@@ -107,6 +112,11 @@ export namespace PersonModel {
     updatePersonInfo = 'updatePersonInfo',
     updatePersonInfoSuccess = 'updatePersonInfoSuccess',
     updatePersonInfoFail = 'updatePersonInfoFail',
+
+    /** 拉人入组 */
+    pullMember = 'pullMember',
+    pullMemberSuccess = 'pullMemberSuccess',
+    pullMemberFail = 'pullMemberFail',
 
     /** 将指定人员踢出指定组别 */
     kickoffPerson = 'kickoffPerson',
@@ -248,6 +258,33 @@ export namespace PersonModel {
         yield put(
           createAction(ActionType.updatePersonInfoFail, false)({ error }),
         );
+      }
+    },
+
+    *[ActionType.pullMember](
+      { payload }: Action<Payload['pullMember']>,
+      { select, put, call },
+    ) {
+      try {
+        const param: Services.Person.PullMemberParam = {
+          uid: payload.id,
+          group: payload.group.map((group) => group.id),
+        };
+
+        yield call(Services.Person.pullMember, param);
+        const { personInfo }: State = yield select(currentState);
+        yield put(createAction(ActionType.addMemberSuccess, false)(undefined));
+        yield put(
+          createAction(
+            ActionType.getPersonInfo,
+            false,
+          )({
+            uid: personInfo.id,
+          }),
+        );
+      } catch (error) {
+        message.error(error.message);
+        yield put(createAction(ActionType.pullMemberFail, false)({ error }));
       }
     },
 

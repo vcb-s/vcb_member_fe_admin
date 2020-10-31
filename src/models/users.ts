@@ -1,20 +1,13 @@
-import { message, Modal } from 'antd';
-import { AppModel, history } from 'umi';
-import { createPath } from 'history';
-import { stringify } from 'query-string';
+import { message } from 'antd';
+import { AppModel } from 'umi';
 
-import { Action, Reducer, Effect, GO_BOOL } from '@/utils/types';
+import { Action, Reducer, Effect } from '@/utils/types';
 import type { CommonList } from '@/utils/types/CommonList';
-import type { Pagination } from '@/utils/types/Pagination';
-import type { UserCard } from '@/utils/types/userCard';
 import type { User } from '@/utils/types/user';
-import type { PersonInfo } from '@/utils/types/PersonInfo';
 import type { Group } from '@/utils/types/Group';
 import { Services } from '@/utils/services';
 import { emptyList } from '@/utils/types/CommonList';
 import { ModelAdapter } from '@/utils/modelAdapter';
-import { token } from '@/utils/token';
-import { MAGIC } from '@/utils/constant';
 
 export namespace UsersModel {
   export interface CreateAction {
@@ -46,8 +39,11 @@ export namespace UsersModel {
 
   export interface Payload {
     [ActionType.getUserList]: undefined;
-    getUserListSuccess: { res: User.ItemInResponse[]; group: Group.Item[] };
-    getUserListFail: { err: Error };
+    [ActionType.getUserListSuccess]: {
+      res: User.ItemInResponse[];
+      group: Group.Item[];
+    };
+    [ActionType.getUserListFail]: { err: Error };
   }
   export interface State {
     /** 管理组员信息 */

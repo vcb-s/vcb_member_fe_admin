@@ -98,9 +98,9 @@ export namespace Services {
       info: PersonInfo.ItemInResponse;
     }
     export type InfoResponse = ResponseData.Ok<InfoData>;
-    export const info = (params: InfoParam) => {
+    export const info = (data: InfoParam) => {
       return request('/admin/user/info', {
-        params,
+        data,
         method: 'post',
       });
     };

@@ -1,4 +1,11 @@
-import React, { useState, useCallback, useMemo, useEffect, memo } from 'react';
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  memo,
+  useRef,
+} from 'react';
 import {
   useDispatch,
   useSelector,
@@ -9,11 +16,13 @@ import {
   useHistory,
 } from 'umi';
 import { Menu, Avatar, Space, Dropdown, message, Modal, Tooltip } from 'antd';
+import { MenuClickEventHandler } from 'rc-menu/lib/interface';
 import { SelectInfo as SelectParam } from 'rc-menu/lib/interface';
 import { ApartmentOutlined, IdcardOutlined } from '@ant-design/icons';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { PageParam } from './types';
 import { compile } from 'path-to-regexp';
+import { RestPass, RestPassProps } from '@/components/rest-pass';
 
 import styles from './_layout.scss';
 
@@ -145,21 +154,22 @@ const PersonLaylout: React.FC = function PersonLaylout({ children }) {
       PersonModel.createAction(PersonModel.ActionType.logout)(undefined),
     );
   }, [dispatch]);
-  const resetPassHandle = useCallback(() => {
-    dispatch(PersonModel.createAction(PersonModel.ActionType.restPass)({}));
-  }, [dispatch]);
+
   const editUserHandle = useCallback(() => {
     history.push(`/person/${uid}/edit`);
   }, [history, uid]);
-  const menuChangeHandle = useCallback(
-    ({ key }: { key: string | number }) => {
+
+  const openHandleRef: RestPassProps['openHandleRef'] = useRef(() => {});
+
+  const menuChangeHandle: MenuClickEventHandler = useCallback(
+    ({ key }) => {
       switch (`${key}`) {
         case 'editUser': {
           editUserHandle();
           break;
         }
         case 'resetPass': {
-          resetPassHandle();
+          openHandleRef.current();
           break;
         }
         case 'logout': {
@@ -175,7 +185,7 @@ const PersonLaylout: React.FC = function PersonLaylout({ children }) {
         }
       }
     },
-    [editUserHandle, logoutHandle, resetPassHandle],
+    [editUserHandle, logoutHandle],
   );
 
   const closeRSPModelHandle = useCallback(() => {
@@ -188,7 +198,9 @@ const PersonLaylout: React.FC = function PersonLaylout({ children }) {
     if (personState.personInfo.avast) {
       return [
         <Menu.Item key='editUser'>修改信息</Menu.Item>,
-        <Menu.Item key='resetPass'>重置密码</Menu.Item>,
+        <Menu.Item key='resetPass'>
+          <RestPass openHandleRef={openHandleRef}>重置密码</RestPass>
+        </Menu.Item>,
         <Menu.Item key='logout'>退出登录</Menu.Item>,
       ];
     } else {

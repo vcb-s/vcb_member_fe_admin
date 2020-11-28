@@ -141,6 +141,7 @@ export namespace Services {
 
     export type ResetPassParam = Partial<UserCard.ItemInResponse> & {
       uid: PersonInfo.ItemInResponse['id'];
+      new?: string;
     };
     export type ResetPassResponse = ResponseData.Ok<{
       newPass: string;

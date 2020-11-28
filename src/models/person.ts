@@ -69,7 +69,11 @@ export namespace PersonModel {
 
     [ActionType.logout]: undefined;
 
-    [ActionType.restPass]: { uid?: PersonInfo.ItemInResponse['id'] };
+    [ActionType.restPass]: {
+      pass?: string;
+      uid?: PersonInfo.ItemInResponse['id'];
+      cb?: (success: boolean) => void;
+    };
     [ActionType.restPassSuccess]: { newPass: string };
     [ActionType.restPassFail]: undefined;
 
@@ -129,7 +133,7 @@ export namespace PersonModel {
     /** 退出登录 */
     logout = 'logout',
 
-    /** 重置登录密码 */
+    /** 重置登录密码并展示新密码 */
     restPass = 'restPass',
     restPassSuccess = 'restPassSuccess',
     restPassFail = 'restPassFail',
@@ -333,37 +337,16 @@ export namespace PersonModel {
       { payload }: Action<Payload['restPass']>,
       { put, call, select },
     ) {
+      const { cb, uid, pass } = payload;
       const { personInfo }: State = yield select(currentState);
-      let modal: ReturnType<typeof Modal.confirm> | undefined;
-
-      try {
-        yield call(
-          () =>
-            new Promise((resolve, reject) => {
-              modal = Modal.confirm({
-                title: '重置登录密码？',
-                content: '密码将会重置为新的4位数字',
-                centered: true,
-                mask: true,
-                maskClosable: false,
-                onOk: resolve,
-                onCancel: () => reject(),
-              });
-            }),
-        );
-      } catch (e) {
-        return;
-      }
-
-      modal?.update({
-        keyboard: false,
-        okButtonProps: { loading: true },
-        cancelButtonProps: { disabled: true },
-      });
 
       const param: Services.Person.ResetPassParam = {
-        uid: payload.uid || personInfo.id,
+        uid: uid || personInfo.id,
       };
+
+      if (pass) {
+        param.new = pass;
+      }
 
       try {
         const { data }: Services.Person.ResetPassResponse = yield call(
@@ -371,7 +354,6 @@ export namespace PersonModel {
           param,
         );
 
-        modal?.destroy();
         yield put(
           createAction(
             ActionType.restPassSuccess,
@@ -380,8 +362,10 @@ export namespace PersonModel {
             newPass: data.newPass,
           }),
         );
+
+        cb && cb(true);
       } catch (e) {
-        modal?.destroy();
+        cb && cb(false);
         message.error(e.message);
         yield put(createAction(ActionType.restPassFail, false)(undefined));
       }

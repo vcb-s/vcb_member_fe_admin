@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useCallback, useState } from 'react';
+import React, {
+  useEffect,
+  useMemo,
+  useCallback,
+  useState,
+  useRef,
+} from 'react';
 import {
   useRouteMatch,
   useDispatch,
@@ -33,6 +39,7 @@ import { User } from '@/utils/types/User';
 import { PageParam } from '@/pages/person/[uid]/types';
 import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
 import { GroupSelector } from '@/components/GroupSelector';
+import { RestPass, RestPassProps } from '@/components/rest-pass';
 
 import styles from './index.scss';
 
@@ -358,16 +365,11 @@ export default function PagePerson() {
     [dispatch],
   );
 
-  const resetPersonPassHandle = useCallback(
-    (uid: string) => {
-      dispatch(
-        PersonModel.createAction(PersonModel.ActionType.restPass)({
-          uid,
-        }),
-      );
-    },
-    [dispatch],
-  );
+  const openHandleRef: RestPassProps['openHandleRef'] = useRef(() => {});
+
+  const resetPersonPassHandle = useCallback(() => {
+    openHandleRef.current();
+  }, []);
 
   const kickHandle = useCallback(
     (groupID: string | number, item: PersonInfo.Item) => {
@@ -494,12 +496,14 @@ export default function PagePerson() {
         render: (person: PersonInfo.Item) => {
           return (
             <Space>
-              <Button
-                loading={!!person.loading}
-                onClick={() => resetPersonPassHandle(person.id)}
-              >
-                重置密码
-              </Button>
+              <RestPass uid={person.id} openHandleRef={openHandleRef}>
+                <Button
+                  loading={!!person.loading}
+                  onClick={resetPersonPassHandle}
+                >
+                  重置密码
+                </Button>
+              </RestPass>
 
               <Dropdown
                 overlay={

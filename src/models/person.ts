@@ -5,7 +5,7 @@ import { stringify } from 'query-string';
 
 import { Action, Reducer, Effect, GO_BOOL } from '@/utils/types';
 import type { CommonList } from '@/utils/types/CommonList';
-import type { UserCard } from '@/utils/types/userCard';
+import type { UserCard } from '@/utils/types/UserCard';
 import type { PersonInfo } from '@/utils/types/PersonInfo';
 import type { Group } from '@/utils/types/Group';
 import type { User } from '@/utils/types/User';
@@ -46,9 +46,9 @@ export namespace PersonModel {
     };
     [ActionType.getPersonInfoFail]: { error: Error };
 
-    [ActionType.updatePersonInfo]: { id: string } & Partial<
-      PersonInfo.ItemInResponse
-    >;
+    [ActionType.updatePersonInfo]: {
+      id: string;
+    } & Partial<PersonInfo.ItemInResponse>;
     [ActionType.updatePersonInfoSuccess]: undefined;
     [ActionType.updatePersonInfoFail]: { error: Error };
 
@@ -311,7 +311,7 @@ export namespace PersonModel {
       try {
         yield call(
           () =>
-            new Promise((resolve, reject) => {
+            new Promise<void>((resolve, reject) => {
               Modal.confirm({
                 title: '退出登录？',
                 centered: true,

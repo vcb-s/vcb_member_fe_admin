@@ -3,7 +3,7 @@ import { AppModel } from 'umi';
 
 import { Action, Reducer, Effect } from '@/utils/types';
 import type { CommonList } from '@/utils/types/CommonList';
-import type { User } from '@/utils/types/user';
+import type { User } from '@/utils/types/User';
 import type { Group } from '@/utils/types/Group';
 import { Services } from '@/utils/services';
 import { emptyList } from '@/utils/types/CommonList';

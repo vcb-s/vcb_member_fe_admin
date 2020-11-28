@@ -10,7 +10,7 @@ import { parse } from 'query-string';
 import { Form, Input, Button, Select, Avatar } from 'antd';
 import classnames from 'classnames';
 
-import { User } from '@/utils/types/user';
+import { User } from '@/utils/types/User';
 import { MAGIC } from '@/utils/constant';
 import { LoginModel } from './models';
 import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';

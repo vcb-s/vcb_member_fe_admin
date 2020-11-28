@@ -2,11 +2,10 @@ import { message } from 'antd';
 
 import type { Action, Reducer, Effect } from '@/utils/types';
 import type { Group } from '@/utils/types/Group';
-import type { UserCard } from '@/utils/types/userCard';
+import type { UserCard } from '@/utils/types/UserCard';
 import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
 import { emptyList } from '@/utils/types/CommonList';
 import { Services } from '@/utils/services';
-import { ModelAdapter } from '@/utils/modelAdapter';
 
 export namespace AppModel {
   export const namespace = 'global.app';
@@ -148,10 +147,9 @@ export namespace AppModel {
     },
   };
 
-  export const reducers: Partial<Record<
-    AppModel.ActionType,
-    Reducer<State>
-  >> = {
+  export const reducers: Partial<
+    Record<AppModel.ActionType, Reducer<State>>
+  > = {
     [AppModel.ActionType.reset]() {
       return initalState;
     },

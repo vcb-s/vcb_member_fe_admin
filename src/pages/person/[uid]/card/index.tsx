@@ -5,7 +5,7 @@ import { ColumnsType } from 'antd/lib/table';
 
 import { GO_BOOL } from '@/utils/types';
 import { Group } from '@/utils/types/Group';
-import { UserCard } from '@/utils/types/userCard';
+import { UserCard } from '@/utils/types/UserCard';
 import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
 
 import { PageParam } from '../types';

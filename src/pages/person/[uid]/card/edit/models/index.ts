@@ -129,7 +129,7 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
       try {
         yield call(
           () =>
-            new Promise((resolve, reject) => {
+            new Promise<void>((resolve, reject) => {
               Modal.confirm({
                 title: '卡片头像地址为空，将使用个人信息头像',
                 centered: true,
@@ -174,10 +174,9 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
   },
 };
 
-const reducers: Partial<Record<
-  PersonCardEditModel.ActionType,
-  Reducer<State>
->> = {
+const reducers: Partial<
+  Record<PersonCardEditModel.ActionType, Reducer<State>>
+> = {
   [PersonCardEditModel.ActionType.reset]() {
     return initalState;
   },

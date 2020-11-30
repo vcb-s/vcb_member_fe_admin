@@ -199,7 +199,7 @@ const PersonLaylout: React.FC = function PersonLaylout({ children }) {
       return [
         <Menu.Item key='editUser'>修改信息</Menu.Item>,
         <Menu.Item key='resetPass'>
-          <RestPass openHandleRef={openHandleRef}>重置密码</RestPass>
+          <RestPass openHandleRef={openHandleRef}>修改密码</RestPass>
         </Menu.Item>,
         <Menu.Item key='logout'>退出登录</Menu.Item>,
       ];

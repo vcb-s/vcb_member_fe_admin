@@ -501,7 +501,7 @@ export default function PagePerson() {
                   loading={!!person.loading}
                   onClick={resetPersonPassHandle}
                 >
-                  重置密码
+                  修改密码
                 </Button>
               </RestPass>
 

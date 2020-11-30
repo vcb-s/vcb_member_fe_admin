@@ -138,7 +138,7 @@ export namespace PersonModel {
     restPassSuccess = 'restPassSuccess',
     restPassFail = 'restPassFail',
 
-    /** 关闭重置密码弹层 */
+    /** 关闭修改密码弹层 */
     closeRSPModel = 'closeRSPModel',
 
     preAddMember = 'preAddMember',

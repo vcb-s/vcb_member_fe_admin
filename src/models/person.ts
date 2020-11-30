@@ -302,6 +302,7 @@ export namespace PersonModel {
         yield put(
           createAction(ActionType.kickoffPersonSuccess, false)(payload),
         );
+        message.success('离组完成');
       } catch (error) {
         message.error(error.message);
         yield put(createAction(ActionType.kickoffPersonFail, false)({ error }));

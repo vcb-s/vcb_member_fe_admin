@@ -410,16 +410,19 @@ export default function PagePerson() {
   const throttledKeyword = useThrottle(keyword);
   const filtedUserData = useMemo(() => {
     return userList.data.filter((user) => {
+      if (user.id === uid) {
+        return false;
+      }
       if (
         user.id === throttledKeyword ||
-        user.nickname.indexOf(throttledKeyword) > -1
+        user.nickname.toLowerCase().indexOf(throttledKeyword.toLowerCase()) > -1
       ) {
         return true;
       }
 
       return false;
     });
-  }, [throttledKeyword, userList.data]);
+  }, [throttledKeyword, uid, userList.data]);
   const filtedUserGroupMap = useMemo(() => {
     const resultMap = new Map();
     filtedUserData.forEach((user) => {

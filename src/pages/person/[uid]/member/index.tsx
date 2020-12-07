@@ -365,10 +365,8 @@ export default function PagePerson() {
     [dispatch],
   );
 
-  const openHandleRef: RestPassProps['openHandleRef'] = useRef(() => {});
-
-  const resetPersonPassHandle = useCallback(() => {
-    openHandleRef.current();
+  const resetPersonPassHandle = useCallback((uid: string) => {
+    setCurrentUID(uid);
   }, []);
 
   const kickHandle = useCallback(
@@ -406,6 +404,7 @@ export default function PagePerson() {
     }
   }, [dispatch, personInfo.id, uid]);
 
+  const [currentUID, setCurrentUID] = useState('');
   const [keyword, setKeyword] = useState('');
   const throttledKeyword = useThrottle(keyword);
   const filtedUserData = useMemo(() => {
@@ -433,6 +432,10 @@ export default function PagePerson() {
 
     return resultMap;
   }, [filtedUserData]);
+
+  const resetCurrentUID = useCallback(() => {
+    setCurrentUID('');
+  }, []);
 
   const columns = useMemo<ColumnsType<PersonInfo.Item>>(() => {
     return [
@@ -499,10 +502,14 @@ export default function PagePerson() {
         render: (person: PersonInfo.Item) => {
           return (
             <Space>
-              <RestPass uid={person.id} openHandleRef={openHandleRef}>
+              <RestPass
+                uid={person.id}
+                show={currentUID === person.id}
+                onClose={resetCurrentUID}
+              >
                 <Button
                   loading={!!person.loading}
-                  onClick={resetPersonPassHandle}
+                  onClick={() => resetPersonPassHandle(person.id)}
                 >
                   修改密码
                 </Button>
@@ -558,7 +565,14 @@ export default function PagePerson() {
         },
       },
     ];
-  }, [banHandle, filtedUserGroupMap, kickHandle, resetPersonPassHandle]);
+  }, [
+    banHandle,
+    currentUID,
+    filtedUserGroupMap,
+    kickHandle,
+    resetCurrentUID,
+    resetPersonPassHandle,
+  ]);
 
   return (
     <div className={styles.wrap}>

@@ -22,7 +22,7 @@ import { ApartmentOutlined, IdcardOutlined } from '@ant-design/icons';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { PageParam } from './types';
 import { compile } from 'path-to-regexp';
-import { RestPass, RestPassProps } from '@/components/rest-pass';
+import { RestPass } from '@/components/rest-pass';
 
 import styles from './_layout.scss';
 
@@ -159,7 +159,11 @@ const PersonLaylout: React.FC = function PersonLaylout({ children }) {
     history.push(`/person/${uid}/edit`);
   }, [history, uid]);
 
-  const openHandleRef: RestPassProps['openHandleRef'] = useRef(() => {});
+  // const openHandleRef: RestPassProps['openHandleRef'] = useRef(() => {});
+  const [show, setShow] = useState(false);
+  const closeHandle = useCallback(() => {
+    setShow(() => false);
+  }, []);
 
   const menuChangeHandle: MenuClickEventHandler = useCallback(
     ({ key }) => {
@@ -169,7 +173,7 @@ const PersonLaylout: React.FC = function PersonLaylout({ children }) {
           break;
         }
         case 'resetPass': {
-          openHandleRef.current();
+          setShow(() => true);
           break;
         }
         case 'logout': {
@@ -199,7 +203,9 @@ const PersonLaylout: React.FC = function PersonLaylout({ children }) {
       return [
         <Menu.Item key='editUser'>修改信息</Menu.Item>,
         <Menu.Item key='resetPass'>
-          <RestPass openHandleRef={openHandleRef}>修改密码</RestPass>
+          <RestPass show={show} onClose={closeHandle}>
+            修改密码
+          </RestPass>
         </Menu.Item>,
         <Menu.Item key='logout'>退出登录</Menu.Item>,
       ];
@@ -210,7 +216,7 @@ const PersonLaylout: React.FC = function PersonLaylout({ children }) {
         </Menu.Item>,
       ];
     }
-  }, [personState.personInfo.avast]);
+  }, [closeHandle, personState.personInfo.avast, show]);
 
   return (
     <>

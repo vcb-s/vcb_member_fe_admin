@@ -6,9 +6,9 @@ import {
   useMemo,
   MouseEvent,
   useEffect,
-  MutableRefObject,
   useReducer,
 } from 'react';
+import { usePrevious } from 'react-use';
 import { Modal, Form, Input } from 'antd';
 import { produce } from 'immer';
 import { ModalProps } from 'antd/lib/modal';
@@ -71,14 +71,17 @@ const useRestPass = () => {
 
 export interface RestPassProps {
   uid?: string;
-  openHandleRef: MutableRefObject<() => void>;
+  show: boolean;
+  onClose: (uid?: string) => void;
 }
 export const RestPass: FC<RestPassProps> = memo(function RestPass({
   children,
   uid,
-  openHandleRef,
+  show,
+  onClose,
 }) {
   const dispatch = useDispatch();
+  const prevShow = usePrevious(show);
   const submitLoading = useSelector(
     dvaLoadingSelector.effect(
       PersonModel.namespace,
@@ -90,13 +93,13 @@ export const RestPass: FC<RestPassProps> = memo(function RestPass({
   }, [submitLoading]);
 
   const { state, open, close, reset, change } = useRestPass();
-  useEffect(() => {
-    openHandleRef.current = open;
+  // useEffect(() => {
+  //   openHandleRef.current = open;
 
-    return () => {
-      openHandleRef.current = () => {};
-    };
-  }, [open, openHandleRef]);
+  //   return () => {
+  //     openHandleRef.current = () => {};
+  //   };
+  // }, [open, openHandleRef]);
 
   const changeHandle = useCallback(
     (evt: ChangeEvent<HTMLInputElement>) => {
@@ -115,6 +118,17 @@ export const RestPass: FC<RestPassProps> = memo(function RestPass({
     );
   }, [close, dispatch, state.pass, uid]);
 
+  const afterCloseHandle = useCallback(() => {
+    reset();
+    onClose();
+  }, [onClose, reset]);
+
+  useEffect(() => {
+    if (!prevShow && show) {
+      open();
+    }
+  }, [open, prevShow, show]);
+
   return (
     <>
       {children}
@@ -124,7 +138,7 @@ export const RestPass: FC<RestPassProps> = memo(function RestPass({
         onCancel={close}
         onOk={submitHandle}
         okButtonProps={okButtonProps}
-        afterClose={reset}
+        afterClose={afterCloseHandle}
         centered
         title='重置登录密码'
       >

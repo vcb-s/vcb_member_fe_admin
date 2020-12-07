@@ -330,6 +330,7 @@ export namespace PersonModel {
       }
 
       token.clear();
+      localStorage.setItem(MAGIC.LOGIN_UID, '');
 
       history.replace('/login');
     },

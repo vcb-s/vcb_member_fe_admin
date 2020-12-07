@@ -6,7 +6,6 @@ import type { Action, Reducer, Effect } from '@/utils/types';
 import { Services } from '@/utils/services';
 import { MAGIC } from '@/utils/constant';
 import { token } from '@/utils/token';
-import { AppModel } from '@/models/app';
 
 export namespace LoginModel {
   export const namespace = 'pages.login';
@@ -122,6 +121,7 @@ export namespace LoginModel {
 
         if (remember) {
           localStorage.setItem(MAGIC.AuthToken, token.token);
+          localStorage.setItem(MAGIC.LOGIN_UID, param.uid);
         }
         yield put(
           createAction(ActionType.loginWithPassSuccess, false)(undefined),

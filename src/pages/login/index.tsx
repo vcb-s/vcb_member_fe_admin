@@ -5,7 +5,13 @@ import React, {
   useRef,
   useMemo,
 } from 'react';
-import { useSelector, useDispatch, useLocation, UsersModel } from 'umi';
+import {
+  useSelector,
+  useDispatch,
+  useLocation,
+  UsersModel,
+  useHistory,
+} from 'umi';
 import { parse } from 'query-string';
 import { Form, Input, Button, Select, Avatar } from 'antd';
 import classnames from 'classnames';
@@ -22,6 +28,7 @@ const Login = function Login() {
   const loginState = useSelector(LoginModel.currentState);
   const userState = useSelector(UsersModel.currentState);
   const { search } = useLocation();
+  const history = useHistory();
 
   const userlistLoading = useSelector(
     dvaLoadingSelector.effect(
@@ -134,6 +141,25 @@ const Login = function Login() {
       LoginModel.createAction(LoginModel.ActionType.loginWithPass)(undefined),
     );
   }, [dispatch]);
+
+  // 已经登录的就不需要重复登录了
+  useEffect(() => {
+    const token = localStorage.getItem(MAGIC.AuthToken);
+    const UID = localStorage.getItem(MAGIC.LOGIN_UID);
+
+    if (token && UID) {
+      const query = parse(search);
+      let navQuery = query[MAGIC.loginPageNavQueryKey] || '';
+
+      if (Array.isArray(navQuery)) {
+        navQuery = navQuery.pop() || '';
+      }
+
+      const navURL = navQuery ? JSON.parse(navQuery) : `/person/${UID}`;
+
+      history.replace(navURL);
+    }
+  }, [history, search]);
 
   return (
     <div className={styles.wrap}>

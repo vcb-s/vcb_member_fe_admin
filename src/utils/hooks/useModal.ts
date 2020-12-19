@@ -29,27 +29,28 @@ export interface UseModalOption {
   afterClose: (isCancel: boolean) => void;
 }
 
+const EMPTY_OBJ: Record<any, any> = {};
 const EMPTY_FUNC = () => {};
 
 /** 获取modal的数据结构 */
 export const useModal = (
-  option?: Partial<UseModalOption>,
+  option: Partial<UseModalOption> = EMPTY_OBJ,
 ): [state: UseModalState, action: UseModalActions] => {
-  const [show, showActions] = useBoolean(!!option?.defaultShow);
-  const [loading, loadingActions] = useBoolean(!!option?.defaultLoading);
+  const [show, showActions] = useBoolean(!!option.defaultShow);
+  const [loading, loadingActions] = useBoolean(!!option.defaultLoading);
 
   const afterOK = useRef(EMPTY_FUNC);
   useEffect(() => {
-    afterOK.current = option?.afterOK || afterOK.current;
-  }, [option?.afterOK]);
+    afterOK.current = option.afterOK || afterOK.current;
+  }, [option.afterOK]);
   const afterCancel = useRef(EMPTY_FUNC);
   useEffect(() => {
-    afterCancel.current = option?.afterCancel || afterCancel.current;
-  }, [option?.afterCancel]);
+    afterCancel.current = option.afterCancel || afterCancel.current;
+  }, [option.afterCancel]);
   const afterClose = useRef<UseModalOption['afterClose']>(EMPTY_FUNC);
   useEffect(() => {
-    afterClose.current = option?.afterClose || afterClose.current;
-  }, [option?.afterClose]);
+    afterClose.current = option.afterClose || afterClose.current;
+  }, [option.afterClose]);
 
   const state = useMemo((): UseModalState => ({ show, loading }), [
     loading,

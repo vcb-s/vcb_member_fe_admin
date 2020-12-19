@@ -1,6 +1,15 @@
-let shadowIndex = 0
+import { useRef, useState } from 'react';
 
-export default () => {
-  shadowIndex += 1
-  return shadowIndex
-}
+let shadowIndex = 0;
+
+export const unionID = (): number => {
+  shadowIndex += 1;
+  return shadowIndex;
+};
+
+export const useUnionID = (): number => {
+  const [id] = useState(() => unionID());
+  return id;
+};
+
+export default unionID;

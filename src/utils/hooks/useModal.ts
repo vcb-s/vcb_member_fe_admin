@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useBoolean } from './useBoolean';
+import { usePersistFn } from './usePersistFn';
 
 export interface UseModalState {
   show: boolean;
@@ -39,18 +40,9 @@ export const useModal = (
   const [show, showActions] = useBoolean(!!option.defaultShow);
   const [loading, loadingActions] = useBoolean(!!option.defaultLoading);
 
-  const afterOK = useRef(EMPTY_FUNC);
-  useEffect(() => {
-    afterOK.current = option.afterOK || afterOK.current;
-  }, [option.afterOK]);
-  const afterCancel = useRef(EMPTY_FUNC);
-  useEffect(() => {
-    afterCancel.current = option.afterCancel || afterCancel.current;
-  }, [option.afterCancel]);
-  const afterClose = useRef<UseModalOption['afterClose']>(EMPTY_FUNC);
-  useEffect(() => {
-    afterClose.current = option.afterClose || afterClose.current;
-  }, [option.afterClose]);
+  const afterOK = usePersistFn(option.afterOK || EMPTY_FUNC);
+  const afterCancel = usePersistFn(option.afterCancel || EMPTY_FUNC);
+  const afterClose = usePersistFn(option.afterClose || EMPTY_FUNC);
 
   const state = useMemo((): UseModalState => ({ show, loading }), [
     loading,
@@ -70,19 +62,22 @@ export const useModal = (
       onOK: () => {
         isCancel.current = true;
         showActions.setFalse();
-        afterOK.current();
+        afterOK();
       },
       onCancel: () => {
         isCancel.current = false;
         showActions.setFalse();
-        afterCancel.current();
+        afterCancel();
       },
       afterClose: () => {
-        afterClose.current(isCancel.current);
+        afterClose(isCancel.current);
       },
     };
     return result;
   }, [
+    afterCancel,
+    afterClose,
+    afterOK,
     loadingActions.setFalse,
     loadingActions.setTrue,
     loadingActions.toggle,

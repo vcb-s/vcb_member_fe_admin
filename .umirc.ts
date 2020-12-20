@@ -3,9 +3,9 @@ import fiber from 'fibers';
 
 const __DEV__ = process.env.NODE_ENV === 'development';
 
-const picHost = 'https://cache.cswsadlab.com';
+const cacheHost = 'https://cache.cswsadlab.com';
 const base = '/vcbs_member/admin/';
-const publicPath = base;
+const publicPath = __DEV__ ? base : `${cacheHost}${base}`;
 
 export default defineConfig({
   title: 'vcb-s成员介绍',
@@ -16,7 +16,7 @@ export default defineConfig({
   dynamicImport: {},
   forkTSChecker: {},
   nodeModulesTransform: { type: 'none' },
-  favicon: `${picHost}/wp-content/customRes/favicon@180.png`,
+  favicon: `${cacheHost}/wp-content/customRes/favicon@180.png`,
 
   analyze: {
     analyzerMode: 'static',
@@ -35,7 +35,7 @@ export default defineConfig({
 
   define: {
     __DEV__,
-    picHost,
+    picHost: cacheHost,
     publicPath,
     buildTimestmap: Date.now(),
   },

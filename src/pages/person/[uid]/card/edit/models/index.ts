@@ -116,7 +116,8 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
     };
 
     if (!param.id) {
-      message.error('卡片信息缺少id, 无法提交');
+      // 新建卡片
+      message.error('新建卡片请求尚在开发');
       return;
     }
 

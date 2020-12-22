@@ -52,18 +52,29 @@ export default function PagePerson() {
   }, [dispatch, personInfo.id, uid]);
 
   /** 刷新/重置 */
-  const refreshHandle = useCallback(() => {
-    dispatch(
-      PersonCardEditModel.createAction(
-        PersonCardEditModel.ActionType.getCardInfo,
-      )({ id: editID }),
-    );
-  }, [dispatch, editID]);
+  const refreshHandle = useCallback(
+    (id: string) => {
+      dispatch(
+        PersonCardEditModel.createAction(
+          PersonCardEditModel.ActionType.getCardInfo,
+        )({ id }),
+      );
+    },
+    [dispatch],
+  );
 
   /** 当路由的editID参数变化时就刷新个人信息 */
   useEffect(() => {
+    if (!editID) {
+      dispatch(
+        PersonCardEditModel.createAction(PersonCardEditModel.ActionType.reset)(
+          undefined,
+        ),
+      );
+      return;
+    }
     if (form.id !== editID) {
-      refreshHandle();
+      refreshHandle(editID);
     }
   }, [dispatch, editID, form.id, refreshHandle]);
 
@@ -218,6 +229,7 @@ export default function PagePerson() {
   return (
     <div className={styles.wrap}>
       <PageHeader title='编辑卡片' onBack={goBackHandle} />
+
       <Form {...defaultFormLayout.normal} className={styles.form}>
         <Form.Item label='头像' required>
           <Input

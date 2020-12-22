@@ -130,6 +130,11 @@ const PagePersonCard: React.FC = function PagePersonCard() {
   return (
     <div className={styles.wrap}>
       <Typography.Title level={4}>我的卡片</Typography.Title>
+
+      <Space style={{ marginBottom: 16 }}>
+        <Button onClick={() => history.push(`./card/edit`)}>添加卡片</Button>
+      </Space>
+
       <Table
         className={styles.table}
         dataSource={cardList.data}

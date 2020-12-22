@@ -7,6 +7,7 @@ import {
   PersonModel,
   useHistory,
 } from 'umi';
+import classnames from 'classnames';
 import {
   Form,
   Switch,
@@ -16,6 +17,7 @@ import {
   message,
   Modal,
   PageHeader,
+  Tooltip,
 } from 'antd';
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
 
@@ -113,6 +115,22 @@ export default function PagePerson() {
           PersonCardEditModel.fieldChangePayloadCreator('card')('originAvast')(
             event.target.value,
           ),
+        ),
+      );
+    },
+    [dispatch],
+  );
+
+  /** 头像同步设置链接 */
+  const avastAsUserChangeHandle = useCallback(
+    (bool: boolean) => {
+      dispatch(
+        PersonCardEditModel.createAction(
+          PersonCardEditModel.ActionType.fieldChange,
+        )(
+          PersonCardEditModel.fieldChangePayloadCreator('card')(
+            'setAsUserAvatar',
+          )(bool),
         ),
       );
     },
@@ -236,6 +254,17 @@ export default function PagePerson() {
             value={form.originAvast}
             disabled={formLoading}
             onChange={avastChangeHandle}
+            suffix={
+              <Tooltip defaultVisible title='是否同步设置为登录头像'>
+                <Switch
+                  loading={formLoading}
+                  checked={form.setAsUserAvatar}
+                  checkedChildren={yesIcon}
+                  unCheckedChildren={noIcon}
+                  onChange={avastAsUserChangeHandle}
+                />
+              </Tooltip>
+            }
           />
         </Form.Item>
 
@@ -277,7 +306,10 @@ export default function PagePerson() {
           />
         </Form.Item>
 
-        <Form.Item label='退休'>
+        <Form.Item
+          label='退休'
+          help='设置退休状态后将会在组员名称上显示退休标识'
+        >
           <Switch
             loading={formLoading}
             checked={form.retired === GO_BOOL.yes}
@@ -287,7 +319,13 @@ export default function PagePerson() {
           />
         </Form.Item>
 
-        <Form.Item label='隐藏' help='隐藏后将不会被展示在前台'>
+        <Form.Item
+          label='隐藏'
+          help='隐藏后将不会被展示在前台'
+          className={classnames(
+            form.hide === GO_BOOL.yes && styles.heightLightHelper,
+          )}
+        >
           <Switch
             loading={formLoading}
             checked={form.hide === GO_BOOL.yes}

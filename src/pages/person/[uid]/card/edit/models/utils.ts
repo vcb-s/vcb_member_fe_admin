@@ -53,7 +53,9 @@ export interface Payload {
 }
 export interface State {
   form: {
-    card: UserCard.Item;
+    card: UserCard.Item & {
+      setAsUserAvatar: boolean;
+    };
   };
 }
 export const createAction = <K extends keyof Payload>(key: K) => {

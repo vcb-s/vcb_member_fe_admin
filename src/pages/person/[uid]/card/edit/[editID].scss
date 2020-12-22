@@ -14,3 +14,11 @@
 .table {
   width: 100%;
 }
+
+.heightLightHelper {
+  :global {
+    .ant-form-item-explain {
+      color: red;
+    }
+  }
+}

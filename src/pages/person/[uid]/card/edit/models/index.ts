@@ -35,6 +35,8 @@ const initalState: State = {
       hide: GO_BOOL.no,
       group: [],
       uid: '',
+
+      setAsUserAvatar: false,
     },
   },
 };
@@ -195,7 +197,10 @@ const reducers: Partial<
     { payload }: Action<Payload['getCardInfoSuccess']>,
   ) {
     const { card } = payload;
-    state.form.card = card;
+    state.form.card = {
+      ...card,
+      setAsUserAvatar: false,
+    };
   },
 };
 

@@ -4,6 +4,7 @@ import React, {
   useCallback,
   useState,
   useRef,
+  ReactChild,
 } from 'react';
 import {
   useRouteMatch,
@@ -27,6 +28,7 @@ import {
   Input,
   Select,
   message,
+  Tooltip,
 } from 'antd';
 import { ButtonProps } from 'antd/es/button';
 import { DownOutlined } from '@ant-design/icons';
@@ -340,7 +342,21 @@ export default function PagePerson() {
     (person: PersonInfo.Item) => {
       const { ban, nickname, id: uid } = person;
       let okText = `封禁`;
-      let content = '封禁用户无法登录，也不会出现在展示列表';
+      let content: ReactChild = (
+        <>
+          <div>封禁后该用户：</div>
+          <ul>
+            <li>出现在我的组员列表</li>
+            <li>可以解封</li>
+            <li>
+              <del>登录, 修改自己的用户/卡片信息</del>
+            </li>
+            <li>
+              <del>在前台展示自己的卡片</del>
+            </li>
+          </ul>
+        </>
+      );
 
       if (ban === GO_BOOL.yes) {
         okText = '解封';
@@ -381,6 +397,19 @@ export default function PagePerson() {
 
       Modal.confirm({
         title: `将会移除该用户及其卡片的${groupName}组关联`,
+        content: (
+          <>
+            <div>移除出组后该用户：</div>
+            <ul>
+              <del>
+                <li>出现在我的组员列表</li>
+              </del>
+              <li>重新招募该人员</li>
+              <li>登录, 修改自己的用户/卡片信息（即使不再属于任何组）</li>
+              <li>在前台展示自己的卡片（除非该卡片移除后就没有组别了）</li>
+            </ul>
+          </>
+        ),
         centered: true,
         keyboard: true,
         onOk: () => {
@@ -498,7 +527,7 @@ export default function PagePerson() {
         title: '操作',
         key: 'action',
         align: 'left',
-        width: 350,
+        width: 380,
         render: (person: PersonInfo.Item) => {
           return (
             <Space>
@@ -529,9 +558,6 @@ export default function PagePerson() {
                         {group.name}
                       </Menu.Item>
                     ))}
-                    {/* <Menu.Item key='-1' title='将会注销该用户所有信息'>
-                      VCB-S
-                    </Menu.Item> */}
                   </Menu>
                 }
               >
@@ -540,6 +566,10 @@ export default function PagePerson() {
                   <DownOutlined />
                 </Button>
               </Dropdown>
+
+              <Tooltip overlay='单个组退休可以展开后对单个卡片进行操作'>
+                <Button>全职养老</Button>
+              </Tooltip>
 
               {person.ban === GO_BOOL.yes ? (
                 <Button

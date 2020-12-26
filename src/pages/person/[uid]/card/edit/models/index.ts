@@ -134,7 +134,7 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
           () =>
             new Promise<void>((resolve, reject) => {
               Modal.confirm({
-                title: '卡片头像地址为空，将使用个人信息头像',
+                title: '将默认使用当前登录头像作为卡片头像',
                 centered: true,
                 onOk: () => resolve(),
                 onCancel: () => reject(),

@@ -27,6 +27,13 @@ export namespace Services {
       return request('/user-card/list', { params });
     };
 
+    export type CreateParam = Omit<UserCard.ItemInResponse, 'id'>;
+    export const create = (data: UpdateParam): Promise<ResponseData.Ok> => {
+      return request('/admin/user-card/create', {
+        data,
+        method: 'post',
+      });
+    };
     export type UpdateParam = Partial<UserCard.ItemInResponse> & {
       id: UserCard.ItemInResponse['id'];
     };

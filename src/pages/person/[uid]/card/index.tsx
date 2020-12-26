@@ -35,16 +35,13 @@ const PagePersonCard: React.FC = function PagePersonCard() {
 
   /** 新增 */
   const createHandle = useCallback(() => {
-    history.push(`/person/${uid}/card/edit`);
-  }, [uid]);
+    history.push(`./card/edit`);
+  }, []);
 
   /** 编辑 */
-  const editHandle = useCallback(
-    (id: string) => {
-      history.push(`/person/${uid}/card/edit/${id}`);
-    },
-    [uid],
-  );
+  const editHandle = useCallback((id: string) => {
+    history.push(`./card/edit/${id}`);
+  }, []);
 
   const columns = useMemo<ColumnsType<UserCard.Item>>(() => {
     return [

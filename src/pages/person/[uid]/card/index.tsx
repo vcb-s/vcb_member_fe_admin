@@ -108,15 +108,9 @@ const PagePersonCard: React.FC = function PagePersonCard() {
         render: (item: UserCard.Item) => {
           return (
             <Button.Group>
-              {/* <Button ghost type='primary'>
-              退休
-            </Button> */}
               <Button ghost type='primary' onClick={() => editHandle(item.id)}>
                 编辑
               </Button>
-              {/* <Button ghost danger>
-              删除
-            </Button> */}
             </Button.Group>
           );
         },
@@ -129,7 +123,7 @@ const PagePersonCard: React.FC = function PagePersonCard() {
       <Typography.Title level={4}>我的卡片</Typography.Title>
 
       <Space style={{ marginBottom: 16 }}>
-        <Button onClick={() => history.push(`./card/edit`)}>添加卡片</Button>
+        <Button onClick={createHandle}>添加卡片</Button>
       </Space>
 
       <Table

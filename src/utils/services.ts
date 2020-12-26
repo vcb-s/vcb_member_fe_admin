@@ -27,17 +27,26 @@ export namespace Services {
       return request('/user-card/list', { params });
     };
 
+    export interface ActionResData {
+      ID: string;
+    }
+
+    export interface CreateResponse extends ResponseData.Ok<ActionResData> {}
+
     export type CreateParam = Omit<UserCard.ItemInResponse, 'id'>;
-    export const create = (data: UpdateParam): Promise<ResponseData.Ok> => {
+    export const create = (data: UpdateParam): Promise<CreateResponse> => {
       return request('/admin/user-card/create', {
         data,
         method: 'post',
       });
     };
+
+    export interface UpdateResponse extends ResponseData.Ok<ActionResData> {}
+
     export type UpdateParam = Partial<UserCard.ItemInResponse> & {
       id: UserCard.ItemInResponse['id'];
     };
-    export const update = (data: UpdateParam): Promise<ResponseData.Ok> => {
+    export const update = (data: UpdateParam): Promise<UpdateResponse> => {
       return request('/admin/user-card/update', {
         data,
         method: 'post',

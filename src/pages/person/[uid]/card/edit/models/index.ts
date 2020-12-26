@@ -1,5 +1,5 @@
 import { message } from 'antd';
-import { AppModel, PersonModel } from 'umi';
+import { AppModel, PersonModel, history } from 'umi';
 import { Modal } from 'antd';
 
 import { Action, Reducer, Effect, GO_BOOL } from '@/utils/types';
@@ -117,10 +117,10 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
       hide: form.hide,
     };
 
+    let service = Services.CardList.update;
+
     if (!param.id) {
-      // 新建卡片
-      message.error('新建卡片请求尚在开发');
-      return;
+      service = Services.CardList.create;
     }
 
     // 修正组别信息
@@ -151,7 +151,9 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
     }
 
     try {
-      yield call(Services.CardList.update, param);
+      const {
+        data: { ID: id },
+      }: Services.CardList.UpdateResponse = yield call(service, param);
 
       yield put(
         createAction(PersonCardEditModel.ActionType.submitCardInfoSuccess)(
@@ -159,13 +161,33 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
         ),
       );
 
-      message.success('更新成功');
-
+      /** 刷新卡片列表 */
+      const { personInfo }: PersonModel.State = yield select(
+        PersonModel.currentState,
+      );
       yield put(
-        createAction(PersonCardEditModel.ActionType.getCardInfo)({
-          id: param.id,
+        PersonModel.createAction(PersonModel.ActionType.getPersonInfo)({
+          uid: personInfo.id,
         }),
       );
+
+      // 卡片更新
+      if (param.id) {
+        message.success('更新成功');
+
+        yield put(
+          createAction(PersonCardEditModel.ActionType.getCardInfo)({
+            id: param.id,
+          }),
+        );
+      } else {
+        message.success('创建成功');
+
+        history.replace({
+          ...history.location,
+          pathname: `${history.location.pathname}/${id}`,
+        });
+      }
     } catch (error) {
       yield put(
         createAction(PersonCardEditModel.ActionType.submitCardInfoFail)({

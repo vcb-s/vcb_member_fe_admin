@@ -65,6 +65,15 @@ export default function PagePerson() {
     [dispatch],
   );
 
+  /** 重置state */
+  const resetHadnle = useCallback(() => {
+    dispatch(
+      PersonCardEditModel.createAction(PersonCardEditModel.ActionType.reset)(
+        undefined,
+      ),
+    );
+  }, [dispatch]);
+
   /** 当路由的editID参数变化时就刷新个人信息 */
   useEffect(() => {
     if (editID && form.id !== editID) {
@@ -75,22 +84,24 @@ export default function PagePerson() {
 
   /** 页面关闭时reset */
   useEffect(() => {
-    dispatch(
-      PersonCardEditModel.createAction(PersonCardEditModel.ActionType.reset)(
-        undefined,
-      ),
-    );
-  }, [dispatch]);
+    return resetHadnle;
+  }, [resetHadnle]);
 
   /** 重置按钮 */
-  const resetHandle = useCallback(() => {
+  const resetClickHandle = useCallback(() => {
     Modal.confirm({
       title: '操作确认',
-      content: '尚未提交的修改将会丢弃并重新拉取信息',
-      onOk: refreshHandle,
+      content: '尚未提交的修改将会丢失',
+      onOk: () => {
+        if (editID) {
+          refreshHandle(editID);
+        } else {
+          resetHadnle();
+        }
+      },
       centered: true,
     });
-  }, [refreshHandle]);
+  }, [editID, refreshHandle, resetHadnle]);
 
   /** 提交按钮 */
   const submitHandle = useCallback(() => {
@@ -341,7 +352,11 @@ export default function PagePerson() {
 
         <Form.Item {...defaultFormLayout.tail}>
           <Space>
-            <Button type='default' loading={formLoading} onClick={resetHandle}>
+            <Button
+              type='default'
+              loading={formLoading}
+              onClick={resetClickHandle}
+            >
               重置
             </Button>
             <Button type='primary' loading={formLoading} onClick={submitHandle}>

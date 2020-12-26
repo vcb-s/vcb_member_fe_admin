@@ -67,18 +67,20 @@ export default function PagePerson() {
 
   /** 当路由的editID参数变化时就刷新个人信息 */
   useEffect(() => {
-    if (!editID) {
-      dispatch(
-        PersonCardEditModel.createAction(PersonCardEditModel.ActionType.reset)(
-          undefined,
-        ),
-      );
+    if (editID && form.id !== editID) {
+      refreshHandle(editID);
       return;
     }
-    if (form.id !== editID) {
-      refreshHandle(editID);
-    }
   }, [dispatch, editID, form.id, refreshHandle]);
+
+  /** 页面关闭时reset */
+  useEffect(() => {
+    dispatch(
+      PersonCardEditModel.createAction(PersonCardEditModel.ActionType.reset)(
+        undefined,
+      ),
+    );
+  }, [dispatch]);
 
   /** 重置按钮 */
   const resetHandle = useCallback(() => {
@@ -255,7 +257,7 @@ export default function PagePerson() {
             disabled={formLoading}
             onChange={avastChangeHandle}
             suffix={
-              <Tooltip defaultVisible title='是否同步设置为登录头像'>
+              <Tooltip defaultVisible title='是否同步设置该图片为登录头像'>
                 <Switch
                   loading={formLoading}
                   checked={form.setAsUserAvatar}

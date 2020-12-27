@@ -483,7 +483,7 @@ const CardSubTable: React.FC<CardSubTableProps> = React.memo(
           setData((pre) =>
             produce(pre, (state) => {
               state.forEach((item) => {
-                if (item.id === params.id) item.hide = params.hide!;
+                if (item.id === params.id) item.retired = params.retired!;
               });
             }),
           );
@@ -523,7 +523,7 @@ const CardSubTable: React.FC<CardSubTableProps> = React.memo(
                   loading={loadingCardID === card.id}
                 />
                 <Switch
-                  checked={card.hide === GO_BOOL.yes}
+                  checked={card.hide === GO_BOOL.no}
                   checkedChildren='kirakira!'
                   unCheckedChildren='已隐藏'
                   title='切换卡片前台显隐状态'

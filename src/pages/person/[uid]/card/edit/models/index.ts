@@ -169,10 +169,6 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
     }
 
     try {
-      const {
-        data: { ID: id },
-      }: Services.CardList.UpdateResponse = yield call(service, param);
-
       yield put(
         createAction(PersonCardEditModel.ActionType.submitCardInfoSuccess)(
           undefined,

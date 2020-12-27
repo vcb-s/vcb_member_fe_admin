@@ -188,20 +188,11 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
       // 卡片更新
       if (param.id) {
         message.success('更新成功');
-
-        yield put(
-          createAction(PersonCardEditModel.ActionType.getCardInfo)({
-            id: param.id,
-          }),
-        );
       } else {
         message.success('创建成功');
-
-        history.replace({
-          ...history.location,
-          pathname: `${history.location.pathname}/${id}`,
-        });
       }
+
+      history.goBack();
     } catch (error) {
       yield put(
         createAction(PersonCardEditModel.ActionType.submitCardInfoFail)({

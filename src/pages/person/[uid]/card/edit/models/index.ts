@@ -150,6 +150,24 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
       }
     }
 
+    if (form.setAsUserAvatar) {
+      yield put(
+        PersonModel.createAction(PersonModel.ActionType.updatePersonInfo)({
+          // uid
+          id: personInfo.id,
+          // 头像
+          avast: param.avast,
+        }),
+      );
+      const { fail } = yield race({
+        success: take(PersonModel.ActionType.updatePersonInfoSuccess),
+        fail: take(PersonModel.ActionType.updatePersonInfoFail),
+      });
+      if (fail) {
+        return;
+      }
+    }
+
     try {
       const {
         data: { ID: id },
@@ -161,10 +179,6 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
         ),
       );
 
-      /** 刷新卡片列表 */
-      const { personInfo }: PersonModel.State = yield select(
-        PersonModel.currentState,
-      );
       yield put(
         PersonModel.createAction(PersonModel.ActionType.getPersonInfo)({
           uid: personInfo.id,

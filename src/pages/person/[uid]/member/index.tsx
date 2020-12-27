@@ -3,17 +3,19 @@ import React, {
   useMemo,
   useCallback,
   useState,
-  useRef,
   ReactChild,
+  useRef,
 } from 'react';
+import { produce } from 'immer';
 import {
   useRouteMatch,
   useDispatch,
   useSelector,
   PersonModel,
   UsersModel,
+  history,
 } from 'umi';
-import { useThrottle } from 'react-use';
+import { useMountedState, useThrottle } from 'react-use';
 
 import {
   Typography,
@@ -29,11 +31,13 @@ import {
   Select,
   message,
   Tooltip,
+  Switch,
 } from 'antd';
 import { ButtonProps } from 'antd/es/button';
 import { DownOutlined } from '@ant-design/icons';
 import { ColumnsType } from 'antd/lib/table';
 
+import { Services } from '@/utils/services';
 import { GO_BOOL } from '@/utils/types';
 import { Group } from '@/utils/types/Group';
 import { PersonInfo } from '@/utils/types/PersonInfo';
@@ -42,8 +46,12 @@ import { PageParam } from '@/pages/person/[uid]/types';
 import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
 import { GroupSelector } from '@/components/GroupSelector';
 import { RestPass, RestPassProps } from '@/components/rest-pass';
+import { useBoolean } from '@/utils/hooks/useBoolean';
+import { AppModel } from '@/models/app';
+import { ModelAdapter } from '@/utils/modelAdapter';
 
 import styles from './index.scss';
+import { UserCard } from '@/utils/types/UserCard';
 
 const AMModalStyle: React.CSSProperties = { minWidth: '12em' };
 
@@ -324,6 +332,226 @@ const RecruitFromOtherGroups = React.memo(function RecruitFromOtherGroups() {
   );
 });
 
+interface CardSubTableProps {
+  uid: string;
+}
+/** 子表格，指定UID，展示对应UID的所有卡片 */
+const CardSubTable: React.FC<CardSubTableProps> = React.memo(
+  function CardSubTable({ uid }) {
+    const componentID = useRef(1);
+    const getMounted = useMountedState();
+    const [data, setData] = useState<UserCard.Item[]>([]);
+    const [loading, loadingAction] = useBoolean(true);
+    const [loadingCardID, setLoadingCardID] = useState('');
+
+    const groups = useSelector((_: any) => AppModel.currentState(_).group.data);
+
+    // 加载数据源
+    useEffect(() => {
+      let canWrite = true;
+      const query = async () => {
+        const param: Services.CardList.ReadParam = {
+          uid,
+          includeHide: GO_BOOL.yes,
+        };
+        loadingAction.setTrue();
+
+        try {
+          const { data } = await Services.CardList.read(param);
+          if (canWrite) {
+            loadingAction.setFalse();
+            setData(() => ModelAdapter.UserCards(data.res, groups));
+          }
+        } catch (e) {
+          message.error(e.message || '未知错误');
+        }
+      };
+
+      query();
+
+      return () => {
+        loadingAction.setFalse();
+        canWrite = false;
+      };
+    }, [groups, loadingAction, uid]);
+
+    /** 重置state */
+    useEffect(() => {
+      componentID.current += 1;
+
+      () => {
+        setData([]);
+        loadingAction.setFalse();
+      };
+    }, [loadingAction]);
+
+    /** 隐藏 */
+    const toggleHideHandle = useCallback(
+      async (card: UserCard.Item) => {
+        const currentID = componentID.current;
+        const params: Services.CardList.UpdateParam = {
+          id: card.id,
+          hide: card.hide === GO_BOOL.yes ? GO_BOOL.no : GO_BOOL.yes,
+        };
+
+        try {
+          await new Promise((resolve, reject) => {
+            const { destroy } = Modal.confirm({
+              centered: true,
+              title: `切换${card.nickname}的显隐状态为: ${
+                params.hide! === GO_BOOL.yes ? '显示' : '隐藏'
+              }`,
+              onOk: () => {
+                destroy();
+                resolve(null);
+              },
+              onCancel: () => {
+                destroy();
+                reject();
+              },
+            });
+          });
+        } catch (e) {
+          return;
+        }
+
+        try {
+          setLoadingCardID(() => card.id);
+
+          await Services.CardList.update(params);
+          if (!getMounted() && currentID === componentID.current) {
+            return;
+          }
+
+          setLoadingCardID(() => '');
+
+          // 更新列表数据
+          setData((pre) =>
+            produce(pre, (state) => {
+              state.forEach((item) => {
+                if (item.id === params.id) item.hide = params.hide!;
+              });
+            }),
+          );
+        } catch (e) {
+          message.error(e.message);
+        }
+      },
+      [getMounted],
+    );
+
+    /** 退休 */
+    const toggleRetiredHandle = useCallback(
+      async (card: UserCard.Item) => {
+        const currentID = componentID.current;
+        const params: Services.CardList.UpdateParam = {
+          id: card.id,
+          retired: card.retired === GO_BOOL.yes ? GO_BOOL.no : GO_BOOL.yes,
+        };
+
+        try {
+          await new Promise((resolve, reject) => {
+            const { destroy } = Modal.confirm({
+              centered: true,
+              title: `切换${card.nickname}的退休状态为: ${
+                params.retired! === GO_BOOL.yes ? '已退休' : '活跃中'
+              }`,
+              onOk: () => {
+                destroy();
+                resolve(null);
+              },
+              onCancel: () => {
+                destroy();
+                reject(null);
+              },
+            });
+          });
+        } catch (e) {
+          return;
+        }
+
+        try {
+          setLoadingCardID(() => card.id);
+          await Services.CardList.update(params);
+          if (!getMounted() && currentID === componentID.current) {
+            return;
+          }
+
+          setLoadingCardID(() => '');
+
+          // 更新列表数据
+          setData((pre) =>
+            produce(pre, (state) => {
+              state.forEach((item) => {
+                if (item.id === params.id) item.hide = params.hide!;
+              });
+            }),
+          );
+        } catch (e) {
+          message.error(e.message);
+        }
+      },
+      [getMounted],
+    );
+
+    const columns = useMemo<ColumnsType<UserCard.Item>>(() => {
+      return [
+        {
+          title: '昵称',
+          dataIndex: 'nickname',
+        },
+        {
+          title: '头像',
+          dataIndex: 'avast',
+          align: 'center',
+          render: (avatar) => <Avatar src={avatar} />,
+        },
+        {
+          title: '操作',
+          key: 'action',
+          align: 'left',
+          width: 380,
+          render: (card: UserCard.Item) => {
+            return (
+              <Space>
+                <Switch
+                  checked={card.retired === GO_BOOL.no}
+                  checkedChildren='活跃'
+                  unCheckedChildren='咸鱼'
+                  title='切换退休状态'
+                  onChange={() => toggleRetiredHandle(card)}
+                  loading={loadingCardID === card.id}
+                />
+                <Switch
+                  checked={card.hide === GO_BOOL.yes}
+                  checkedChildren='kirakira!'
+                  unCheckedChildren='已隐藏'
+                  title='切换卡片前台显隐状态'
+                  onChange={() => toggleHideHandle(card)}
+                  loading={loadingCardID === card.id}
+                />
+                {/* 目前卡片编辑还严重耦合登录用户state，修改别的用户的卡片在数据同步上有点绕，先隐藏 */}
+                {/* <Button onClick={() => history.push(`./card/edit/${card.id}`)}>
+                  编辑
+                </Button> */}
+              </Space>
+            );
+          },
+        },
+      ];
+    }, [loadingCardID, toggleHideHandle, toggleRetiredHandle]);
+
+    return (
+      <Table
+        loading={loading}
+        columns={columns}
+        dataSource={data}
+        pagination={false}
+      />
+    );
+  },
+);
+
 /** 主页面 */
 export default function PagePerson() {
   const match = useRouteMatch<PageParam>();
@@ -567,10 +795,6 @@ export default function PagePerson() {
                 </Button>
               </Dropdown>
 
-              <Tooltip overlay='单个组退休可以展开后对单个卡片进行操作'>
-                <Button>全职养老</Button>
-              </Tooltip>
-
               {person.ban === GO_BOOL.yes ? (
                 <Button
                   ghost
@@ -604,6 +828,10 @@ export default function PagePerson() {
     resetPersonPassHandle,
   ]);
 
+  const expandedRowRender = useCallback((record: PersonInfo.Item) => {
+    return <CardSubTable uid={record.id} />;
+  }, []);
+
   return (
     <div className={styles.wrap}>
       <Typography.Title level={4}>我的组员</Typography.Title>
@@ -624,6 +852,7 @@ export default function PagePerson() {
       <Table
         className={styles.table}
         dataSource={filtedUserData}
+        expandable={{ expandedRowRender }}
         columns={columns}
         loading={tableLoading}
       />

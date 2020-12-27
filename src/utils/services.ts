@@ -13,6 +13,7 @@ export namespace Services {
     export interface ReadParam extends Partial<PaginationParam> {
       group?: GroupType.Item['id'];
       id?: UserCard.Item['id'];
+      uid?: UserCard.Item['uid'];
       retired?: UserCard.Item['retired'];
       keyword?: UserCard.Item['id'] | UserCard.Item['nickname'];
       sticky?: GO_BOOL;

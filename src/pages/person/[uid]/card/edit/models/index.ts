@@ -169,6 +169,8 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
     }
 
     try {
+      yield call(service, param);
+
       yield put(
         createAction(PersonCardEditModel.ActionType.submitCardInfoSuccess)(
           undefined,

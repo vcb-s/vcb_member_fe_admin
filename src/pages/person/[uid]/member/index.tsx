@@ -178,15 +178,16 @@ const RecruitFromOtherGroups = React.memo(function RecruitFromOtherGroups() {
   const match = useRouteMatch<PageParam>();
   const uid = match.params.uid;
 
-  useEffect(() => {
-    dispatch(
-      UsersModel.createAction(UsersModel.ActionType.getUserList)(undefined),
-    );
-  }, [dispatch]);
-
   const [show, setShow] = useState(false);
-
   const [selectedGroups, setSelectedGroups] = useState<Group.Item[]>([]);
+
+  useEffect(() => {
+    if (show) {
+      dispatch(
+        UsersModel.createAction(UsersModel.ActionType.getUserList)(undefined),
+      );
+    }
+  }, [dispatch, show]);
 
   const addMemberHandle = useCallback(() => {
     setShow(true);
@@ -654,12 +655,10 @@ export default function PagePerson() {
   );
 
   useEffect(() => {
-    if (personInfo.id !== uid) {
-      dispatch(
-        PersonModel.createAction(PersonModel.ActionType.getPersonInfo)({ uid }),
-      );
-    }
-  }, [dispatch, personInfo.id, uid]);
+    dispatch(
+      PersonModel.createAction(PersonModel.ActionType.getPersonInfo)({ uid }),
+    );
+  }, [dispatch, uid]);
 
   const [currentUID, setCurrentUID] = useState('');
   const [keyword, setKeyword] = useState('');
@@ -831,6 +830,8 @@ export default function PagePerson() {
   const expandedRowRender = useCallback((record: PersonInfo.Item) => {
     return <CardSubTable uid={record.id} />;
   }, []);
+
+  console.log('what is filtedUserData', filtedUserData);
 
   return (
     <div className={styles.wrap}>

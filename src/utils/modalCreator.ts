@@ -8,10 +8,14 @@ type SagaConvertor<SagaOrRedux, N> = {
   ) => Generator
     ? (
         payload: ExtractPayloadInAction<Action>,
-      ) => N extends undefined
-        ? { type: K; payload: ExtractPayloadInAction<Action> }
-        : // @ts-expect-error
-          { type: `${N}/${K}`; payload: ExtractPayloadInAction<Action> }
+      ) => N extends undefined | null
+        ? { __IS_SAGA: true; type: K; payload: ExtractPayloadInAction<Action> }
+        : {
+            __IS_SAGA: true;
+            // @ts-expect-error
+            type: `${N}/${K}`;
+            payload: ExtractPayloadInAction<Action>;
+          }
     : never;
 };
 
@@ -21,7 +25,10 @@ type ReducerConvertor<SagaOrRedux, N> = {
   ) => Generator
     ? (
         payload: ExtractPayloadInAction<Action>,
-      ) => { type: K; payload: ExtractPayloadInAction<Action> }
+      ) => N extends undefined | null
+        ? { type: K; payload: ExtractPayloadInAction<Action> }
+        : // @ts-expect-error
+          { type: `${N}/${K}`; payload: ExtractPayloadInAction<Action> }
     : never;
 };
 
@@ -32,7 +39,7 @@ export const modalCreator = <N, E, R, S>(base: {
   state: S;
 }): {
   default: unknown;
-  actions: SagaConvertor<E, undefined> & ReducerConvertor<E, undefined>;
+  actions: SagaConvertor<E, null> & ReducerConvertor<E, null>;
   globalActions: SagaConvertor<E, N> & ReducerConvertor<E, N>;
 } => {
   return {

@@ -1,38 +1,48 @@
-/* eslint-disable no-console */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 type ExtractPayloadInAction<A> = A extends { payload: infer Payload }
   ? NonNullable<Payload>
   : never;
 
-type Convertor<SagaOrRedux, N> = {
+type SagaConvertor<SagaOrRedux, N> = {
   [K in keyof SagaOrRedux]: SagaOrRedux[K] extends (
     action: infer Action,
   ) => Generator
     ? (
         payload: ExtractPayloadInAction<Action>,
-      ) => { type: N; payload: ExtractPayloadInAction<Action> }
+      ) => N extends undefined
+        ? { type: K; payload: ExtractPayloadInAction<Action> }
+        : // @ts-expect-error
+          { type: `${N}/${K}`; payload: ExtractPayloadInAction<Action> }
     : never;
 };
 
-const modalCreator = <N, E, R, S>(base: {
+type ReducerConvertor<SagaOrRedux, N> = {
+  [K in keyof SagaOrRedux]: SagaOrRedux[K] extends (
+    action: infer Action,
+  ) => Generator
+    ? (
+        payload: ExtractPayloadInAction<Action>,
+      ) => { type: K; payload: ExtractPayloadInAction<Action> }
+    : never;
+};
+
+export const modalCreator = <N, E, R, S>(base: {
   namespace: N;
   effects: E;
   reducers: R;
   state: S;
 }): {
-  default: typeof base;
-  namespace: N;
-  actions: Convertor<E, N>;
+  default: unknown;
+  actions: SagaConvertor<E, undefined> & ReducerConvertor<E, undefined>;
+  globalActions: SagaConvertor<E, N> & ReducerConvertor<E, N>;
 } => {
   return {
     default: base,
-    namespace: base.namespace,
     actions: {} as any,
+    globalActions: {} as any,
   };
 };
 
-const { actions } = modalCreator({
+const { actions, globalActions } = modalCreator({
   namespace: 'asdasd.asdas' as const,
   state: {},
   effects: {
@@ -45,5 +55,4 @@ const { actions } = modalCreator({
 });
 
 console.log(actions.test);
-
-// export { namespace, effects, reduxs };
+console.log(globalActions.test);

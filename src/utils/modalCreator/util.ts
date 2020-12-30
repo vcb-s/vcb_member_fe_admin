@@ -1,4 +1,4 @@
 export interface Util<S> {
   /** 获取当前model值 */
-  currentStore: (globalStore: unknown) => S;
+  currentStore: (globalStore: any) => S;
 }

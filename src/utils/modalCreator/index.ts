@@ -1,3 +1,5 @@
+import { useDispatch, useSelector } from 'umi';
+
 import { SagaConvertor } from './convertor/saga';
 import { ReducerConvertor } from './convertor/reducer';
 import { DispatchConvertor } from './convertor/dispatch';
@@ -27,37 +29,73 @@ export const modalCreator = <
   // dispatch
   dispatch: DispatchConvertor<SagaConvertor<E, N>> &
     DispatchConvertor<ReducerConvertor<R, N>>;
-  // dva-loading 导出的 useLoading
+  // dva-loading 导出的 loading
   loading: LoadingConvertor<SagaConvertor<E, N>>;
   // 一些用于hooks的工具函数
   hooks: Hooks<S>;
   // 一些用于reducer或者组件的工具函数
   utils: Util<S>;
 } => {
+  const { namespace } = base;
+
+  const actions: any = {};
+  const globalActions: any = {};
+  const dispatch: any = {};
+  const loading: any = {};
+
+  const hooks: Hooks<S> = {
+    useStore: () => useSelector((_: any) => _[namespace]),
+    useStoreLoading: () =>
+      useSelector((_: any) => _.loading.models[namespace] as boolean),
+  };
+  const utils: Util<S> = {
+    currentStore: (_) => _[namespace],
+  };
+
+  Object.keys(base.effects).forEach((sagaKey) => {
+    actions[sagaKey] = (payload: any) => ({
+      type: sagaKey,
+      payload,
+      __IS_SAGA: true,
+    });
+
+    globalActions[sagaKey] = (payload: any) => ({
+      type: `${namespace}/${sagaKey}`,
+      payload,
+      __IS_SAGA: true,
+    });
+
+    dispatch[sagaKey] = (dispatch: (action: any) => any, payload: any) =>
+      dispatch(globalActions[sagaKey](payload));
+
+    loading[sagaKey] = (selector: (selector: (store: any) => boolean) => any) =>
+      selector((_: any) => _.loading.effects[`${namespace}/${sagaKey}`]);
+  });
+
+  Object.keys(base.reducers).forEach((reducerKey) => {
+    actions[reducerKey] = (payload: any) => ({
+      type: reducerKey,
+      payload,
+      __IS_SAGA: true,
+    });
+
+    globalActions[reducerKey] = (payload: any) => ({
+      type: `${namespace}/${reducerKey}`,
+      payload,
+      __IS_SAGA: true,
+    });
+
+    dispatch[reducerKey] = (dispatch: (action: any) => any, payload: any) =>
+      dispatch(globalActions[reducerKey](payload));
+  });
+
   return {
     default: base,
-    actions: {} as any,
-    globalActions: {} as any,
-    loading: {} as any,
-    dispatch: {} as any,
-    hooks: {} as any,
-    utils: {} as any,
+    actions,
+    globalActions,
+    loading,
+    dispatch,
+    hooks,
+    utils,
   };
 };
-
-const { actions, globalActions, dispatch } = modalCreator({
-  namespace: 'asdasd.asdas' as const,
-  state: {},
-  effects: {
-    *test(action: { payload: { a: number } }) {
-      // yield new Promise(() => {});
-      // console.log(payload.a);
-    },
-  },
-  reducers: {
-    test1(state: any, action: { payload: { a: string } }) {
-      // yield new Promise(() => {});
-      // console.log(payload.a);
-    },
-  },
-});

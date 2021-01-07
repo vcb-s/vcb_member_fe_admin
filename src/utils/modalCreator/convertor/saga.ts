@@ -1,24 +1,23 @@
-import { ExtractPayloadFromAction } from '../ExtractPayloadFromAction';
+import { EffectsCommandMap } from 'dva';
 
-export type SagaConvertor<Effects, N> = {
-  [K in keyof Effects]: Effects[K] extends (action: infer Action) => Generator
-    ? ExtractPayloadFromAction<Action> extends never
+import {
+  ExtractPayloadFromAction,
+  ACTION_IS_UNDEFINED,
+} from '../ExtractPayloadFromAction';
+
+import { MayBeGlobalAction } from '../MayBeGlobalAction';
+
+export type SagaConvertor<Effects, N, JUST_FOR_VS_CODE_COLOR = any> = {
+  [K in keyof Effects]: Effects[K] extends (
+    action: infer Action,
+    command: EffectsCommandMap,
+  ) => Generator<any, any, any>
+    ? ExtractPayloadFromAction<Action> extends ACTION_IS_UNDEFINED
+      ? () => MayBeGlobalAction<K, N, undefined, true>
+      : ExtractPayloadFromAction<Action> extends never
       ? never
-      : N extends undefined | null
-      ? (
-          payload: ExtractPayloadFromAction<Action>,
-        ) => {
-          __IS_SAGA: true;
-          type: K;
-          payload: ExtractPayloadFromAction<Action>;
-        }
       : (
           payload: ExtractPayloadFromAction<Action>,
-        ) => {
-          __IS_SAGA: true;
-          // @ts-expect-error
-          type: `${N}/${K}`;
-          payload: ExtractPayloadFromAction<Action>;
-        }
+        ) => MayBeGlobalAction<K, N, ExtractPayloadFromAction<Action>, true>
     : never;
 };

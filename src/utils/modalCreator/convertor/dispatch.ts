@@ -1,20 +1,36 @@
-import { useDispatch } from 'umi';
+import { EffectsCommandMap } from 'dva';
 
-export interface Dispatch<Action extends { payload: unknown }> {
-  <Return = unknown>(
-    dispatch: <A>(action: A) => any,
-    payload: Action['payload'],
-  ): Action extends {
-    __IS_SAGA: true;
-  }
-    ? Promise<Return>
-    : void;
-}
+import {
+  ExtractPayloadFromAction,
+  ACTION_IS_UNDEFINED,
+} from '../ExtractPayloadFromAction';
 
-export type DispatchConvertor<
-  Actions extends {
-    [key: string]: () => { payload: unknown };
-  }
-> = {
-  [K in keyof Actions]: Dispatch<ReturnType<Actions[K]>>;
+export type DispatchConvertorForSaga<Effects> = {
+  [K in keyof Effects]: Effects[K] extends (
+    action: infer Action,
+    command: EffectsCommandMap,
+  ) => Generator<any, infer Return, any>
+    ? ExtractPayloadFromAction<Action> extends ACTION_IS_UNDEFINED
+      ? (dispatch: <A>(action: A) => unknown) => Promise<Return>
+      : ExtractPayloadFromAction<Action> extends never
+      ? never
+      : (
+          dispatch: <A>(action: A) => unknown,
+          payload: ExtractPayloadFromAction<Action>,
+        ) => Promise<Return>
+    : never;
+};
+
+export type DispatchConvertorForReducer<Reducers, S = any> = {
+  [K in keyof Reducers]: Reducers[K] extends (
+    state: S,
+    action: infer Action,
+  ) => S | void
+    ? ExtractPayloadFromAction<Action> extends ACTION_IS_UNDEFINED
+      ? (dispatch: <A>(action: A) => unknown) => void
+      : (
+          dispatch: <A>(action: A) => unknown,
+          payload: ExtractPayloadFromAction<Action>,
+        ) => void
+    : never;
 };

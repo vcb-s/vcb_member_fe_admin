@@ -1,18 +1,19 @@
-import { ExtractPayloadFromAction } from '../ExtractPayloadFromAction';
+import {
+  ExtractPayloadFromAction,
+  ACTION_IS_UNDEFINED,
+} from '../ExtractPayloadFromAction';
 
-export type ReducerConvertor<Reducers, N> = {
+import { MayBeGlobalAction } from '../MayBeGlobalAction';
+
+export type ReducerConvertor<Reducers, N, S = any> = {
   [K in keyof Reducers]: Reducers[K] extends (
-    state: unknown,
+    state: S,
     action: infer Action,
-  ) => void
-    ? ExtractPayloadFromAction<Action> extends never
-      ? never
-      : N extends undefined | null
-      ? (
-          payload: ExtractPayloadFromAction<Action>,
-        ) => { type: K; payload: ExtractPayloadFromAction<Action> }
+  ) => S | void
+    ? ExtractPayloadFromAction<Action> extends ACTION_IS_UNDEFINED
+      ? () => MayBeGlobalAction<K, N, undefined, false>
       : (
-          payload: ExtractPayloadFromAction<Action>, // @ts-expect-error
-        ) => { type: `${N}/${K}`; payload: ExtractPayloadFromAction<Action> }
+          payload: ExtractPayloadFromAction<Action>,
+        ) => MayBeGlobalAction<K, N, ExtractPayloadFromAction<Action>, false>
     : never;
 };

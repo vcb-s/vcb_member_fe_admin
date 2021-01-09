@@ -1,97 +1,48 @@
 import { message } from 'antd';
 import { history } from 'umi';
+import { EffectsCommandMap } from 'dva';
 import { parse } from 'query-string';
 
-import type { Action, Reducer, Effect } from '@/utils/types';
 import { Services } from '@/utils/services';
 import { MAGIC } from '@/utils/constant';
 import { token } from '@/utils/token';
+import { modalCreator } from '@/utils/modalCreator';
+import { PrivateSymbol } from '@/utils/modalCreator/util';
 
-export namespace LoginModel {
-  export const namespace = 'pages.login';
-  export enum ActionType {
-    reset = 'reset',
-    fieldChange = 'fieldChange',
-    loginWithPass = 'loginWithPass',
-    loginWithPassSuccess = 'loginWithPassSuccess',
-    loginWithPassFail = 'loginWithPassFail',
-  }
+export const namespace = 'pages.login';
 
-  const privateSymbol = Symbol();
-
-  export function fieldChangePayloadCreator<F extends keyof State['form']>(
-    form: F,
-  ) {
-    return <N extends keyof State['form'][F]>(name: N) => {
-      return <V extends State['form'][F][N]>(value: V) => {
-        return {
-          /** 用来限制一定要用creator创建 */
-          _symbol: privateSymbol,
-          form,
-          name,
-          value,
-        };
-      };
-    };
-  }
-
-  export interface Payload {
-    [ActionType.reset]: undefined;
-    /** form修改payload，约定使用fieldChangePayloadCreator创建 */
-    [ActionType.fieldChange]: ReturnType<
-      ReturnType<ReturnType<typeof fieldChangePayloadCreator>>
-    >;
-    [ActionType.loginWithPass]: undefined;
-    [ActionType.loginWithPassSuccess]: undefined;
-    [ActionType.loginWithPassFail]: { err: Error };
-  }
-  export interface State {
-    form: {
-      login: {
-        id: string;
-        pass: string;
-        remember: boolean;
-      };
-    };
-  }
-  export interface CreateAction {
-    <K extends keyof Payload>(key: K, withNamespace?: boolean): (
-      payload: Payload[K],
-    ) => {
-      type: string;
-      payload: Payload[K];
-    };
-  }
-
-  export const createAction: CreateAction = (key, withNamespace = true) => {
-    return (payload) => {
-      return {
-        type: withNamespace ? `${namespace}/${key}` : key,
-        payload: payload,
-      };
+export interface State {
+  form: {
+    login: {
+      id: string;
+      pass: string;
+      remember: boolean;
     };
   };
-  export const currentState = (_: any): State => _[namespace];
+}
 
-  export const initalState: State = {
-    form: {
-      login: {
-        /** 登陆密码 */
-        pass: '',
-        /** 记住登录，目前统一记住 */
-        remember: true,
-        /** 卡片id */
-        id: '',
-      },
+const initalState: State = {
+  form: {
+    login: {
+      /** 登陆密码 */
+      pass: '',
+      /** 记住登录，目前统一记住 */
+      remember: true,
+      /** 卡片id */
+      id: '',
     },
-  };
+  },
+};
 
-  export const effects: Partial<Record<ActionType, Effect>> = {
-    *[ActionType.loginWithPass](
-      { payload }: Action<Payload['loginWithPass']>,
-      { select, put, call },
-    ) {
-      const { form }: State = yield select(currentState);
+const { model: dva, actions, utils, ...helpers } = modalCreator({
+  namespace: 'pages.login',
+  state: initalState,
+  effects: {
+    *login(
+      _: undefined,
+      { select, put, call }: EffectsCommandMap,
+    ): Generator<unknown, void, any> {
+      const { form }: State = yield select(utils.currentStore);
 
       const { id, pass, remember } = form.login;
       try {
@@ -123,43 +74,46 @@ export namespace LoginModel {
           localStorage.setItem(MAGIC.AuthToken, token.token);
           localStorage.setItem(MAGIC.LOGIN_UID, param.uid);
         }
-        yield put(
-          createAction(ActionType.loginWithPassSuccess, false)(undefined),
-        );
+        yield put(actions.loginSuccess());
       } catch (e) {
         message.error(e.message);
-        yield put(
-          createAction(ActionType.loginWithPassFail, false)({ err: e }),
-        );
+        yield put(actions.loginFail());
       }
     },
-  };
-
-  export const reducers: Partial<Record<ActionType, Reducer<State>>> = {
-    [ActionType.reset]() {
+  },
+  reducers: {
+    reset() {
       return initalState;
     },
-    [ActionType.fieldChange](
-      state,
-      { payload }: Action<Payload['fieldChange']>,
+    /** 请使用 utils.fieldPayloadCreator 填充 Payload */
+    fieldSync(
+      state: State,
+      {
+        payload: { name, key, value },
+      }: {
+        payload: {
+          name: unknown;
+          key: unknown;
+          value: unknown;
+          __private_symbol: PrivateSymbol;
+        };
+      },
     ) {
-      // @ts-ignore
-      state.form[payload.form][payload.name] = payload.value;
+      // @ts-expect-error
+      state.form[name][key] = value;
     },
-    [ActionType.loginWithPassSuccess](
-      state,
-      { payload }: Action<Payload['loginWithPassSuccess']>,
-    ) {
+    loginSuccess(state) {
       state.form.login.pass = '';
     },
-  };
-}
-
-const { namespace, initalState, effects, reducers } = LoginModel;
+    loginFail() {},
+  },
+});
 
 export default {
-  namespace,
-  state: initalState,
-  effects,
-  reducers,
+  namespace: dva.namespace,
+  state: dva.state,
+  effects: dva.effects,
+  reducers: dva.reducers,
 };
+
+export const loginStore = { actions, utils, ...helpers };

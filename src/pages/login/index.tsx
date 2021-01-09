@@ -18,14 +18,15 @@ import classnames from 'classnames';
 
 import { User } from '@/utils/types/User';
 import { MAGIC } from '@/utils/constant';
-import { LoginModel } from './models';
+import { loginStore, State } from './models';
 import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
 
 import styles from './index.scss';
 
 const Login = function Login() {
   const dispatch = useDispatch();
-  const loginState = useSelector(LoginModel.currentState);
+  const loginForm = loginStore.hooks.useStore('form', 'login');
+
   const userState = useSelector(UsersModel.currentState);
   const { search } = useLocation();
   const history = useHistory();
@@ -36,16 +37,12 @@ const Login = function Login() {
       UsersModel.ActionType.getUserList,
     ),
   );
-  const loginWithPassLoading = useSelector(
-    dvaLoadingSelector.effect(
-      LoginModel.namespace,
-      LoginModel.ActionType.loginWithPass,
-    ),
-  );
+
+  const loginLoading = loginStore.hooks.useLoading();
 
   const currentSelectedUser = useMemo(() => {
     const [user] = userState.usersList.data.filter((user) => {
-      return user.id === loginState.form.login.id;
+      return user.id === loginForm.id;
     });
 
     if (!user) {
@@ -53,7 +50,7 @@ const Login = function Login() {
     }
 
     return user;
-  }, [loginState.form.login.id, userState.usersList.data]);
+  }, [loginForm.id, userState.usersList.data]);
 
   useEffect(() => {
     dispatch(
@@ -77,10 +74,10 @@ const Login = function Login() {
   const nameSelectHandle = useCallback(
     (id: User.Item['id']) => {
       hasSelectAfterTypeSearch.current = true;
-      dispatch(
-        LoginModel.createAction(LoginModel.ActionType.fieldChange)(
-          LoginModel.fieldChangePayloadCreator('login')('id')(id),
-        ),
+
+      loginStore.dispatch.fieldSync(
+        dispatch,
+        loginStore.utils.fieldPayloadCreator('login', 'id', id),
       );
     },
     [dispatch],
@@ -102,12 +99,9 @@ const Login = function Login() {
 
   const passChangeHandle = useCallback(
     (evt: React.ChangeEvent<HTMLInputElement>) => {
-      dispatch(
-        LoginModel.createAction(LoginModel.ActionType.fieldChange)(
-          LoginModel.fieldChangePayloadCreator('login')('pass')(
-            evt.target.value,
-          ),
-        ),
+      loginStore.dispatch.fieldSync(
+        dispatch,
+        loginStore.utils.fieldPayloadCreator('login', 'pass', evt.target.value),
       );
     },
     [dispatch],
@@ -125,10 +119,9 @@ const Login = function Login() {
       code
     ) {
       nameSelectHandle(username);
-      dispatch(
-        LoginModel.createAction(LoginModel.ActionType.fieldChange)(
-          LoginModel.fieldChangePayloadCreator('login')('pass')(code),
-        ),
+      loginStore.dispatch.fieldSync(
+        dispatch,
+        loginStore.utils.fieldPayloadCreator('login', 'pass', code),
       );
     }
   }, [dispatch, nameSelectHandle, search]);
@@ -137,9 +130,7 @@ const Login = function Login() {
   // const loginWithWpHandle = useCallback(() => {}, []);
   /** 密码登录 */
   const loginHandle = useCallback(() => {
-    dispatch(
-      LoginModel.createAction(LoginModel.ActionType.loginWithPass)(undefined),
-    );
+    loginStore.dispatch.login(dispatch);
   }, [dispatch]);
 
   // 已经登录的就不需要重复登录了
@@ -189,7 +180,7 @@ const Login = function Login() {
               showSearch
               placeholder='可输入用户昵称进行搜索'
               loading={userlistLoading}
-              value={loginState.form.login.id || undefined}
+              value={loginForm.id || undefined}
               filterOption={false}
               // onChange={nameChangeHandle}
               onSelect={nameSelectHandle}
@@ -209,7 +200,7 @@ const Login = function Login() {
           </Form.Item>
           <Form.Item label='密码'>
             <Input.Password
-              value={loginState.form.login.pass}
+              value={loginForm.pass}
               onChange={passChangeHandle}
               onPressEnter={loginHandle}
               autoComplete='new-password'
@@ -229,10 +220,10 @@ const Login = function Login() {
               <Button
                 type='primary'
                 ghost
-                loading={loginWithPassLoading}
+                loading={loginLoading}
                 // onClick={loginHandle}
                 htmlType='submit'
-                disabled={!loginState.form.login.pass}
+                disabled={!loginForm.pass}
               >
                 登录
               </Button>

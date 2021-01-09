@@ -11,7 +11,7 @@ import { Util } from './util';
 import { Hooks } from './hooks';
 
 /**
- * 创建model
+ *
  *
  * @example
  * ```typescript
@@ -76,6 +76,7 @@ import { Hooks } from './hooks';
  * }
  * ```
  */
+/** 创建model */
 export const modalCreator = <
   S,
   N extends string,
@@ -105,7 +106,7 @@ export const modalCreator = <
   loading: LoadingConvertor<SagaConvertor<E, N>>;
   // 一些用于hooks的工具函数
   hooks: Hooks<S>;
-  // 一些用于reducer或者组件的工具函数
+  // 一些用于saga或者组件的工具函数
   utils: Util<S>;
 } => {
   const { namespace } = model;
@@ -122,6 +123,14 @@ export const modalCreator = <
   };
   const utils: Util<S> = {
     currentStore: (_) => _[namespace],
+    fieldPayloadCreator: ((name: unknown, key: unknown, value: unknown) => {
+      return {
+        name,
+        key,
+        value,
+        __private_symbol: Symbol.for('FieldSyncPayloadCreator'),
+      };
+    }) as any,
   };
 
   Object.keys(model.effects).forEach((sagaKey) => {

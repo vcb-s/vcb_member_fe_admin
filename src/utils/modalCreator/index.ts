@@ -10,7 +10,72 @@ import { LoadingConvertor } from './convertor/loading';
 import { Util } from './util';
 import { Hooks } from './hooks';
 
-/** namespace不能带斜杠 */
+/**
+ * 创建model
+ *
+ * @example
+ * ```typescript
+ * // ./model.ts
+ * import { EffectsCommandMap } from 'dva'
+ *
+ * interface State {
+ *   name: string;
+ *   pass: string;
+ *   token: string;
+ * }
+ * const INITAL_STATE: State = {
+ *   name: '',
+ *   pass: '',
+ *   token: '',
+ * }
+ *
+ * const { model, actions, utils, ...helpers } = modalCreator({
+ *   namespace: 'pages.login',
+ *   state: INITAL_STATE,
+ *   effects: {
+ *     *login (_: undefined, { call, put, select }: EffectsCommandMap): Generator<unknown, void, any> {
+ *       const { name, pass }: State = yield select(utils.currentStore)
+ *       try {
+ *         const { token } = yield call(login, { name, pass })
+ *         yield put(actions.loginSuccess({ token }))
+ *       } catch (e) {
+ *         yield put(actions.loginFail({ token }))
+ *       }
+ *     }
+ *   },
+ *   reducers: {
+ *     loginSuccess (state, { payload}: { payload: { token: string }}) {
+ *       state.name = ''
+ *       state.pass = ''
+ *       state.token = payload.token
+ *     },
+ *     loginFail () {
+ *       state.pass = ''
+ *     },
+ *   },
+ * })
+ *
+ * export const loginStore = { utils, ...helpers }
+ *
+ * // 这里不能写`export default model`，否则就要设置`skipModelValidate`为`false`
+ * // 不然这个model不被识别
+ * export default {
+ *   namespace: model.namespace,
+ *   state: model.state,
+ *   effects: model.effects,
+ *   reducers: model.reducers,
+ * }
+ * ```
+ *
+ * ```typescriptreact
+ * // index.tsx
+ * import { loginStore } from './model'
+ *
+ * export default () => {
+ *   return <div onClick={() => loginStore.dispatch.login()}>登录</div>
+ * }
+ * ```
+ */
 export const modalCreator = <
   S,
   N extends string,
@@ -18,10 +83,10 @@ export const modalCreator = <
     [key: string]: (
       action: any,
       effects: EffectsCommandMap,
-    ) => Generator<any, any, any>;
+    ) => Generator<unknown, unknown, unknown>;
   },
   R extends { [key: string]: (state: S, action: { payload: any }) => S | void }
->(base: {
+>(model: {
   namespace: N;
   state: S;
   effects: E;
@@ -29,7 +94,7 @@ export const modalCreator = <
   subscriptions?: {};
 }): {
   // 喂给 export default 的
-  default: unknown;
+  model: typeof model;
   // 不带namaspace的actions
   actions: SagaConvertor<E, undefined, S> & ReducerConvertor<R, undefined, S>;
   // 带namaspace的actions
@@ -43,7 +108,7 @@ export const modalCreator = <
   // 一些用于reducer或者组件的工具函数
   utils: Util<S>;
 } => {
-  const { namespace } = base;
+  const { namespace } = model;
 
   const actions: any = {};
   const globalActions: any = {};
@@ -59,7 +124,7 @@ export const modalCreator = <
     currentStore: (_) => _[namespace],
   };
 
-  Object.keys(base.effects).forEach((sagaKey) => {
+  Object.keys(model.effects).forEach((sagaKey) => {
     actions[sagaKey] = (payload: any) => ({
       type: sagaKey,
       payload,
@@ -79,7 +144,7 @@ export const modalCreator = <
       selector((_: any) => _.loading.effects[`${namespace}/${sagaKey}`]);
   });
 
-  Object.keys(base.reducers).forEach((reducerKey) => {
+  Object.keys(model.reducers).forEach((reducerKey) => {
     actions[reducerKey] = (payload: any) => ({
       type: reducerKey,
       payload,
@@ -97,7 +162,7 @@ export const modalCreator = <
   });
 
   return {
-    default: base,
+    model,
     actions,
     globalActions,
     loading,

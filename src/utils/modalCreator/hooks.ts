@@ -8,9 +8,16 @@ interface useStore<S> {
   (): S;
 }
 
-export interface Hooks<S> {
+interface useLoading<E> {
+  <K extends keyof E>(keyOfEffects: K): boolean;
+}
+interface useLoading<E> {
+  (): boolean;
+}
+
+export interface Hooks<S, E> {
   /** 获取当前model值 */
   useStore: useStore<S>;
   /** 获取当前model loading状态 */
-  useStoreLoading: () => boolean;
+  useLoading: useLoading<E>;
 }

@@ -102,10 +102,8 @@ export const modalCreator = <
   globalActions: SagaConvertor<E, N> & ReducerConvertor<R, N, S>;
   // dispatch
   dispatch: DispatchConvertorForSaga<E> & DispatchConvertorForReducer<R, S>;
-  // dva-loading 导出的 loading
-  loading: LoadingConvertor<SagaConvertor<E, N>>;
   // 一些用于hooks的工具函数
-  hooks: Hooks<S>;
+  hooks: Hooks<S, E>;
   // 一些用于saga或者组件的工具函数
   utils: Util<S>;
 } => {
@@ -114,12 +112,28 @@ export const modalCreator = <
   const actions: any = {};
   const globalActions: any = {};
   const dispatch: any = {};
-  const loading: any = {};
 
-  const hooks: Hooks<S> = {
-    useStore: () => useSelector((_: any) => _[namespace]),
-    useStoreLoading: () =>
-      useSelector((_: any) => _.loading.models[namespace] as boolean),
+  const hooks: Hooks<S, E> = {
+    useStore: (key?: string, key2?: string) => {
+      return useSelector((_: any) => {
+        if (key) {
+          if (key2) {
+            return _[namespace][key][key2];
+          }
+          return _[namespace][key];
+        }
+
+        return _[namespace];
+      });
+    },
+    useLoading: (key?: string) =>
+      useSelector((_: any) => {
+        if (key !== undefined) {
+          return _.loading.effects[`${namespace}/${key}`] as boolean;
+        } else {
+          return _.loading.models[namespace] as boolean;
+        }
+      }),
   };
   const utils: Util<S> = {
     currentStore: (_) => _[namespace],
@@ -148,9 +162,6 @@ export const modalCreator = <
 
     dispatch[sagaKey] = (dispatch: (action: any) => any, payload: any) =>
       dispatch(globalActions[sagaKey](payload));
-
-    loading[sagaKey] = (selector: (selector: (store: any) => boolean) => any) =>
-      selector((_: any) => _.loading.effects[`${namespace}/${sagaKey}`]);
   });
 
   Object.keys(model.reducers).forEach((reducerKey) => {
@@ -174,7 +185,6 @@ export const modalCreator = <
     model,
     actions,
     globalActions,
-    loading,
     dispatch,
     hooks,
     utils,

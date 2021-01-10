@@ -18,7 +18,7 @@ import classnames from 'classnames';
 
 import { User } from '@/utils/types/User';
 import { MAGIC } from '@/utils/constant';
-import { loginStore, State } from './models';
+import { loginStore } from './model';
 import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
 
 import styles from './index.scss';

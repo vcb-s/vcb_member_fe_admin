@@ -19,9 +19,20 @@ export interface FieldSyncPayloadCreator<S extends { form: unknown }> {
   };
 }
 
-export interface Util<S> {
+type dvaLoadingSelector<E> = {
+  [K in keyof E]: () => boolean;
+};
+
+export interface Util<S, E, R> {
+  effectKeys: {
+    [K in keyof E]: K;
+  };
+  reducerKeys: {
+    [K in keyof R]: K;
+  };
   /** 获取当前model值 */
   currentStore: (globalStore: any) => S;
+  dvaLoadingSelector: dvaLoadingSelector<E>;
   fieldPayloadCreator: S extends { form: unknown }
     ? FieldSyncPayloadCreator<S>
     : never;

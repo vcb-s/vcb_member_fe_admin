@@ -1,162 +1,80 @@
 import { message } from 'antd';
 
-import type { Action, Reducer, Effect } from '@/utils/types';
 import type { Group } from '@/utils/types/Group';
 import type { UserCard } from '@/utils/types/UserCard';
-import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
 import { emptyList } from '@/utils/types/CommonList';
 import { Services } from '@/utils/services';
 
-export namespace AppModel {
-  export const namespace = 'global.app';
-  export enum ActionType {
-    reset = 'reset',
+import { modalCreator } from '@/utils/modalCreator';
 
-    ensureGroupData = 'ensureGroupData',
-    ensureGroupDataSuccess = 'ensureGroupDataSuccess',
-    ensureGroupDataFail = 'ensureGroupDataFail',
+const namespace = 'global.app';
 
-    getGroup = 'getGroup',
-    getGroupSuccess = 'getGroupSuccess',
-    getGroupFail = 'getGroupFail',
-    // changeGroup = 'changeGroup',
-  }
+export interface State {
+  userCards: UserCard.TinyList;
+  group: Group.List;
+}
 
-  export interface CreateAction {
-    <K extends keyof Payload>(key: K, withNamespace?: boolean): (
-      payload: Payload[K],
-    ) => {
-      type: string;
-      payload: Payload[K];
-    };
-  }
-
-  export const createAction: CreateAction = (key, withNamespace = true) => {
-    return (payload) => {
-      return {
-        type: withNamespace ? `${namespace}/${key}` : key,
-        payload: payload,
-      };
-    };
-  };
-
-  export interface Payload {
-    [ActionType.reset]: undefined;
-
-    [ActionType.ensureGroupData]: undefined;
-    [ActionType.ensureGroupDataSuccess]: undefined;
-    [ActionType.ensureGroupDataFail]: { error: Error };
-
-    [ActionType.getGroup]: undefined;
-    [ActionType.getGroupSuccess]: {
-      data: Group.ItemInResponse[];
-    };
-    [ActionType.getGroupFail]: {
-      error: Error;
-    };
-    // [ActionType.changeGroup]: {
-    //   groupID?: Group.Item['id'];
-    // };
-  }
-  /** 统一导出State，降低引用Model时心智负担，统一都使用State就行了 */
-  export interface State {
-    userCards: UserCard.TinyList;
-    group: Group.List;
-  }
-
-  export const currentState = (_: any): State => _[namespace];
-
-  export const initalState: State = {
-    userCards: emptyList,
-    group: emptyList,
-  };
-
-  export const effects: Partial<Record<AppModel.ActionType, Effect>> = {
-    *[AppModel.ActionType.ensureGroupData](
+const initalState: State = {
+  userCards: emptyList,
+  group: emptyList,
+};
+const { model, actions, utils } = modalCreator({
+  namespace,
+  effects: {
+    *ensureGroupData(
       action,
       { take, put, select, race },
-    ) {
-      const loading = yield select(
-        dvaLoadingSelector.effect(namespace, AppModel.ActionType.getGroup),
-      );
+    ): Generator<any, void, any> {
+      const loading = yield select(utils.dvaLoadingSelector.getGroup);
 
-      const { group }: AppModel.State = yield select(currentState);
+      const { group }: State = yield select(utils.currentStore);
       if (group.data.length) {
-        yield put(
-          createAction(
-            AppModel.ActionType.ensureGroupDataSuccess,
-            false,
-          )(undefined),
-        );
+        yield put(actions.ensureGroupDataSuccess());
         return;
       }
 
       if (!loading) {
-        yield put(createAction(AppModel.ActionType.getGroup, false)(undefined));
+        yield put(actions.getGroup());
       }
 
       const { s, f } = yield race({
-        s: take(AppModel.ActionType.getGroupSuccess),
-        f: take(AppModel.ActionType.getGroupFail),
+        s: take(utils.reducerKeys.ensureGroupDataSuccess),
+        f: take(utils.reducerKeys.ensureGroupDataFail),
       });
 
       if (s) {
-        yield put(
-          createAction(
-            AppModel.ActionType.ensureGroupDataSuccess,
-            false,
-          )(undefined),
-        );
+        yield put(actions.ensureGroupDataSuccess());
       } else if (f) {
-        yield put(
-          createAction(
-            AppModel.ActionType.ensureGroupDataFail,
-            false,
-          )(f.payload),
-        );
+        yield put(actions.ensureGroupDataFail({ error: f }));
       }
     },
-    *[AppModel.ActionType.getGroup](
-      { payload }: Action<Payload[AppModel.ActionType.getGroup]>,
-      { call, put },
-    ) {
+    *getGroup(_: undefined, { call, put }): Generator<any, void, any> {
       try {
         const { data }: Services.Group.ReadResponse = yield call(
           Services.Group.read,
         );
 
-        yield put(
-          createAction(
-            AppModel.ActionType.getGroupSuccess,
-            false,
-          )({
-            data: data.res,
-          }),
-        );
+        yield put(actions.getGroupSuccess({ data: data.res }));
       } catch (err) {
         yield put(
-          createAction(
-            AppModel.ActionType.getGroupFail,
-            false,
-          )({
+          actions.getGroupFail({
             error: err,
           }),
         );
         message.error(err.message);
       }
     },
-  };
-
-  export const reducers: Partial<
-    Record<AppModel.ActionType, Reducer<State>>
-  > = {
-    [AppModel.ActionType.reset]() {
+  },
+  reducers: {
+    reset() {
       return initalState;
     },
+    ensureGroupDataSuccess() {},
+    ensureGroupDataFail(s, _: { payload: { error: unknown } }) {},
 
-    [AppModel.ActionType.getGroupSuccess](
+    getGroupSuccess(
       state,
-      { payload }: Action<Payload[AppModel.ActionType.getGroupSuccess]>,
+      { payload }: { payload: { data: Group.ItemInResponse[] } },
     ) {
       state.group.data = payload.data.map((i) => ({
         ...i,
@@ -164,14 +82,14 @@ export namespace AppModel {
         key: `${i.id}`,
       }));
     },
-  };
-}
-
-const { namespace, initalState, effects, reducers } = AppModel;
+    getGroupFail(s, _: { payload: { error: unknown } }) {},
+  },
+  state: initalState,
+});
 
 export default {
-  namespace,
-  state: initalState,
-  effects,
-  reducers,
+  namespace: model.namespace,
+  state: model.state,
+  effects: model.effects,
+  reducers: model.reducers,
 };

@@ -105,13 +105,16 @@ export const modalCreator = <
   // 一些用于hooks的工具函数
   hooks: Hooks<S, E>;
   // 一些用于saga或者组件的工具函数
-  utils: Util<S>;
+  utils: Util<S, E, R>;
 } => {
   const { namespace } = model;
 
   const actions: any = {};
   const globalActions: any = {};
   const dispatch: any = {};
+  const dvaLoadingSelector: any = {};
+  const effectKeys: any = {};
+  const reducerKeys: any = {};
 
   const hooks: Hooks<S, E> = {
     useStore: (key?: string, key2?: string) => {
@@ -135,8 +138,11 @@ export const modalCreator = <
         }
       }),
   };
-  const utils: Util<S> = {
+  const utils: Util<S, E, R> = {
     currentStore: (_) => _[namespace],
+    dvaLoadingSelector,
+    effectKeys,
+    reducerKeys,
     fieldPayloadCreator: ((name: unknown, key: unknown, value: unknown) => {
       return {
         name,
@@ -162,6 +168,10 @@ export const modalCreator = <
 
     dispatch[sagaKey] = (dispatch: (action: any) => any, payload: any) =>
       dispatch(globalActions[sagaKey](payload));
+
+    effectKeys[sagaKey] = sagaKey;
+    dvaLoadingSelector[sagaKey] = (_: any) =>
+      _.loading.effects[`${namespace}/${sagaKey}`];
   });
 
   Object.keys(model.reducers).forEach((reducerKey) => {
@@ -179,6 +189,8 @@ export const modalCreator = <
 
     dispatch[reducerKey] = (dispatch: (action: any) => any, payload: any) =>
       dispatch(globalActions[reducerKey](payload));
+
+    reducerKeys[reducerKey] = reducerKey;
   });
 
   return {

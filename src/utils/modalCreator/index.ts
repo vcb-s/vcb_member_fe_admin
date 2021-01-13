@@ -117,10 +117,16 @@ export const modalCreator = <
   const reducerKeys: any = {};
 
   const hooks: Hooks<S, E> = {
-    useStore: (key?: string, key2?: string) => {
+    useStore: (key?: string, key2?: string, key3?: string, key4?: string) => {
       return useSelector((_: any) => {
         if (key) {
           if (key2) {
+            if (key3) {
+              if (key4) {
+                return _[namespace][key][key2][key3][key4];
+              }
+              return _[namespace][key][key2][key3];
+            }
             return _[namespace][key][key2];
           }
           return _[namespace][key];

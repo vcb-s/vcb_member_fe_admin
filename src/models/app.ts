@@ -18,7 +18,7 @@ const initalState: State = {
   userCards: emptyList,
   group: emptyList,
 };
-const { model, actions, utils } = modalCreator({
+const { model, actions, utils, ...helpers } = modalCreator({
   namespace,
   effects: {
     *ensureGroupData(
@@ -86,6 +86,8 @@ const { model, actions, utils } = modalCreator({
   },
   state: initalState,
 });
+
+export const AppModel = { model, actions, utils, ...helpers };
 
 export default {
   namespace: model.namespace,

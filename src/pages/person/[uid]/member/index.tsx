@@ -345,7 +345,7 @@ const CardSubTable: React.FC<CardSubTableProps> = React.memo(
     const [loading, loadingAction] = useBoolean(true);
     const [loadingCardID, setLoadingCardID] = useState('');
 
-    const groups = useSelector((_: any) => AppModel.currentState(_).group.data);
+    const groups = AppModel.hooks.useStore('group', 'data');
 
     // 加载数据源
     useEffect(() => {

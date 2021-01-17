@@ -15,7 +15,7 @@ import { emptyList } from '@/utils/types/CommonList';
 import { ModelAdapter } from '@/utils/modelAdapter';
 import { token } from '@/utils/token';
 import { MAGIC } from '@/utils/constant';
-import { modalCreator } from '@/utils/modalCreator';
+import { modelCreator } from '@/utils/modelCreator';
 
 export interface State {
   /** 用户信息 */
@@ -60,7 +60,7 @@ const initalState: State = {
 
 const namespace = 'global.personinfo';
 
-const { model, actions, globalActions, utils, ...helpers } = modalCreator({
+const { model, actions, globalActions, utils, ...helpers } = modelCreator({
   namespace,
   effects: {
     *getPersonInfo(

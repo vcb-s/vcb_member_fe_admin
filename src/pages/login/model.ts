@@ -6,8 +6,8 @@ import { parse } from 'query-string';
 import { Services } from '@/utils/services';
 import { MAGIC } from '@/utils/constant';
 import { token } from '@/utils/token';
-import { modalCreator } from '@/utils/modalCreator';
-import { PrivateSymbol } from '@/utils/modalCreator/util';
+import { modelCreator } from '@/utils/modelCreator';
+import { PrivateSymbol } from '@/utils/modelCreator/util';
 
 export const namespace = 'pages.login';
 
@@ -34,7 +34,7 @@ const initalState: State = {
   },
 };
 
-const { model: dva, actions, globalActions, utils, ...helpers } = modalCreator({
+const { model: dva, actions, globalActions, utils, ...helpers } = modelCreator({
   namespace: 'pages.login',
   state: initalState,
   effects: {

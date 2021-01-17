@@ -77,7 +77,7 @@ import { Hooks } from './hooks';
  * ```
  */
 /** 创建model */
-export const modalCreator = <
+export const modelCreator = <
   S,
   N extends string,
   E extends {

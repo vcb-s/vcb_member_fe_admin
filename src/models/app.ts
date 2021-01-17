@@ -5,7 +5,7 @@ import type { UserCard } from '@/utils/types/UserCard';
 import { emptyList } from '@/utils/types/CommonList';
 import { Services } from '@/utils/services';
 
-import { modalCreator } from '@/utils/modalCreator';
+import { modelCreator } from '@/utils/modelCreator';
 
 const namespace = 'global.app';
 
@@ -18,7 +18,7 @@ const initalState: State = {
   userCards: emptyList,
   group: emptyList,
 };
-const { model, actions, utils, globalActions, ...helpers } = modalCreator({
+const { model, actions, utils, globalActions, ...helpers } = modelCreator({
   namespace,
   effects: {
     *ensureGroupData(

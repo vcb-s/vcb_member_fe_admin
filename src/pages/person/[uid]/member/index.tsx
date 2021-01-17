@@ -7,14 +7,7 @@ import React, {
   useRef,
 } from 'react';
 import { produce } from 'immer';
-import {
-  useRouteMatch,
-  useDispatch,
-  useSelector,
-  PersonModel,
-  UsersModel,
-  history,
-} from 'umi';
+import { useRouteMatch, useDispatch, useSelector, UsersModel } from 'umi';
 import { useMountedState, useThrottle } from 'react-use';
 
 import {
@@ -30,13 +23,13 @@ import {
   Input,
   Select,
   message,
-  Tooltip,
   Switch,
 } from 'antd';
 import { ButtonProps } from 'antd/es/button';
 import { DownOutlined } from '@ant-design/icons';
 import { ColumnsType } from 'antd/lib/table';
 
+import { PersonModel } from '@/models/person';
 import { Services } from '@/utils/services';
 import { GO_BOOL } from '@/utils/types';
 import { Group } from '@/utils/types/Group';
@@ -45,13 +38,13 @@ import { User } from '@/utils/types/User';
 import { PageParam } from '@/pages/person/[uid]/types';
 import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
 import { GroupSelector } from '@/components/GroupSelector';
-import { RestPass, RestPassProps } from '@/components/rest-pass';
+import { RestPass } from '@/components/rest-pass';
 import { useBoolean } from '@/utils/hooks/useBoolean';
 import { AppModel } from '@/models/app';
 import { ModelAdapter } from '@/utils/modelAdapter';
+import { UserCard } from '@/utils/types/UserCard';
 
 import styles from './index.scss';
-import { UserCard } from '@/utils/types/UserCard';
 
 const AMModalStyle: React.CSSProperties = { minWidth: '12em' };
 
@@ -75,37 +68,30 @@ const CreateUserBtn = React.memo(function CreateUserBtn() {
   const match = useRouteMatch<PageParam>();
   const uid = match.params.uid;
 
-  const { addMemberModal } = useSelector(PersonModel.currentState);
+  const addMemberModal = PersonModel.hooks.useStore('addMemberModal');
 
   const [selectedGroups, setSelectedGroups] = useState<Group.Item[]>([]);
 
   const [nickname, setNickname] = useState<string>('');
 
   const addMemberHandle = useCallback(() => {
-    dispatch(
-      PersonModel.createAction(PersonModel.ActionType.preAddMember)(undefined),
-    );
+    PersonModel.dispatch.preAddMember(dispatch);
   }, [dispatch]);
 
-  const ModalLoading = useSelector(
-    dvaLoadingSelector.effect(
-      PersonModel.namespace,
-      PersonModel.ActionType.addMember,
-    ),
-  );
+  const modalLoading = PersonModel.hooks.useLoading('addMember');
   const ModalFooterSubmitProps: Partial<ButtonProps> = useMemo(
     () => ({
-      loading: ModalLoading,
+      loading: modalLoading,
       disabled: !selectedGroups.length,
       title: !selectedGroups.length ? '至少选择一个组' : '',
     }),
-    [ModalLoading, selectedGroups.length],
+    [modalLoading, selectedGroups.length],
   );
   const ModalFooterCancelProps: Partial<ButtonProps> = useMemo(
     () => ({
-      loading: ModalLoading,
+      loading: modalLoading,
     }),
-    [ModalLoading],
+    [modalLoading],
   );
 
   const nicknameChangeHandle = useCallback(
@@ -117,17 +103,13 @@ const CreateUserBtn = React.memo(function CreateUserBtn() {
   const closeModalHandle = useCallback(() => {
     setNickname('');
     setSelectedGroups([]);
-    dispatch(
-      PersonModel.createAction(PersonModel.ActionType.closeAMModel)(undefined),
-    );
+    PersonModel.dispatch.closeAMModel(dispatch);
   }, [dispatch]);
   const submitModalHandle = useCallback(() => {
-    dispatch(
-      PersonModel.createAction(PersonModel.ActionType.addMember)({
-        groupIDs: selectedGroups.map((g) => g.id),
-        nickname: nickname,
-      }),
-    );
+    PersonModel.dispatch.addMember(dispatch, {
+      groupIDs: selectedGroups.map((g) => g.id),
+      nickname: nickname,
+    });
   }, [dispatch, selectedGroups, nickname]);
   const resetHandle = useCallback(() => {
     setSelectedGroups([]);
@@ -153,7 +135,7 @@ const CreateUserBtn = React.memo(function CreateUserBtn() {
             value={nickname}
             onChange={nicknameChangeHandle}
             size='middle'
-            disabled={ModalLoading}
+            disabled={modalLoading}
             placeholder='新用户'
           />
           <div>新增组员将自动关联到以下组别：</div>
@@ -161,7 +143,7 @@ const CreateUserBtn = React.memo(function CreateUserBtn() {
             value={selectedGroups}
             onChange={setSelectedGroups}
             style={AMModalStyle}
-            loading={ModalLoading}
+            loading={modalLoading}
             underCurrentUser={uid}
             undeAdmin
           />
@@ -193,12 +175,7 @@ const RecruitFromOtherGroups = React.memo(function RecruitFromOtherGroups() {
     setShow(true);
   }, []);
 
-  const submitLoading = useSelector(
-    dvaLoadingSelector.effect(
-      PersonModel.namespace,
-      PersonModel.ActionType.updatePersonInfo,
-    ),
-  );
+  const submitLoading = PersonModel.hooks.useLoading('updatePersonInfo');
   const fetchLoading = useSelector(
     dvaLoadingSelector.effect(
       UsersModel.namespace,
@@ -263,13 +240,11 @@ const RecruitFromOtherGroups = React.memo(function RecruitFromOtherGroups() {
       message.error('uid无效，数据错误');
       return;
     }
-    dispatch(
-      PersonModel.createAction(PersonModel.ActionType.pullMember)({
+    PersonModel.dispatch
+      .pullMember(dispatch, {
         id: newUser.id,
         group: [...new Set(newUser.group.concat(selectedGroups))],
-      }),
-    )
-      // @ts-expect-error
+      })
       .then(() => closeModalHandle())
       .catch(() => {});
   }, [closeModalHandle, dispatch, newUser, selectedGroups]);
@@ -558,14 +533,10 @@ export default function PagePerson() {
   const match = useRouteMatch<PageParam>();
   const uid = match.params.uid;
   const dispatch = useDispatch();
-  const { personInfo, userList } = useSelector(PersonModel.currentState);
+  const personInfo = PersonModel.hooks.useStore('personInfo');
+  const userList = PersonModel.hooks.useStore('userList');
 
-  const tableLoading = useSelector(
-    dvaLoadingSelector.effect(
-      PersonModel.namespace,
-      PersonModel.ActionType.getPersonInfo,
-    ),
-  );
+  const tableLoading = PersonModel.hooks.useLoading('getPersonInfo');
 
   const banHandle = useCallback(
     (person: PersonInfo.Item) => {
@@ -598,12 +569,10 @@ export default function PagePerson() {
         centered: true,
         okButtonProps: { danger: true, ghost: true },
         onOk: () => {
-          dispatch(
-            PersonModel.createAction(PersonModel.ActionType.updatePersonInfo)({
-              id: uid,
-              ban: ban === GO_BOOL.yes ? GO_BOOL.no : GO_BOOL.yes,
-            }),
-          );
+          PersonModel.dispatch.updatePersonInfo(dispatch, {
+            id: uid,
+            ban: ban === GO_BOOL.yes ? GO_BOOL.no : GO_BOOL.yes,
+          });
         },
       });
     },
@@ -642,12 +611,10 @@ export default function PagePerson() {
         centered: true,
         keyboard: true,
         onOk: () => {
-          dispatch(
-            PersonModel.createAction(PersonModel.ActionType.kickoffPerson)({
-              uid: item.id,
-              group: `${groupID}`,
-            }),
-          );
+          PersonModel.dispatch.kickoffPerson(dispatch, {
+            uid: item.id,
+            group: `${groupID}`,
+          });
         },
       });
     },
@@ -655,9 +622,7 @@ export default function PagePerson() {
   );
 
   useEffect(() => {
-    dispatch(
-      PersonModel.createAction(PersonModel.ActionType.getPersonInfo)({ uid }),
-    );
+    PersonModel.dispatch.getPersonInfo(dispatch, { uid });
   }, [dispatch, uid]);
 
   const [currentUID, setCurrentUID] = useState('');

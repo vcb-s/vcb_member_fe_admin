@@ -1,8 +1,9 @@
 import { message } from 'antd';
-import { PersonModel, history } from 'umi';
+import { history } from 'umi';
 import { Modal } from 'antd';
 
 import { AppModel, State as AppState } from '@/models/app';
+import { PersonModel, State as PersonState } from '@/models/person';
 import { Action, Reducer, Effect, GO_BOOL } from '@/utils/types';
 import { Services } from '@/utils/services';
 import * as PersonCardEditModel from './utils';
@@ -10,7 +11,7 @@ import { ModelAdapter } from '@/utils/modelAdapter';
 
 export { PersonCardEditModel };
 
-const { namespace, currentState } = PersonCardEditModel;
+const { namespace } = PersonCardEditModel;
 
 interface Payload extends PersonCardEditModel.Payload {}
 interface State extends PersonCardEditModel.State {}
@@ -102,8 +103,9 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
     const { form: allForm }: PersonCardEditModel.State = yield select(
       PersonCardEditModel.currentState,
     );
-    const { personInfo }: PersonModel.State = yield select(
-      PersonModel.currentState,
+
+    const { personInfo }: PersonState = yield select(
+      PersonModel.utils.currentStore,
     );
 
     const form = allForm.card;
@@ -151,7 +153,7 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
 
     if (form.setAsUserAvatar) {
       yield put(
-        PersonModel.createAction(PersonModel.ActionType.updatePersonInfo)({
+        PersonModel.actions.updatePersonInfo({
           // uid
           id: personInfo.id,
           // 头像
@@ -159,8 +161,8 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
         }),
       );
       const { fail } = yield race({
-        success: take(PersonModel.ActionType.updatePersonInfoSuccess),
-        fail: take(PersonModel.ActionType.updatePersonInfoFail),
+        success: take(PersonModel.utils.reducerKeys.updatePersonInfoSuccess),
+        fail: take(PersonModel.utils.reducerKeys.updatePersonInfoFail),
       });
       if (fail) {
         return;
@@ -176,11 +178,7 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
         ),
       );
 
-      yield put(
-        PersonModel.createAction(PersonModel.ActionType.getPersonInfo)({
-          uid: personInfo.id,
-        }),
-      );
+      yield put(PersonModel.actions.getPersonInfo({ uid: personInfo.id }));
 
       // 卡片更新
       if (param.id) {

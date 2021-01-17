@@ -4,7 +4,7 @@ import { createPath } from 'history';
 import { stringify } from 'query-string';
 
 import { AppModel, State as AppModelState } from '@/models/app';
-import { Action, Reducer, Effect, GO_BOOL } from '@/utils/types';
+import { GO_BOOL } from '@/utils/types';
 import type { CommonList } from '@/utils/types/CommonList';
 import type { UserCard } from '@/utils/types/UserCard';
 import type { PersonInfo } from '@/utils/types/PersonInfo';
@@ -15,178 +15,70 @@ import { emptyList } from '@/utils/types/CommonList';
 import { ModelAdapter } from '@/utils/modelAdapter';
 import { token } from '@/utils/token';
 import { MAGIC } from '@/utils/constant';
+import { modalCreator } from '@/utils/modalCreator';
 
-export namespace PersonModel {
-  export interface CreateAction {
-    <K extends keyof Payload>(key: K, withNamespace?: boolean): (
-      payload: Payload[K],
-    ) => {
-      type: string;
-      payload: Payload[K];
-    };
-  }
+export interface State {
+  /** 用户信息 */
+  personInfo: PersonInfo.Item;
+  /** 卡片信息 */
+  cardList: CommonList<UserCard.Item>;
+  /** 管理组员信息 */
+  userList: CommonList<PersonInfo.Item>;
 
-  export const createAction: CreateAction = (key, withNamespace = true) => {
-    return (payload) => {
-      return {
-        type: withNamespace ? `${namespace}/${key}` : key,
-        payload: payload,
-      };
-    };
+  resetPassSuccessModal: {
+    show: boolean;
+    newPass: string;
   };
-
-  export interface Payload {
-    [ActionType.reset]: undefined;
-    [ActionType.getPersonInfo]: { uid: string };
-    [ActionType.getPersonInfoSuccess]: {
-      info: PersonInfo.ItemInResponse;
-      cards: UserCard.ItemInResponse[];
-      users: PersonInfo.ItemInResponse[];
-
-      group: Group.Item[];
-    };
-    [ActionType.getPersonInfoFail]: { error: Error };
-
-    [ActionType.updatePersonInfo]: {
-      id: string;
-    } & Partial<PersonInfo.ItemInResponse>;
-    [ActionType.updatePersonInfoSuccess]: undefined;
-    [ActionType.updatePersonInfoFail]: { error: Error };
-
-    [ActionType.pullMember]: { id: string; group: User.Item['group'] };
-    [ActionType.pullMemberSuccess]: undefined;
-    [ActionType.pullMemberFail]: { error: Error };
-
-    [ActionType.kickoffPerson]: {
-      uid: string;
-      group: string;
-    };
-    [ActionType.kickoffPersonSuccess]: {
-      uid: string;
-      group: string;
-    };
-    [ActionType.kickoffPersonFail]: { error: Error };
-    [ActionType.toggleLoadingForPerson]: { loading?: boolean; id: string };
-
-    [ActionType.logout]: undefined;
-
-    [ActionType.restPass]: {
-      pass?: string;
-      uid?: PersonInfo.ItemInResponse['id'];
-      cb?: (success: boolean) => void;
-    };
-    [ActionType.restPassSuccess]: { newPass: string };
-    [ActionType.restPassFail]: undefined;
-
-    [ActionType.preAddMember]: undefined;
-    [ActionType.addMember]: { groupIDs: string[]; nickname: string };
-    [ActionType.addMemberSuccess]: undefined;
-    [ActionType.addMemberFail]: undefined;
-
-    [ActionType.closeRSPModel]: undefined;
-    [ActionType.closeAMModel]: undefined;
-  }
-  export interface State {
-    /** 用户信息 */
-    personInfo: PersonInfo.Item;
-    /** 卡片信息 */
-    cardList: CommonList<UserCard.Item>;
-    /** 管理组员信息 */
-    userList: CommonList<PersonInfo.Item>;
-
-    resetPassSuccessModal: {
-      show: boolean;
-      newPass: string;
-    };
-    addMemberModal: {
-      show: boolean;
-    };
-  }
-  export const currentState = (_: any): State => _[namespace];
-
-  export const namespace = 'global.personinfo';
-  export enum ActionType {
-    reset = 'reset',
-
-    /** 获取个人信息列表 */
-    getPersonInfo = 'getPersonInfo',
-    getPersonInfoSuccess = 'getPersonInfoSuccess',
-    getPersonInfoFail = 'getPersonInfoFail',
-
-    /** 更新指定人员信息 */
-    updatePersonInfo = 'updatePersonInfo',
-    updatePersonInfoSuccess = 'updatePersonInfoSuccess',
-    updatePersonInfoFail = 'updatePersonInfoFail',
-
-    /** 拉人入组 */
-    pullMember = 'pullMember',
-    pullMemberSuccess = 'pullMemberSuccess',
-    pullMemberFail = 'pullMemberFail',
-
-    /** 将指定人员踢出指定组别 */
-    kickoffPerson = 'kickoffPerson',
-    kickoffPersonSuccess = 'kickoffPersonSuccess',
-    kickoffPersonFail = 'kickoffPersonFail',
-
-    /** 修改指定人员的loading状态 */
-    toggleLoadingForPerson = 'toggleLoadingForPerson',
-
-    /** 退出登录 */
-    logout = 'logout',
-
-    /** 重置登录密码并展示新密码 */
-    restPass = 'restPass',
-    restPassSuccess = 'restPassSuccess',
-    restPassFail = 'restPassFail',
-
-    /** 关闭修改密码弹层 */
-    closeRSPModel = 'closeRSPModel',
-
-    preAddMember = 'preAddMember',
-    /** 添加新组员 */
-    addMember = 'addMember',
-    addMemberSuccess = 'addMemberSuccess',
-    addMemberFail = 'addMemberFail',
-
-    /** 关闭添加弹层 */
-    closeAMModel = 'closeAMModel',
-  }
-
-  export const initalState: State = {
-    personInfo: {
-      id: '',
-      key: '',
-      nickname: '',
-      avast: '',
-      originAvast: '',
-      admin: [],
-      group: [],
-      ban: GO_BOOL.no,
-    },
-    cardList: emptyList,
-    userList: emptyList,
-
-    resetPassSuccessModal: {
-      show: false,
-      newPass: '',
-    },
-
-    addMemberModal: {
-      show: false,
-    },
+  addMemberModal: {
+    show: boolean;
   };
+}
 
-  export const effects: Partial<Record<ActionType, Effect>> = {
-    *[ActionType.getPersonInfo](
-      { payload }: Action<Payload['getPersonInfo']>,
+const initalState: State = {
+  personInfo: {
+    id: '',
+    key: '',
+    nickname: '',
+    avast: '',
+    originAvast: '',
+    admin: [],
+    group: [],
+    ban: GO_BOOL.no,
+  },
+  cardList: emptyList,
+  userList: emptyList,
+
+  resetPassSuccessModal: {
+    show: false,
+    newPass: '',
+  },
+
+  addMemberModal: {
+    show: false,
+  },
+};
+
+const namespace = 'global.personinfo';
+
+const { model, actions, globalActions, utils, ...helpers } = modalCreator({
+  namespace,
+  effects: {
+    *getPersonInfo(
+      { payload }: { payload: { uid: string } },
       { select, put, call, race, take, all },
-    ) {
+    ): Generator<any, void, any> {
       const { uid } = payload;
 
       yield put(AppModel.actions.ensureGroupData());
 
       try {
-        const { person, g } = yield all({
+        const {
+          person,
+          g,
+        }: {
+          person: Services.Person.InfoResponse;
+          g: { s: unknown; f: unknown };
+        } = yield all({
           person: call(Services.Person.info, { uid }),
           g: race({
             s: take(AppModel.utils.reducerKeys.ensureGroupDataSuccess),
@@ -205,10 +97,7 @@ export namespace PersonModel {
         const { data }: Services.Person.InfoResponse = person;
 
         yield put(
-          createAction(
-            ActionType.getPersonInfoSuccess,
-            false,
-          )({
+          actions.getPersonInfoSuccess({
             info: data.info,
             cards: data.cards.res,
             users: data.users.res,
@@ -216,57 +105,41 @@ export namespace PersonModel {
           }),
         );
       } catch (error) {
-        yield put(
-          createAction(
-            ActionType.getPersonInfoFail,
-            false,
-          )({
-            error,
-          }),
-        );
+        yield put(actions.getPersonInfoFail({ error }));
         message.error(error.message);
       }
     },
 
-    *[ActionType.updatePersonInfo](
-      { payload }: Action<Payload['updatePersonInfo']>,
+    *updatePersonInfo(
+      {
+        payload,
+      }: {
+        payload: {
+          id: string;
+        } & Partial<PersonInfo.ItemInResponse>;
+      },
       { select, put, call },
-    ) {
+    ): Generator<any, void, any> {
       try {
         const param = payload;
-        yield put(
-          createAction(
-            ActionType.toggleLoadingForPerson,
-            false,
-          )({
-            id: param.id,
-          }),
-        );
+        yield put(actions.toggleLoadingForPerson({ id: param.id }));
         yield call(Services.Person.update, param);
-        const { personInfo }: State = yield select(currentState);
-        yield put(
-          createAction(ActionType.updatePersonInfoSuccess, false)(undefined),
-        );
-        yield put(
-          createAction(
-            ActionType.getPersonInfo,
-            false,
-          )({
-            uid: personInfo.id,
-          }),
-        );
+        const { personInfo }: State = yield select(utils.currentStore);
+        yield put(actions.updatePersonInfoSuccess());
+        yield put(actions.getPersonInfo({ uid: personInfo.id }));
       } catch (error) {
         message.error(error.message);
-        yield put(
-          createAction(ActionType.updatePersonInfoFail, false)({ error }),
-        );
+        // yield put(
+        //   createAction(ActionType.updatePersonInfoFail, false)({ error }),
+        // );
+        yield put(actions.updatePersonInfoFail({ error }));
       }
     },
 
-    *[ActionType.pullMember](
-      { payload }: Action<Payload['pullMember']>,
+    *pullMember(
+      { payload }: { payload: { id: string; group: User.Item['group'] } },
       { select, put, call },
-    ) {
+    ): Generator<any, void, any> {
       try {
         const param: Services.Person.PullMemberParam = {
           uid: payload.id,
@@ -274,43 +147,38 @@ export namespace PersonModel {
         };
 
         yield call(Services.Person.pullMember, param);
-        const { personInfo }: State = yield select(currentState);
-        yield put(createAction(ActionType.addMemberSuccess, false)(undefined));
-        yield put(
-          createAction(
-            ActionType.getPersonInfo,
-            false,
-          )({
-            uid: personInfo.id,
-          }),
-        );
+        const { personInfo }: State = yield select(utils.currentStore);
+        yield put(actions.addMemberSuccess());
+        yield put(actions.getPersonInfo({ uid: personInfo.id }));
       } catch (error) {
         message.error(error.message);
-        yield put(createAction(ActionType.pullMemberFail, false)({ error }));
+        yield put(actions.pullMemberFail({ error }));
       }
     },
 
-    *[ActionType.kickoffPerson](
-      { payload }: Action<Payload['kickoffPerson']>,
+    *kickoffPerson(
+      {
+        payload,
+      }: {
+        payload: {
+          uid: string;
+          group: string;
+        };
+      },
       { put, call },
-    ) {
+    ): Generator<any, void, any> {
       try {
         const param = payload;
         yield call(Services.Person.kickoff, param);
-        yield put(
-          createAction(ActionType.kickoffPersonSuccess, false)(payload),
-        );
+        yield put(actions.kickoffPersonSuccess(payload));
         message.success('离组完成');
       } catch (error) {
         message.error(error.message);
-        yield put(createAction(ActionType.kickoffPersonFail, false)({ error }));
+        yield put(actions.kickoffPersonFail({ error }));
       }
     },
 
-    *[ActionType.logout](
-      { payload }: Action<Payload['logout']>,
-      { put, call },
-    ) {
+    *logout(action: undefined, { put, call }): Generator<any, void, any> {
       try {
         yield call(
           () =>
@@ -333,12 +201,20 @@ export namespace PersonModel {
       history.replace('/login');
     },
 
-    *[ActionType.restPass](
-      { payload }: Action<Payload['restPass']>,
+    *restPass(
+      {
+        payload,
+      }: {
+        payload: {
+          pass?: string;
+          uid?: PersonInfo.ItemInResponse['id'];
+          cb?: (success: boolean) => void;
+        };
+      },
       { put, call, select },
-    ) {
+    ): Generator<any, void, any> {
       const { cb, uid, pass } = payload;
-      const { personInfo }: State = yield select(currentState);
+      const { personInfo }: State = yield select(utils.currentStore);
 
       const param: Services.Person.ResetPassParam = {
         uid: uid || personInfo.id,
@@ -354,27 +230,20 @@ export namespace PersonModel {
           param,
         );
 
-        yield put(
-          createAction(
-            ActionType.restPassSuccess,
-            false,
-          )({
-            newPass: data.newPass,
-          }),
-        );
+        yield put(actions.restPassSuccess({ newPass: data.newPass }));
 
         cb && cb(true);
-      } catch (e) {
+      } catch (error) {
         cb && cb(false);
-        message.error(e.message);
-        yield put(createAction(ActionType.restPassFail, false)(undefined));
+        message.error(error.message);
+        yield put(actions.restPassFail({ error }));
       }
     },
 
-    *[ActionType.addMember](
-      { payload }: Action<Payload['addMember']>,
+    *addMember(
+      { payload }: { payload: { groupIDs: string[]; nickname: string } },
       { put, call, select },
-    ) {
+    ): Generator<any, void, any> {
       if (!payload.groupIDs.length) {
         message.error('请至少指定一个组别');
         return;
@@ -391,7 +260,7 @@ export namespace PersonModel {
         );
 
         // 关闭弹层
-        yield put(createAction(ActionType.closeAMModel, false)(undefined));
+        yield put(actions.closeAMModel());
 
         // 展示登录链接弹层
         yield call(() => {
@@ -416,15 +285,24 @@ export namespace PersonModel {
         return;
       }
     },
-  };
-
-  export const reducers: Partial<Record<ActionType, Reducer<State>>> = {
-    [ActionType.reset]() {
+  },
+  reducers: {
+    reset() {
       return initalState;
     },
-    [ActionType.getPersonInfoSuccess](
+    getPersonInfoSuccess(
       state,
-      { payload }: Action<Payload[ActionType.getPersonInfoSuccess]>,
+      {
+        payload,
+      }: {
+        payload: {
+          info: PersonInfo.ItemInResponse;
+          cards: UserCard.ItemInResponse[];
+          users: PersonInfo.ItemInResponse[];
+
+          group: Group.Item[];
+        };
+      },
     ) {
       const { cards, users, info, group } = payload;
       state.cardList.data = ModelAdapter.UserCards(cards, group);
@@ -433,9 +311,21 @@ export namespace PersonModel {
       );
       state.personInfo = ModelAdapter.Person(info, group);
     },
-    [ActionType.kickoffPersonSuccess](
+    pullMemberFail(s, _: { payload: { error: unknown } }) {},
+    addMemberSuccess() {},
+    updatePersonInfoSuccess() {},
+    updatePersonInfoFail(s, _: { payload: { error: unknown } }) {},
+    getPersonInfoFail(s, _: { payload: { error: unknown } }) {},
+    kickoffPersonSuccess(
       state,
-      { payload }: Action<Payload[ActionType.kickoffPersonSuccess]>,
+      {
+        payload,
+      }: {
+        payload: {
+          uid: string;
+          group: string;
+        };
+      },
     ) {
       const { group: groupID, uid } = payload;
       let filterAgain = false;
@@ -450,9 +340,10 @@ export namespace PersonModel {
         }
       });
     },
-    [ActionType.toggleLoadingForPerson](
+    kickoffPersonFail(s, _: { payload: { error: unknown } }) {},
+    toggleLoadingForPerson(
       state,
-      { payload }: Action<Payload[ActionType.toggleLoadingForPerson]>,
+      { payload }: { payload: { loading?: boolean; id: string } },
     ) {
       const { loading, id } = payload;
       state.userList.data.forEach((user) => {
@@ -466,40 +357,30 @@ export namespace PersonModel {
         }
       });
     },
-    [ActionType.restPassSuccess](
-      state,
-      { payload }: Action<Payload[ActionType.restPassSuccess]>,
-    ) {
+    restPassSuccess(state, { payload }: { payload: { newPass: string } }) {
       const { newPass } = payload;
       state.resetPassSuccessModal.newPass = newPass;
       state.resetPassSuccessModal.show = true;
     },
-    [ActionType.closeRSPModel](
-      state,
-      { payload }: Action<Payload[ActionType.closeRSPModel]>,
-    ) {
+    restPassFail(s, _: { payload: { error: unknown } }) {},
+    closeRSPModel(state) {
       state.resetPassSuccessModal.show = false;
     },
-    [ActionType.preAddMember](
-      state,
-      { payload }: Action<Payload[ActionType.preAddMember]>,
-    ) {
+    preAddMember(state) {
       state.addMemberModal.show = true;
     },
-    [ActionType.closeAMModel](
-      state,
-      { payload }: Action<Payload[ActionType.closeAMModel]>,
-    ) {
+    closeAMModel(state) {
       state.addMemberModal.show = false;
     },
-  };
-}
+  },
+  state: initalState,
+});
 
-const { namespace, initalState, effects, reducers } = PersonModel;
+export const PersonModel = { actions: globalActions, utils, ...helpers };
 
 export default {
-  namespace,
-  state: initalState,
-  effects,
-  reducers,
+  namespace: model.namespace,
+  state: model.state,
+  effects: model.effects,
+  reducers: model.reducers,
 };

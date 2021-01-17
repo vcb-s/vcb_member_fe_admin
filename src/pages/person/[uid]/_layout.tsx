@@ -1,20 +1,5 @@
-import React, {
-  useState,
-  useCallback,
-  useMemo,
-  useEffect,
-  memo,
-  useRef,
-} from 'react';
-import {
-  useDispatch,
-  useSelector,
-  NavLink,
-  useParams,
-  PersonModel,
-  useLocation,
-  useHistory,
-} from 'umi';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { useDispatch, NavLink, useParams, useLocation, useHistory } from 'umi';
 import { Menu, Avatar, Space, Dropdown, message, Modal, Tooltip } from 'antd';
 import { MenuClickEventHandler } from 'rc-menu/lib/interface';
 import { SelectInfo as SelectParam } from 'rc-menu/lib/interface';
@@ -23,6 +8,7 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import { PageParam } from './types';
 import { compile } from 'path-to-regexp';
 import { RestPass } from '@/components/rest-pass';
+import { PersonModel } from '@/models/person';
 
 import styles from './_layout.scss';
 
@@ -57,7 +43,7 @@ class MenuData {
 }
 
 const MenuSide: React.FC = function () {
-  const personState = useSelector(PersonModel.currentState);
+  const personState = PersonModel.hooks.useStore();
   const { uid = '' } = useParams<any>();
   const location = useLocation();
 
@@ -144,15 +130,14 @@ const MenuSide: React.FC = function () {
 };
 
 const PersonLaylout: React.FC = function PersonLaylout({ children }) {
-  const personState = useSelector(PersonModel.currentState);
+  // const personState = useSelector(PersonModel.currentState);
+  const personState = PersonModel.hooks.useStore();
   const dispatch = useDispatch();
   const { uid } = useParams<PageParam>();
   const history = useHistory();
 
   const logoutHandle = useCallback(() => {
-    dispatch(
-      PersonModel.createAction(PersonModel.ActionType.logout)(undefined),
-    );
+    PersonModel.dispatch.logout(dispatch);
   }, [dispatch]);
 
   const editUserHandle = useCallback(() => {
@@ -193,9 +178,7 @@ const PersonLaylout: React.FC = function PersonLaylout({ children }) {
   );
 
   const closeRSPModelHandle = useCallback(() => {
-    dispatch(
-      PersonModel.createAction(PersonModel.ActionType.closeRSPModel)(undefined),
-    );
+    PersonModel.dispatch.closeRSPModel(dispatch);
   }, [dispatch]);
 
   const menuJsx = useMemo((): JSX.Element[] => {

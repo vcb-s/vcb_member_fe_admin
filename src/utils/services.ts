@@ -115,7 +115,7 @@ export namespace Services {
       info: PersonInfo.ItemInResponse;
     }
     export type InfoResponse = ResponseData.Ok<InfoData>;
-    export const info = (data: InfoParam) => {
+    export const info = (data: InfoParam): Promise<InfoResponse> => {
       return request('/admin/user/info', {
         data,
         method: 'post',

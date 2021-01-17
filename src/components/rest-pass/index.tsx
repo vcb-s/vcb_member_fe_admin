@@ -12,9 +12,9 @@ import { usePrevious } from 'react-use';
 import { Modal, Form, Input } from 'antd';
 import { produce } from 'immer';
 import { ModalProps } from 'antd/lib/modal';
-import { useSelector, PersonModel, useDispatch } from 'umi';
+import { useDispatch } from 'umi';
 
-import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
+import { PersonModel } from '@/models/person';
 
 const restPassInital = {
   show: false,
@@ -82,24 +82,12 @@ export const RestPass: FC<RestPassProps> = memo(function RestPass({
 }) {
   const dispatch = useDispatch();
   const prevShow = usePrevious(show);
-  const submitLoading = useSelector(
-    dvaLoadingSelector.effect(
-      PersonModel.namespace,
-      PersonModel.ActionType.restPass,
-    ),
-  );
+  const submitLoading = PersonModel.hooks.useLoading('restPass');
   const okButtonProps = useMemo((): ModalProps['okButtonProps'] => {
     return { loading: submitLoading };
   }, [submitLoading]);
 
   const { state, open, close, reset, change } = useRestPass();
-  // useEffect(() => {
-  //   openHandleRef.current = open;
-
-  //   return () => {
-  //     openHandleRef.current = () => {};
-  //   };
-  // }, [open, openHandleRef]);
 
   const changeHandle = useCallback(
     (evt: ChangeEvent<HTMLInputElement>) => {
@@ -109,13 +97,11 @@ export const RestPass: FC<RestPassProps> = memo(function RestPass({
   );
 
   const submitHandle = useCallback(() => {
-    dispatch(
-      PersonModel.createAction(PersonModel.ActionType.restPass)({
-        pass: state.pass,
-        uid,
-        cb: () => close(),
-      }),
-    );
+    PersonModel.dispatch.restPass(dispatch, {
+      pass: state.pass,
+      uid,
+      cb: () => close(),
+    });
   }, [close, dispatch, state.pass, uid]);
 
   const afterCloseHandle = useCallback(() => {

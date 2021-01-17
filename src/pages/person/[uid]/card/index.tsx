@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useCallback } from 'react';
-import { useParams, history, useDispatch, useSelector, PersonModel } from 'umi';
+import { useParams, history, useDispatch } from 'umi';
 import { Typography, Table, Avatar, Button, Tag, Space } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 
 import { GO_BOOL } from '@/utils/types';
 import { Group } from '@/utils/types/Group';
 import { UserCard } from '@/utils/types/UserCard';
-import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
+import { PersonModel } from '@/models/person';
 
 import { PageParam } from '../types';
 
@@ -14,21 +14,13 @@ import styles from './index.scss';
 
 const PagePersonCard: React.FC = function PagePersonCard() {
   const dispatch = useDispatch();
-  const { personInfo, cardList } = useSelector(PersonModel.currentState);
+  const personInfo = PersonModel.hooks.useStore('personInfo');
+  const cardList = PersonModel.hooks.useStore('cardList');
   const { uid } = useParams<PageParam>();
-  const tableLoading = useSelector(
-    dvaLoadingSelector.effect(
-      PersonModel.namespace,
-      PersonModel.ActionType.getPersonInfo,
-    ),
-  );
+  const tableLoading = PersonModel.hooks.useLoading('getPersonInfo');
 
   useEffect(() => {
-    if (personInfo.id !== uid) {
-      dispatch(
-        PersonModel.createAction(PersonModel.ActionType.getPersonInfo)({ uid }),
-      );
-    }
+    PersonModel.dispatch.getPersonInfo(dispatch, { uid });
   }, [dispatch, personInfo.id, uid]);
 
   /** 退休 */

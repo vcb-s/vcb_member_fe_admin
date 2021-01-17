@@ -1,11 +1,11 @@
 import React, { useMemo, useCallback, useEffect } from 'react';
-import { useSelector, PersonModel, useDispatch } from 'umi';
+import { useDispatch } from 'umi';
 import { Select } from 'antd';
 
 import { AppModel } from '@/models/app';
+import { PersonModel } from '@/models/person';
 import { groupAdapter } from '@/utils/modelAdapter';
 import { Group } from '@/utils/types/Group';
-import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
 
 interface Props {
   loading?: boolean;
@@ -38,16 +38,11 @@ export const GroupSelector: React.FC<Props> = React.memo(
       admin: myAdminGroups,
       group: myGroups,
       id: personInfoUID,
-    } = useSelector(PersonModel.currentState).personInfo;
+    } = PersonModel.hooks.useStore('personInfo');
 
     const allGroupsLoading = AppModel.hooks.useLoading('getGroup');
 
-    const ownGroupsLoading = useSelector(
-      dvaLoadingSelector.effect(
-        PersonModel.namespace,
-        PersonModel.ActionType.getPersonInfo,
-      ),
-    );
+    const ownGroupsLoading = PersonModel.hooks.useLoading('getPersonInfo');
 
     const dispatch = useDispatch();
     useEffect(() => {
@@ -56,11 +51,7 @@ export const GroupSelector: React.FC<Props> = React.memo(
         personInfoUID !== underCurrentUser &&
         !ownGroupsLoading
       ) {
-        dispatch(
-          PersonModel.createAction(PersonModel.ActionType.getPersonInfo)({
-            uid: underCurrentUser,
-          }),
-        );
+        PersonModel.dispatch.getPersonInfo(dispatch, { uid: underCurrentUser });
       }
     }, [dispatch, ownGroupsLoading, personInfoUID, underCurrentUser]);
 

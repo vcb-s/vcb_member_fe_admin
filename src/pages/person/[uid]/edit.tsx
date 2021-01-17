@@ -1,55 +1,31 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import {
-  useParams,
-  useDispatch,
-  useSelector,
-  PersonCardEditModel,
-  PersonModel,
-  useHistory,
-} from 'umi';
-import {
-  Form,
-  Switch,
-  Button,
-  Space,
-  Input,
-  message,
-  Modal,
-  PageHeader,
-} from 'antd';
+import { useParams, useDispatch, useHistory } from 'umi';
+import { Form, Button, Space, Input, message, PageHeader } from 'antd';
 import produce from 'immer';
 
-import { defaultFormLayout, textareaAutoSize } from '@/utils/constant';
+import { defaultFormLayout } from '@/utils/constant';
 
 import { PageParam } from './types';
 
-import styles from './edit.scss';
-import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
 import { PersonInfo } from '@/utils/types/PersonInfo';
+import { PersonModel } from '@/models/person';
+
+import styles from './edit.scss';
 
 const EditUser = function EditUser() {
   const { uid } = useParams<PageParam>();
   const dispatch = useDispatch();
   const history = useHistory();
 
-  const { personInfo } = useSelector(PersonModel.currentState);
+  // const { personInfo } = useSelector(PersonModel.currentState);
+  const personInfo = PersonModel.hooks.useStore('personInfo');
   const [form, setForm] = useState<PersonInfo.Item>(personInfo);
   useEffect(() => {
     setForm(personInfo);
   }, [personInfo]);
 
-  const fetchLoading = useSelector(
-    dvaLoadingSelector.effect(
-      PersonModel.namespace,
-      PersonModel.ActionType.getPersonInfo,
-    ),
-  );
-  const submitLoading = useSelector(
-    dvaLoadingSelector.effect(
-      PersonModel.namespace,
-      PersonModel.ActionType.updatePersonInfo,
-    ),
-  );
+  const fetchLoading = PersonModel.hooks.useLoading('getPersonInfo');
+  const submitLoading = PersonModel.hooks.useLoading('updatePersonInfo');
   const loading = fetchLoading || submitLoading;
 
   const avastChangeHandle = useCallback(
@@ -76,9 +52,7 @@ const EditUser = function EditUser() {
   );
 
   const resetHandle = useCallback(() => {
-    dispatch(
-      PersonModel.createAction(PersonModel.ActionType.getPersonInfo)({ uid }),
-    );
+    PersonModel.dispatch.getPersonInfo(dispatch, { uid });
   }, [dispatch, uid]);
   useEffect(() => {
     resetHandle();
@@ -99,7 +73,7 @@ const EditUser = function EditUser() {
     }
 
     dispatch(
-      PersonModel.createAction(PersonModel.ActionType.updatePersonInfo)({
+      PersonModel.dispatch.updatePersonInfo(dispatch, {
         id: form.id,
         avast: form.originAvast,
         nickname: form.nickname,

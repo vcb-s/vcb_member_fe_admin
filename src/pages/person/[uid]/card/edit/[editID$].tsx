@@ -4,7 +4,6 @@ import {
   useDispatch,
   useSelector,
   PersonCardEditModel,
-  PersonModel,
   useHistory,
 } from 'umi';
 import classnames from 'classnames';
@@ -24,11 +23,13 @@ import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import { defaultFormLayout, textareaAutoSize } from '@/utils/constant';
 import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
 import { GroupSelector } from '@/components/GroupSelector';
+import { PersonModel } from '@/models/person';
 
 import { PageParam } from './types';
-import styles from './[editID].scss';
 import { GO_BOOL } from '@/utils/types';
 import { Group } from '@/utils/types/Group';
+
+import styles from './[editID].scss';
 
 const yesIcon = <CheckOutlined />;
 const noIcon = <CloseOutlined />;
@@ -38,19 +39,17 @@ export default function PagePerson() {
   const dispatch = useDispatch();
   const history = useHistory();
   const { card: form } = useSelector(PersonCardEditModel.currentState).form;
-  const { personInfo } = useSelector(PersonModel.currentState);
-  const formLoading = useSelector(
+  const personInfo = PersonModel.hooks.useStore('personInfo');
+  const editModelLoading = useSelector(
     dvaLoadingSelector.model(PersonCardEditModel.namespace),
-    dvaLoadingSelector.model(PersonModel.namespace),
   );
+  const personLoading = PersonModel.hooks.useLoading();
+
+  const formLoading = editModelLoading || personLoading;
 
   /** 刷新个人信息 */
   useEffect(() => {
-    if (personInfo.id !== uid) {
-      dispatch(
-        PersonModel.createAction(PersonModel.ActionType.getPersonInfo)({ uid }),
-      );
-    }
+    PersonModel.dispatch.getPersonInfo(dispatch, { uid });
   }, [dispatch, personInfo.id, uid]);
 
   /** 刷新/重置 */

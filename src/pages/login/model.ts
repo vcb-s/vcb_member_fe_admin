@@ -34,7 +34,7 @@ const initalState: State = {
   },
 };
 
-const { model: dva, actions, utils, ...helpers } = modalCreator({
+const { model: dva, actions, globalActions, utils, ...helpers } = modalCreator({
   namespace: 'pages.login',
   state: initalState,
   effects: {
@@ -116,4 +116,4 @@ export default {
   reducers: dva.reducers,
 };
 
-export const loginStore = { actions, utils, ...helpers };
+export const loginStore = { actions: globalActions, utils, ...helpers };

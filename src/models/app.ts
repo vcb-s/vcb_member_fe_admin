@@ -18,11 +18,11 @@ const initalState: State = {
   userCards: emptyList,
   group: emptyList,
 };
-const { model, actions, utils, ...helpers } = modalCreator({
+const { model, actions, utils, globalActions, ...helpers } = modalCreator({
   namespace,
   effects: {
     *ensureGroupData(
-      action,
+      action: undefined,
       { take, put, select, race },
     ): Generator<any, void, any> {
       const loading = yield select(utils.dvaLoadingSelector.getGroup);
@@ -87,7 +87,7 @@ const { model, actions, utils, ...helpers } = modalCreator({
   state: initalState,
 });
 
-export const AppModel = { model, actions, utils, ...helpers };
+export const AppModel = { actions: globalActions, utils, ...helpers };
 
 export default {
   namespace: model.namespace,

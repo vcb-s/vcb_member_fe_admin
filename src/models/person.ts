@@ -1,8 +1,9 @@
 import { message, Modal } from 'antd';
-import { AppModel, history } from 'umi';
+import { history } from 'umi';
 import { createPath } from 'history';
 import { stringify } from 'query-string';
 
+import { AppModel, State as AppModelState } from '@/models/app';
 import { Action, Reducer, Effect, GO_BOOL } from '@/utils/types';
 import type { CommonList } from '@/utils/types/CommonList';
 import type { UserCard } from '@/utils/types/UserCard';
@@ -182,19 +183,14 @@ export namespace PersonModel {
     ) {
       const { uid } = payload;
 
-      yield put(
-        AppModel.createAction(
-          AppModel.ActionType.ensureGroupData,
-          true,
-        )(undefined),
-      );
+      yield put(AppModel.actions.ensureGroupData());
 
       try {
         const { person, g } = yield all({
           person: call(Services.Person.info, { uid }),
           g: race({
-            s: take(AppModel.ActionType.ensureGroupDataSuccess),
-            f: take(AppModel.ActionType.ensureGroupDataFail),
+            s: take(AppModel.utils.reducerKeys.ensureGroupDataSuccess),
+            f: take(AppModel.utils.reducerKeys.ensureGroupDataFail),
           }),
         });
 
@@ -202,7 +198,9 @@ export namespace PersonModel {
           return;
         }
 
-        const { group }: AppModel.State = yield select(AppModel.currentState);
+        const { group }: AppModelState = yield select(
+          AppModel.utils.currentStore,
+        );
 
         const { data }: Services.Person.InfoResponse = person;
 

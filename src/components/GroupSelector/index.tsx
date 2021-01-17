@@ -1,7 +1,8 @@
 import React, { useMemo, useCallback, useEffect } from 'react';
-import { useSelector, AppModel, PersonModel, useDispatch } from 'umi';
+import { useSelector, PersonModel, useDispatch } from 'umi';
 import { Select } from 'antd';
 
+import { AppModel } from '@/models/app';
 import { groupAdapter } from '@/utils/modelAdapter';
 import { Group } from '@/utils/types/Group';
 import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
@@ -32,19 +33,15 @@ export const GroupSelector: React.FC<Props> = React.memo(
     className,
     style,
   }) => {
-    const { data: allGroups } = useSelector(AppModel.currentState).group;
+    const allGroups = AppModel.hooks.useStore('group', 'data');
     const {
       admin: myAdminGroups,
       group: myGroups,
       id: personInfoUID,
     } = useSelector(PersonModel.currentState).personInfo;
 
-    const allGroupsLoading = useSelector(
-      dvaLoadingSelector.effect(
-        AppModel.namespace,
-        AppModel.ActionType.getGroup,
-      ),
-    );
+    const allGroupsLoading = AppModel.hooks.useLoading('getGroup');
+
     const ownGroupsLoading = useSelector(
       dvaLoadingSelector.effect(
         PersonModel.namespace,
@@ -80,15 +77,8 @@ export const GroupSelector: React.FC<Props> = React.memo(
       return allGroups;
     }, [allGroups, myAdminGroups, myGroups, undeAdmin, underCurrentUser]);
 
-    const groupLoading = useSelector(
-      dvaLoadingSelector.effect(
-        AppModel.namespace,
-        AppModel.ActionType.getGroup,
-      ),
-    );
-
-    const selectorLoading = useMemo(() => !!(loading || groupLoading), [
-      groupLoading,
+    const selectorLoading = useMemo(() => !!(loading || allGroupsLoading), [
+      allGroupsLoading,
       loading,
     ]);
 

@@ -1,6 +1,6 @@
 import { message } from 'antd';
-import { AppModel } from 'umi';
 
+import { AppModel, State as AppState } from '@/models/app';
 import { Action, Reducer, Effect } from '@/utils/types';
 import type { CommonList } from '@/utils/types/CommonList';
 import type { User } from '@/utils/types/User';
@@ -61,18 +61,13 @@ export namespace UsersModel {
       { select, put, call, race, take, all },
     ) {
       try {
-        yield put(
-          AppModel.createAction(
-            AppModel.ActionType.ensureGroupData,
-            true,
-          )(undefined),
-        );
+        yield put(AppModel.actions.ensureGroupData());
 
         const { users, g } = yield all({
           users: call(Services.UsersList.read, undefined),
           g: race({
-            s: take(AppModel.ActionType.ensureGroupDataSuccess),
-            f: take(AppModel.ActionType.ensureGroupDataFail),
+            s: take(AppModel.utils.reducerKeys.ensureGroupDataSuccess),
+            f: take(AppModel.utils.reducerKeys.ensureGroupDataFail),
           }),
         });
 
@@ -80,7 +75,7 @@ export namespace UsersModel {
           return;
         }
 
-        const { group }: AppModel.State = yield select(AppModel.currentState);
+        const { group }: AppState = yield select(AppModel.utils.currentStore);
 
         const { data }: Services.UsersList.ReadResponse = users;
 

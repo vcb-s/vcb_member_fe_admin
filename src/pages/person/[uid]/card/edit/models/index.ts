@@ -1,7 +1,8 @@
 import { message } from 'antd';
-import { AppModel, PersonModel, history } from 'umi';
+import { PersonModel, history } from 'umi';
 import { Modal } from 'antd';
 
+import { AppModel, State as AppState } from '@/models/app';
 import { Action, Reducer, Effect, GO_BOOL } from '@/utils/types';
 import { Services } from '@/utils/services';
 import * as PersonCardEditModel from './utils';
@@ -48,9 +49,7 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
   ) {
     const { id } = payload;
 
-    yield put(
-      AppModel.createAction(AppModel.ActionType.ensureGroupData)(undefined),
-    );
+    yield put(AppModel.actions.ensureGroupData());
 
     try {
       const param: Services.CardList.ReadParam = {
@@ -60,8 +59,8 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
       const { person, g } = yield all({
         person: call(Services.CardList.read, param),
         g: race({
-          s: take(AppModel.ActionType.ensureGroupDataSuccess),
-          f: take(AppModel.ActionType.ensureGroupDataFail),
+          s: take(AppModel.utils.reducerKeys.ensureGroupDataSuccess),
+          f: take(AppModel.utils.reducerKeys.ensureGroupDataFail),
         }),
       });
 
@@ -74,7 +73,7 @@ const effects: Partial<Record<PersonCardEditModel.ActionType, Effect>> = {
         return;
       }
 
-      const { group }: AppModel.State = yield select(AppModel.currentState);
+      const { group }: AppState = yield select(AppModel.utils.currentStore);
 
       const { data }: Services.CardList.ReadResponse = person;
 

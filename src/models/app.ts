@@ -25,7 +25,7 @@ const { model, actions, utils, globalActions, ...helpers } = modelCreator({
       action: undefined,
       { take, put, select, race },
     ): Generator<any, void, any> {
-      const loading = yield select(utils.dvaLoadingSelector.getGroup);
+      const loading = yield select(utils.loadingSelector.getGroup);
 
       const { group }: State = yield select(utils.currentStore);
       if (group.data.length) {

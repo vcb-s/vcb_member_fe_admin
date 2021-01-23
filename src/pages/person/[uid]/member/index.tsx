@@ -7,7 +7,7 @@ import React, {
   useRef,
 } from 'react';
 import { produce } from 'immer';
-import { useRouteMatch, useDispatch, useSelector, UsersModel } from 'umi';
+import { useRouteMatch, useDispatch } from 'umi';
 import { useMountedState, useThrottle } from 'react-use';
 
 import {
@@ -29,6 +29,7 @@ import { ButtonProps } from 'antd/es/button';
 import { DownOutlined } from '@ant-design/icons';
 import { ColumnsType } from 'antd/lib/table';
 
+import { UsersModel } from '@/models/users';
 import { PersonModel } from '@/models/person';
 import { Services } from '@/utils/services';
 import { GO_BOOL } from '@/utils/types';
@@ -36,7 +37,6 @@ import { Group } from '@/utils/types/Group';
 import { PersonInfo } from '@/utils/types/PersonInfo';
 import { User } from '@/utils/types/User';
 import { PageParam } from '@/pages/person/[uid]/types';
-import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
 import { GroupSelector } from '@/components/GroupSelector';
 import { RestPass } from '@/components/rest-pass';
 import { useBoolean } from '@/utils/hooks/useBoolean';
@@ -165,9 +165,7 @@ const RecruitFromOtherGroups = React.memo(function RecruitFromOtherGroups() {
 
   useEffect(() => {
     if (show) {
-      dispatch(
-        UsersModel.createAction(UsersModel.ActionType.getUserList)(undefined),
-      );
+      UsersModel.dispatch.getUserList(dispatch);
     }
   }, [dispatch, show]);
 
@@ -176,12 +174,7 @@ const RecruitFromOtherGroups = React.memo(function RecruitFromOtherGroups() {
   }, []);
 
   const submitLoading = PersonModel.hooks.useLoading('updatePersonInfo');
-  const fetchLoading = useSelector(
-    dvaLoadingSelector.effect(
-      UsersModel.namespace,
-      UsersModel.ActionType.getUserList,
-    ),
-  );
+  const fetchLoading = UsersModel.hooks.useLoading('getUserList');
   const loading = submitLoading || fetchLoading;
 
   const ModalFooterSubmitProps: Partial<ButtonProps> = useMemo(
@@ -199,7 +192,7 @@ const RecruitFromOtherGroups = React.memo(function RecruitFromOtherGroups() {
     [loading],
   );
 
-  const { usersList } = useSelector(UsersModel.currentState);
+  const usersList = UsersModel.hooks.useStore('usersList');
 
   const [lastSearchValue, setLastSearchValue] = useState('');
   const [newUser, setNewUser] = useState<User.Item | undefined>(undefined);

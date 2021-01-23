@@ -32,7 +32,7 @@ export interface Util<S, E, R> {
   };
   /** 获取当前model值 */
   currentStore: (globalStore: any) => S;
-  dvaLoadingSelector: dvaLoadingSelector<E>;
+  loadingSelector: dvaLoadingSelector<E>;
   fieldPayloadCreator: S extends { form: unknown }
     ? FieldSyncPayloadCreator<S>
     : never;

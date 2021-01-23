@@ -130,7 +130,6 @@ const MenuSide: React.FC = function () {
 };
 
 const PersonLaylout: React.FC = function PersonLaylout({ children }) {
-  // const personState = useSelector(PersonModel.currentState);
   const personState = PersonModel.hooks.useStore();
   const dispatch = useDispatch();
   const { uid } = useParams<PageParam>();
@@ -144,7 +143,6 @@ const PersonLaylout: React.FC = function PersonLaylout({ children }) {
     history.push(`/person/${uid}/edit`);
   }, [history, uid]);
 
-  // const openHandleRef: RestPassProps['openHandleRef'] = useRef(() => {});
   const [show, setShow] = useState(false);
   const closeHandle = useCallback(() => {
     setShow(() => false);

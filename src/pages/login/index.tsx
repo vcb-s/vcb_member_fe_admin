@@ -5,21 +5,15 @@ import React, {
   useRef,
   useMemo,
 } from 'react';
-import {
-  useSelector,
-  useDispatch,
-  useLocation,
-  UsersModel,
-  useHistory,
-} from 'umi';
+import { useDispatch, useLocation, useHistory } from 'umi';
 import { parse } from 'query-string';
 import { Form, Input, Button, Select, Avatar } from 'antd';
 import classnames from 'classnames';
 
+import { UsersModel } from '@/models/users';
 import { User } from '@/utils/types/User';
 import { MAGIC } from '@/utils/constant';
 import { loginStore } from './model';
-import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
 
 import styles from './index.scss';
 
@@ -27,16 +21,11 @@ const Login = function Login() {
   const dispatch = useDispatch();
   const loginForm = loginStore.hooks.useStore('form', 'login');
 
-  const userState = useSelector(UsersModel.currentState);
+  const userState = UsersModel.hooks.useStore();
   const { search } = useLocation();
   const history = useHistory();
 
-  const userlistLoading = useSelector(
-    dvaLoadingSelector.effect(
-      UsersModel.namespace,
-      UsersModel.ActionType.getUserList,
-    ),
-  );
+  const userlistLoading = UsersModel.hooks.useLoading('getUserList');
 
   const loginLoading = loginStore.hooks.useLoading();
 
@@ -53,9 +42,7 @@ const Login = function Login() {
   }, [loginForm.id, userState.usersList.data]);
 
   useEffect(() => {
-    dispatch(
-      UsersModel.createAction(UsersModel.ActionType.getUserList)(undefined),
-    );
+    UsersModel.dispatch.getUserList(dispatch);
   }, [dispatch]);
 
   // 最后输入的搜索值，为了让antd的select在没有选择的时候也保留输入值

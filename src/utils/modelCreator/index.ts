@@ -6,7 +6,6 @@ import {
   DispatchConvertorForSaga,
   DispatchConvertorForReducer,
 } from './convertor/dispatch';
-import { LoadingConvertor } from './convertor/loading';
 import { Util } from './util';
 import { Hooks } from './hooks';
 
@@ -146,7 +145,7 @@ export const modelCreator = <
   };
   const utils: Util<S, E, R> = {
     currentStore: (_) => _[namespace],
-    dvaLoadingSelector,
+    loadingSelector: dvaLoadingSelector,
     effectKeys,
     reducerKeys,
     fieldPayloadCreator: ((name: unknown, key: unknown, value: unknown) => {

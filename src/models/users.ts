@@ -1,65 +1,30 @@
 import { message } from 'antd';
 
 import { AppModel, State as AppState } from '@/models/app';
-import { Action, Reducer, Effect } from '@/utils/types';
 import type { CommonList } from '@/utils/types/CommonList';
 import type { User } from '@/utils/types/User';
 import type { Group } from '@/utils/types/Group';
 import { Services } from '@/utils/services';
 import { emptyList } from '@/utils/types/CommonList';
 import { ModelAdapter } from '@/utils/modelAdapter';
+import { modelCreator } from '@/utils/modelCreator';
 
-export namespace UsersModel {
-  export interface CreateAction {
-    <K extends keyof Payload>(key: K, withNamespace?: boolean): (
-      payload: Payload[K],
-    ) => {
-      type: string;
-      payload: Payload[K];
-    };
-  }
+export interface State {
+  /** 管理组员信息 */
+  usersList: CommonList<User.Item>;
+}
+const initalState: State = {
+  usersList: emptyList,
+};
 
-  export const createAction: CreateAction = (key, withNamespace = true) => {
-    return (payload) => {
-      return {
-        type: withNamespace ? `${namespace}/${key}` : key,
-        payload: payload,
-      };
-    };
-  };
-
-  export const namespace = 'global.users';
-  export enum ActionType {
-    reset = 'reset',
-
-    getUserList = 'getUserList',
-    getUserListSuccess = 'getUserListSuccess',
-    getUserListFail = 'getUserListFail',
-  }
-
-  export interface Payload {
-    [ActionType.getUserList]: undefined;
-    [ActionType.getUserListSuccess]: {
-      res: User.ItemInResponse[];
-      group: Group.Item[];
-    };
-    [ActionType.getUserListFail]: { err: Error };
-  }
-  export interface State {
-    /** 管理组员信息 */
-    usersList: CommonList<User.Item>;
-  }
-  export const currentState = (_: any): State => _[namespace];
-
-  export const initalState: State = {
-    usersList: emptyList,
-  };
-
-  export const effects: Partial<Record<ActionType, Effect>> = {
-    *[ActionType.getUserList](
-      { payload }: Action<Payload['getUserList']>,
+const { model, actions, utils, globalActions, ...helpers } = modelCreator({
+  namespace: 'global.users',
+  state: initalState,
+  effects: {
+    *getUserList(
+      _: undefined,
       { select, put, call, race, take, all },
-    ) {
+    ): Generator<any, void, any> {
       try {
         yield put(AppModel.actions.ensureGroupData());
 
@@ -80,35 +45,31 @@ export namespace UsersModel {
         const { data }: Services.UsersList.ReadResponse = users;
 
         yield put(
-          createAction(
-            ActionType.getUserListSuccess,
-            false,
-          )({
+          actions.getUserListSuccess({
             res: data.res,
             group: group.data,
           }),
         );
-      } catch (err) {
-        yield put(
-          createAction(
-            ActionType.getUserListFail,
-            false,
-          )({
-            err,
-          }),
-        );
-        message.error(err.message);
+      } catch (error) {
+        yield put(actions.getUserListFail({ error }));
+        message.error(error.message);
       }
     },
-  };
-
-  export const reducers: Partial<Record<ActionType, Reducer<State>>> = {
-    [ActionType.reset]() {
+  },
+  reducers: {
+    reset() {
       return initalState;
     },
-    [ActionType.getUserListSuccess](
+    getUserListSuccess(
       prevState,
-      { payload }: Action<Payload['getUserListSuccess']>,
+      {
+        payload,
+      }: {
+        payload: {
+          res: User.ItemInResponse[];
+          group: Group.Item[];
+        };
+      },
     ) {
       prevState.usersList.data = ModelAdapter.UserList(
         payload.res,
@@ -120,14 +81,15 @@ export namespace UsersModel {
         total: payload.res.length,
       };
     },
-  };
-}
+    getUserListFail(s, action: { payload: { error: Error } }) {},
+  },
+});
 
-const { namespace, initalState, effects, reducers } = UsersModel;
+export const UsersModel = { actions: globalActions, utils, ...helpers };
 
 export default {
-  namespace,
-  state: initalState,
-  effects,
-  reducers,
+  namespace: model.namespace,
+  state: model.state,
+  effects: model.effects,
+  reducers: model.reducers,
 };

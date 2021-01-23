@@ -17,7 +17,6 @@ const EditUser = function EditUser() {
   const dispatch = useDispatch();
   const history = useHistory();
 
-  // const { personInfo } = useSelector(PersonModel.currentState);
   const personInfo = PersonModel.hooks.useStore('personInfo');
   const [form, setForm] = useState<PersonInfo.Item>(personInfo);
   useEffect(() => {

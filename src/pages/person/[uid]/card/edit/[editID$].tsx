@@ -1,11 +1,5 @@
 import React, { useEffect, useMemo, useCallback } from 'react';
-import {
-  useParams,
-  useDispatch,
-  useSelector,
-  PersonCardEditModel,
-  useHistory,
-} from 'umi';
+import { useParams, useDispatch, useHistory } from 'umi';
 import classnames from 'classnames';
 import {
   Form,
@@ -21,7 +15,6 @@ import {
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
 
 import { defaultFormLayout, textareaAutoSize } from '@/utils/constant';
-import { dvaLoadingSelector } from '@/utils/dvaLoadingSelector';
 import { GroupSelector } from '@/components/GroupSelector';
 import { PersonModel } from '@/models/person';
 
@@ -29,6 +22,7 @@ import { PageParam } from './types';
 import { GO_BOOL } from '@/utils/types';
 import { Group } from '@/utils/types/Group';
 
+import { PersonCardEditModel } from './models';
 import styles from './[editID].scss';
 
 const yesIcon = <CheckOutlined />;
@@ -38,11 +32,9 @@ export default function PagePerson() {
   const { editID: editID, uid } = useParams<PageParam>();
   const dispatch = useDispatch();
   const history = useHistory();
-  const { card: form } = useSelector(PersonCardEditModel.currentState).form;
+  const form = PersonCardEditModel.hooks.useStore('form', 'card');
   const personInfo = PersonModel.hooks.useStore('personInfo');
-  const editModelLoading = useSelector(
-    dvaLoadingSelector.model(PersonCardEditModel.namespace),
-  );
+  const editModelLoading = PersonCardEditModel.hooks.useLoading();
   const personLoading = PersonModel.hooks.useLoading();
 
   const formLoading = editModelLoading || personLoading;
@@ -55,22 +47,14 @@ export default function PagePerson() {
   /** 刷新/重置 */
   const refreshHandle = useCallback(
     (id: string) => {
-      dispatch(
-        PersonCardEditModel.createAction(
-          PersonCardEditModel.ActionType.getCardInfo,
-        )({ id }),
-      );
+      PersonCardEditModel.dispatch.getCardInfo(dispatch, { id });
     },
     [dispatch],
   );
 
   /** 重置state */
   const resetHadnle = useCallback(() => {
-    dispatch(
-      PersonCardEditModel.createAction(PersonCardEditModel.ActionType.reset)(
-        undefined,
-      ),
-    );
+    PersonCardEditModel.dispatch.reset(dispatch);
   }, [dispatch]);
 
   /** 当路由的editID参数变化时就刷新个人信息 */
@@ -104,11 +88,7 @@ export default function PagePerson() {
 
   /** 提交按钮 */
   const submitHandle = useCallback(() => {
-    dispatch(
-      PersonCardEditModel.createAction(
-        PersonCardEditModel.ActionType.submitCardInfo,
-      )(undefined),
-    );
+    PersonCardEditModel.dispatch.submitCardInfo(dispatch);
   }, [dispatch]);
 
   /** 头像链接 */
@@ -119,14 +99,12 @@ export default function PagePerson() {
         message.error('请填写完整链接');
         return;
       }
-
-      dispatch(
-        PersonCardEditModel.createAction(
-          PersonCardEditModel.ActionType.fieldChange,
-        )(
-          PersonCardEditModel.fieldChangePayloadCreator('card')('originAvast')(
-            event.target.value,
-          ),
+      PersonCardEditModel.dispatch.fieldSync(
+        dispatch,
+        PersonCardEditModel.utils.fieldPayloadCreator(
+          'card',
+          'originAvast',
+          event.target.value,
         ),
       );
     },
@@ -136,13 +114,12 @@ export default function PagePerson() {
   /** 头像同步设置链接 */
   const avastAsUserChangeHandle = useCallback(
     (bool: boolean) => {
-      dispatch(
-        PersonCardEditModel.createAction(
-          PersonCardEditModel.ActionType.fieldChange,
-        )(
-          PersonCardEditModel.fieldChangePayloadCreator('card')(
-            'setAsUserAvatar',
-          )(bool),
+      PersonCardEditModel.dispatch.fieldSync(
+        dispatch,
+        PersonCardEditModel.utils.fieldPayloadCreator(
+          'card',
+          'setAsUserAvatar',
+          bool,
         ),
       );
     },
@@ -152,13 +129,12 @@ export default function PagePerson() {
   /** 昵称 */
   const nicknameChangeHandle = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      dispatch(
-        PersonCardEditModel.createAction(
-          PersonCardEditModel.ActionType.fieldChange,
-        )(
-          PersonCardEditModel.fieldChangePayloadCreator('card')('nickname')(
-            event.target.value,
-          ),
+      PersonCardEditModel.dispatch.fieldSync(
+        dispatch,
+        PersonCardEditModel.utils.fieldPayloadCreator(
+          'card',
+          'nickname',
+          event.target.value,
         ),
       );
     },
@@ -174,13 +150,12 @@ export default function PagePerson() {
   /** 职位 */
   const jobChangeHandle = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      dispatch(
-        PersonCardEditModel.createAction(
-          PersonCardEditModel.ActionType.fieldChange,
-        )(
-          PersonCardEditModel.fieldChangePayloadCreator('card')('job')(
-            event.target.value,
-          ),
+      PersonCardEditModel.dispatch.fieldSync(
+        dispatch,
+        PersonCardEditModel.utils.fieldPayloadCreator(
+          'card',
+          'job',
+          event.target.value,
         ),
       );
     },
@@ -190,13 +165,12 @@ export default function PagePerson() {
   /** 个人介绍 */
   const bioChangeHandle = useCallback(
     (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-      dispatch(
-        PersonCardEditModel.createAction(
-          PersonCardEditModel.ActionType.fieldChange,
-        )(
-          PersonCardEditModel.fieldChangePayloadCreator('card')('bio')(
-            event.target.value,
-          ),
+      PersonCardEditModel.dispatch.fieldSync(
+        dispatch,
+        PersonCardEditModel.utils.fieldPayloadCreator(
+          'card',
+          'bio',
+          event.target.value,
         ),
       );
     },
@@ -206,14 +180,9 @@ export default function PagePerson() {
   /** 组别选择 */
   const groupChangeHandle = useCallback(
     (groups: Group.Item[]) => {
-      dispatch(
-        PersonCardEditModel.createAction(
-          PersonCardEditModel.ActionType.fieldChange,
-        )(
-          PersonCardEditModel.fieldChangePayloadCreator('card')('group')(
-            groups,
-          ),
-        ),
+      PersonCardEditModel.dispatch.fieldSync(
+        dispatch,
+        PersonCardEditModel.utils.fieldPayloadCreator('card', 'group', groups),
       );
     },
     [dispatch],
@@ -222,13 +191,12 @@ export default function PagePerson() {
   /** 退休 */
   const retiredChangeHandle = useCallback(
     (checked: boolean) => {
-      dispatch(
-        PersonCardEditModel.createAction(
-          PersonCardEditModel.ActionType.fieldChange,
-        )(
-          PersonCardEditModel.fieldChangePayloadCreator('card')('retired')(
-            checked ? GO_BOOL.yes : GO_BOOL.no,
-          ),
+      PersonCardEditModel.dispatch.fieldSync(
+        dispatch,
+        PersonCardEditModel.utils.fieldPayloadCreator(
+          'card',
+          'retired',
+          checked ? GO_BOOL.yes : GO_BOOL.no,
         ),
       );
     },
@@ -238,13 +206,12 @@ export default function PagePerson() {
   /** 隐藏 */
   const hideChangeHandle = useCallback(
     (checked: boolean) => {
-      dispatch(
-        PersonCardEditModel.createAction(
-          PersonCardEditModel.ActionType.fieldChange,
-        )(
-          PersonCardEditModel.fieldChangePayloadCreator('card')('hide')(
-            checked ? GO_BOOL.yes : GO_BOOL.no,
-          ),
+      PersonCardEditModel.dispatch.fieldSync(
+        dispatch,
+        PersonCardEditModel.utils.fieldPayloadCreator(
+          'card',
+          'hide',
+          checked ? GO_BOOL.yes : GO_BOOL.no,
         ),
       );
     },

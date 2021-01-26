@@ -31,8 +31,8 @@ const { model, actions, utils, globalActions, ...helpers } = modelCreator({
         const { users, g } = yield all({
           users: call(Services.UsersList.read, undefined),
           g: race({
-            s: take(AppModel.utils.reducerKeys.ensureGroupDataSuccess),
-            f: take(AppModel.utils.reducerKeys.ensureGroupDataFail),
+            s: take(AppModel.utils.globalKeys.ensureGroupDataSuccess),
+            f: take(AppModel.utils.globalKeys.ensureGroupDataFail),
           }),
         });
 

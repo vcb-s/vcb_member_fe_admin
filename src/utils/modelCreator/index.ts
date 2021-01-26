@@ -104,7 +104,7 @@ export const modelCreator = <
   // 一些用于hooks的工具函数
   hooks: Hooks<S, E>;
   // 一些用于saga或者组件的工具函数
-  utils: Util<S, E, R>;
+  utils: Util<S, E & R, N>;
 } => {
   const { namespace } = model;
 
@@ -142,20 +142,6 @@ export const modelCreator = <
           return _.loading.models[namespace] as boolean;
         }
       }),
-  };
-  const utils: Util<S, E, R> = {
-    currentStore: (_) => _[namespace],
-    loadingSelector: dvaLoadingSelector,
-    effectKeys,
-    reducerKeys,
-    fieldPayloadCreator: ((name: unknown, key: unknown, value: unknown) => {
-      return {
-        name,
-        key,
-        value,
-        __private_symbol: Symbol.for('FieldSyncPayloadCreator'),
-      };
-    }) as any,
   };
 
   Object.keys(model.effects).forEach((sagaKey) => {
@@ -197,6 +183,27 @@ export const modelCreator = <
 
     reducerKeys[reducerKey] = reducerKey;
   });
+
+  const allKeys = { ...reducerKeys, ...reducerKeys };
+  const allGlobalKeys = { ...allKeys };
+  Object.keys(allGlobalKeys).forEach((key) => {
+    allGlobalKeys[key] = `${namespace}/${allGlobalKeys[key]}`;
+  });
+
+  const utils: Util<S, E & R, N> = {
+    currentStore: (_) => _[namespace],
+    loadingSelector: dvaLoadingSelector,
+    globalKeys: allGlobalKeys,
+    keys: allKeys,
+    fieldPayloadCreator: ((name: unknown, key: unknown, value: unknown) => {
+      return {
+        name,
+        key,
+        value,
+        __private_symbol: Symbol.for('FieldSyncPayloadCreator'),
+      };
+    }) as any,
+  };
 
   return {
     model,

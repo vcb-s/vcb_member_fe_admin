@@ -38,8 +38,8 @@ const { model, actions, utils, globalActions, ...helpers } = modelCreator({
       }
 
       const { s, f } = yield race({
-        s: take(utils.reducerKeys.ensureGroupDataSuccess),
-        f: take(utils.reducerKeys.ensureGroupDataFail),
+        s: take(utils.keys.getGroupSuccess),
+        f: take(utils.keys.getGroupFail),
       });
 
       if (s) {

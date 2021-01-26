@@ -23,12 +23,13 @@ type dvaLoadingSelector<E> = {
   [K in keyof E]: () => boolean;
 };
 
-export interface Util<S, E, R> {
-  effectKeys: {
-    [K in keyof E]: K;
+export interface Util<S, E, N> {
+  globalKeys: {
+    // @ts-expect-error
+    [K in keyof E]: `${N}/${K}`;
   };
-  reducerKeys: {
-    [K in keyof R]: K;
+  keys: {
+    [K in keyof E]: K;
   };
   /** 获取当前model值 */
   currentStore: (globalStore: any) => S;

@@ -60,8 +60,8 @@ const { model, actions, globalActions, utils, ...helpers } = modelCreator({
         const { person, g } = yield all({
           person: call(Services.CardList.read, param),
           g: race({
-            s: take(AppModel.utils.reducerKeys.ensureGroupDataSuccess),
-            f: take(AppModel.utils.reducerKeys.ensureGroupDataFail),
+            s: take(AppModel.utils.globalKeys.ensureGroupDataSuccess),
+            f: take(AppModel.utils.globalKeys.ensureGroupDataFail),
           }),
         });
 
@@ -151,8 +151,8 @@ const { model, actions, globalActions, utils, ...helpers } = modelCreator({
           }),
         );
         const { fail } = yield race({
-          success: take(PersonModel.utils.reducerKeys.updatePersonInfoSuccess),
-          fail: take(PersonModel.utils.reducerKeys.updatePersonInfoFail),
+          success: take(PersonModel.utils.globalKeys.updatePersonInfoSuccess),
+          fail: take(PersonModel.utils.globalKeys.updatePersonInfoFail),
         });
         if (fail) {
           return;

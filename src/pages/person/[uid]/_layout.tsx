@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, FC } from 'react';
 import { useDispatch, NavLink, useParams, useLocation, useHistory } from 'umi';
 import { Menu, Avatar, Space, Dropdown, message, Modal, Tooltip } from 'antd';
 import { MenuClickEventHandler } from 'rc-menu/lib/interface';
@@ -42,7 +42,7 @@ class MenuData {
   }));
 }
 
-const MenuSide: React.FC = function () {
+const MenuSide: FC = function () {
   const personState = PersonModel.hooks.useStore();
   const { uid = '' } = useParams<any>();
   const location = useLocation();
@@ -129,7 +129,7 @@ const MenuSide: React.FC = function () {
   );
 };
 
-const PersonLaylout: React.FC = function PersonLaylout({ children }) {
+const PersonLaylout: FC = function PersonLaylout({ children }) {
   const personState = PersonModel.hooks.useStore();
   const dispatch = useDispatch();
   const { uid } = useParams<PageParam>();

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useCallback } from 'react';
+import { FC, useEffect, useMemo, useCallback } from 'react';
 import { useParams, history, useDispatch } from 'umi';
 import { Typography, Table, Avatar, Button, Tag, Space } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
@@ -12,7 +12,7 @@ import { PageParam } from '../types';
 
 import styles from './index.scss';
 
-const PagePersonCard: React.FC = function PagePersonCard() {
+const PagePersonCard: FC = function PagePersonCard() {
   const dispatch = useDispatch();
   const personInfo = PersonModel.hooks.useStore('personInfo');
   const cardList = PersonModel.hooks.useStore('cardList');

@@ -1,4 +1,4 @@
-import React from 'react';
+import { FC, createElement } from 'react';
 import { ConfigProvider } from 'antd';
 import zhCN from 'antd/es/locale/zh_CN';
 
@@ -10,12 +10,12 @@ export function render(oldRender: () => any) {
   });
 }
 
-const Root: React.FC = function Root({ children }) {
+const Root: FC = function Root({ children }) {
   return <ConfigProvider locale={zhCN}>{children}</ConfigProvider>;
 };
 
 export function rootContainer(container: any) {
-  return React.createElement(Root, null, container);
+  return createElement(Root, null, container);
 }
 
 export { config as request } from '@/utils/requestConfig';

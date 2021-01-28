@@ -1,5 +1,5 @@
-import React from 'react';
+import { FC } from 'react';
 
-export const MainLayout: React.FC = function MainLayout({ children }) {
+export const MainLayout: FC = function MainLayout({ children }) {
   return <>{children}</>;
 };

@@ -17,15 +17,16 @@
   "dependencies": {
     "classnames": "^2.2.6",
     "hash-wasm": "^4.4.1",
+    "immer": "^8.0.1",
     "path-to-regexp": "^6.2.0",
     "query-string": "^6.13.8",
     "react": "^17.0.1",
-    "react-copy-to-clipboard": "^5.0.2",
+    "react-copy-to-clipboard": "^5.0.3",
     "react-dom": "^17.0.1",
     "react-loadable": "^5.5.0",
-    "react-use": "^15.3.4",
+    "react-use": "^15.3.8",
     "tslib": "^2.1.0",
-    "umi": "^3.3.3"
+    "umi": "^3.3.7"
   },
   "devDependencies": {
     "@types/classnames": "^2.2.11",
@@ -33,16 +34,16 @@
     "@types/react-copy-to-clipboard": "^5.0.0",
     "@types/react-dom": "^17.0.0",
     "@types/react-loadable": "^5.5.4",
-    "@typescript-eslint/eslint-plugin": "^4.12.0",
-    "@typescript-eslint/parser": "^4.12.0",
+    "@typescript-eslint/eslint-plugin": "^4.14.1",
+    "@typescript-eslint/parser": "^4.14.1",
     "@umijs/plugin-sass": "^1.1.1",
-    "@umijs/preset-react": "^1.7.9",
-    "@umijs/test": "^3.3.3",
+    "@umijs/preset-react": "^1.7.13",
+    "@umijs/test": "^3.3.7",
     "cross-env": "^7.0.3",
-    "eslint": "^7.17.0",
+    "eslint": "^7.18.0",
     "eslint-plugin-react-hooks": "^4.2.0",
     "fibers": "^5.0.0",
-    "npm-check-updates": "^10.2.5",
+    "npm-check-updates": "^11.1.1",
     "prettier": "^2.2.1",
     "typescript": "^4.1.3"
   }

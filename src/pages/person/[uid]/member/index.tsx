@@ -1,10 +1,14 @@
-import React, {
+import {
   useEffect,
   useMemo,
   useCallback,
   useState,
   ReactChild,
   useRef,
+  memo,
+  CSSProperties,
+  FC,
+  ChangeEvent,
 } from 'react';
 import { produce } from 'immer';
 import { useRouteMatch, useDispatch } from 'umi';
@@ -46,24 +50,20 @@ import { UserCard } from '@/utils/types/UserCard';
 
 import styles from './index.scss';
 
-const AMModalStyle: React.CSSProperties = { minWidth: '12em' };
+const AMModalStyle: CSSProperties = { minWidth: '12em' };
 
 interface TagProps {
   title: string;
 }
-const NormalTag: React.FC<TagProps> = React.memo(function NormalTag({
-  title = '',
-}) {
+const NormalTag: FC<TagProps> = memo(function NormalTag({ title = '' }) {
   return <Tag color='default'>{title}</Tag>;
 });
-const ErrorTag: React.FC<TagProps> = React.memo(function ErrorTag({
-  title = '',
-}) {
+const ErrorTag: FC<TagProps> = memo(function ErrorTag({ title = '' }) {
   return <Tag color='error'>{title}</Tag>;
 });
 
 /** 新建组员按钮及其弹层 */
-const CreateUserBtn = React.memo(function CreateUserBtn() {
+const CreateUserBtn = memo(function CreateUserBtn() {
   const dispatch = useDispatch();
   const match = useRouteMatch<PageParam>();
   const uid = match.params.uid;
@@ -95,7 +95,7 @@ const CreateUserBtn = React.memo(function CreateUserBtn() {
   );
 
   const nicknameChangeHandle = useCallback(
-    (evt: React.ChangeEvent<HTMLInputElement>) => {
+    (evt: ChangeEvent<HTMLInputElement>) => {
       setNickname(evt.target.value);
     },
     [],
@@ -155,7 +155,7 @@ const CreateUserBtn = React.memo(function CreateUserBtn() {
 });
 
 /** 从别的组招募人员 */
-const RecruitFromOtherGroups = React.memo(function RecruitFromOtherGroups() {
+const RecruitFromOtherGroups = memo(function RecruitFromOtherGroups() {
   const dispatch = useDispatch();
   const match = useRouteMatch<PageParam>();
   const uid = match.params.uid;
@@ -305,221 +305,221 @@ interface CardSubTableProps {
   uid: string;
 }
 /** 子表格，指定UID，展示对应UID的所有卡片 */
-const CardSubTable: React.FC<CardSubTableProps> = React.memo(
-  function CardSubTable({ uid }) {
-    const componentID = useRef(1);
-    const getMounted = useMountedState();
-    const [data, setData] = useState<UserCard.Item[]>([]);
-    const [loading, loadingAction] = useBoolean(true);
-    const [loadingCardID, setLoadingCardID] = useState('');
+const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
+  uid,
+}) {
+  const componentID = useRef(1);
+  const getMounted = useMountedState();
+  const [data, setData] = useState<UserCard.Item[]>([]);
+  const [loading, loadingAction] = useBoolean(true);
+  const [loadingCardID, setLoadingCardID] = useState('');
 
-    const groups = AppModel.hooks.useStore('group', 'data');
+  const groups = AppModel.hooks.useStore('group', 'data');
 
-    // 加载数据源
-    useEffect(() => {
-      let canWrite = true;
-      const query = async () => {
-        const param: Services.CardList.ReadParam = {
-          uid,
-          includeHide: GO_BOOL.yes,
-        };
-        loadingAction.setTrue();
+  // 加载数据源
+  useEffect(() => {
+    let canWrite = true;
+    const query = async () => {
+      const param: Services.CardList.ReadParam = {
+        uid,
+        includeHide: GO_BOOL.yes,
+      };
+      loadingAction.setTrue();
 
-        try {
-          const { data } = await Services.CardList.read(param);
-          if (canWrite) {
-            loadingAction.setFalse();
-            setData(() => ModelAdapter.UserCards(data.res, groups));
-          }
-        } catch (e) {
-          message.error(e.message || '未知错误');
+      try {
+        const { data } = await Services.CardList.read(param);
+        if (canWrite) {
+          loadingAction.setFalse();
+          setData(() => ModelAdapter.UserCards(data.res, groups));
         }
+      } catch (e) {
+        message.error(e.message || '未知错误');
+      }
+    };
+
+    query();
+
+    return () => {
+      loadingAction.setFalse();
+      canWrite = false;
+    };
+  }, [groups, loadingAction, uid]);
+
+  /** 重置state */
+  useEffect(() => {
+    componentID.current += 1;
+
+    () => {
+      setData([]);
+      loadingAction.setFalse();
+    };
+  }, [loadingAction]);
+
+  /** 隐藏 */
+  const toggleHideHandle = useCallback(
+    async (card: UserCard.Item) => {
+      const currentID = componentID.current;
+      const params: Services.CardList.UpdateParam = {
+        id: card.id,
+        hide: card.hide === GO_BOOL.yes ? GO_BOOL.no : GO_BOOL.yes,
       };
 
-      query();
-
-      return () => {
-        loadingAction.setFalse();
-        canWrite = false;
-      };
-    }, [groups, loadingAction, uid]);
-
-    /** 重置state */
-    useEffect(() => {
-      componentID.current += 1;
-
-      () => {
-        setData([]);
-        loadingAction.setFalse();
-      };
-    }, [loadingAction]);
-
-    /** 隐藏 */
-    const toggleHideHandle = useCallback(
-      async (card: UserCard.Item) => {
-        const currentID = componentID.current;
-        const params: Services.CardList.UpdateParam = {
-          id: card.id,
-          hide: card.hide === GO_BOOL.yes ? GO_BOOL.no : GO_BOOL.yes,
-        };
-
-        try {
-          await new Promise((resolve, reject) => {
-            const { destroy } = Modal.confirm({
-              centered: true,
-              title: `切换${card.nickname}的显隐状态为: ${
-                params.hide! === GO_BOOL.yes ? '显示' : '隐藏'
-              }`,
-              onOk: () => {
-                destroy();
-                resolve(null);
-              },
-              onCancel: () => {
-                destroy();
-                reject();
-              },
-            });
+      try {
+        await new Promise((resolve, reject) => {
+          const { destroy } = Modal.confirm({
+            centered: true,
+            title: `切换${card.nickname}的显隐状态为: ${
+              params.hide! === GO_BOOL.yes ? '显示' : '隐藏'
+            }`,
+            onOk: () => {
+              destroy();
+              resolve(null);
+            },
+            onCancel: () => {
+              destroy();
+              reject();
+            },
           });
-        } catch (e) {
+        });
+      } catch (e) {
+        return;
+      }
+
+      try {
+        setLoadingCardID(() => card.id);
+
+        await Services.CardList.update(params);
+        if (!getMounted() && currentID === componentID.current) {
           return;
         }
 
-        try {
-          setLoadingCardID(() => card.id);
+        setLoadingCardID(() => '');
 
-          await Services.CardList.update(params);
-          if (!getMounted() && currentID === componentID.current) {
-            return;
-          }
-
-          setLoadingCardID(() => '');
-
-          // 更新列表数据
-          setData((pre) =>
-            produce(pre, (state) => {
-              state.forEach((item) => {
-                if (item.id === params.id) item.hide = params.hide!;
-              });
-            }),
-          );
-        } catch (e) {
-          message.error(e.message);
-        }
-      },
-      [getMounted],
-    );
-
-    /** 退休 */
-    const toggleRetiredHandle = useCallback(
-      async (card: UserCard.Item) => {
-        const currentID = componentID.current;
-        const params: Services.CardList.UpdateParam = {
-          id: card.id,
-          retired: card.retired === GO_BOOL.yes ? GO_BOOL.no : GO_BOOL.yes,
-        };
-
-        try {
-          await new Promise((resolve, reject) => {
-            const { destroy } = Modal.confirm({
-              centered: true,
-              title: `切换${card.nickname}的退休状态为: ${
-                params.retired! === GO_BOOL.yes ? '已退休' : '活跃中'
-              }`,
-              onOk: () => {
-                destroy();
-                resolve(null);
-              },
-              onCancel: () => {
-                destroy();
-                reject(null);
-              },
+        // 更新列表数据
+        setData((pre) =>
+          produce(pre, (state) => {
+            state.forEach((item) => {
+              if (item.id === params.id) item.hide = params.hide!;
             });
+          }),
+        );
+      } catch (e) {
+        message.error(e.message);
+      }
+    },
+    [getMounted],
+  );
+
+  /** 退休 */
+  const toggleRetiredHandle = useCallback(
+    async (card: UserCard.Item) => {
+      const currentID = componentID.current;
+      const params: Services.CardList.UpdateParam = {
+        id: card.id,
+        retired: card.retired === GO_BOOL.yes ? GO_BOOL.no : GO_BOOL.yes,
+      };
+
+      try {
+        await new Promise((resolve, reject) => {
+          const { destroy } = Modal.confirm({
+            centered: true,
+            title: `切换${card.nickname}的退休状态为: ${
+              params.retired! === GO_BOOL.yes ? '已退休' : '活跃中'
+            }`,
+            onOk: () => {
+              destroy();
+              resolve(null);
+            },
+            onCancel: () => {
+              destroy();
+              reject(null);
+            },
           });
-        } catch (e) {
+        });
+      } catch (e) {
+        return;
+      }
+
+      try {
+        setLoadingCardID(() => card.id);
+        await Services.CardList.update(params);
+        if (!getMounted() && currentID === componentID.current) {
           return;
         }
 
-        try {
-          setLoadingCardID(() => card.id);
-          await Services.CardList.update(params);
-          if (!getMounted() && currentID === componentID.current) {
-            return;
-          }
+        setLoadingCardID(() => '');
 
-          setLoadingCardID(() => '');
+        // 更新列表数据
+        setData((pre) =>
+          produce(pre, (state) => {
+            state.forEach((item) => {
+              if (item.id === params.id) item.retired = params.retired!;
+            });
+          }),
+        );
+      } catch (e) {
+        message.error(e.message);
+      }
+    },
+    [getMounted],
+  );
 
-          // 更新列表数据
-          setData((pre) =>
-            produce(pre, (state) => {
-              state.forEach((item) => {
-                if (item.id === params.id) item.retired = params.retired!;
-              });
-            }),
-          );
-        } catch (e) {
-          message.error(e.message);
-        }
+  const columns = useMemo<ColumnsType<UserCard.Item>>(() => {
+    return [
+      {
+        title: '昵称',
+        dataIndex: 'nickname',
       },
-      [getMounted],
-    );
-
-    const columns = useMemo<ColumnsType<UserCard.Item>>(() => {
-      return [
-        {
-          title: '昵称',
-          dataIndex: 'nickname',
-        },
-        {
-          title: '头像',
-          dataIndex: 'avast',
-          align: 'center',
-          render: (avatar) => <Avatar src={avatar} />,
-        },
-        {
-          title: '操作',
-          key: 'action',
-          align: 'left',
-          width: 380,
-          render: (card: UserCard.Item) => {
-            return (
-              <Space>
-                <Switch
-                  checked={card.retired === GO_BOOL.no}
-                  checkedChildren='活跃'
-                  unCheckedChildren='咸鱼'
-                  title='切换退休状态'
-                  onChange={() => toggleRetiredHandle(card)}
-                  loading={loadingCardID === card.id}
-                />
-                <Switch
-                  checked={card.hide === GO_BOOL.no}
-                  checkedChildren='kirakira!'
-                  unCheckedChildren='已隐藏'
-                  title='切换卡片前台显隐状态'
-                  onChange={() => toggleHideHandle(card)}
-                  loading={loadingCardID === card.id}
-                />
-                {/* 目前卡片编辑还严重耦合登录用户state，修改别的用户的卡片在数据同步上有点绕，先隐藏 */}
-                {/* <Button onClick={() => history.push(`./card/edit/${card.id}`)}>
+      {
+        title: '头像',
+        dataIndex: 'avast',
+        align: 'center',
+        render: (avatar) => <Avatar src={avatar} />,
+      },
+      {
+        title: '操作',
+        key: 'action',
+        align: 'left',
+        width: 380,
+        render: (card: UserCard.Item) => {
+          return (
+            <Space>
+              <Switch
+                checked={card.retired === GO_BOOL.no}
+                checkedChildren='活跃'
+                unCheckedChildren='咸鱼'
+                title='切换退休状态'
+                onChange={() => toggleRetiredHandle(card)}
+                loading={loadingCardID === card.id}
+              />
+              <Switch
+                checked={card.hide === GO_BOOL.no}
+                checkedChildren='kirakira!'
+                unCheckedChildren='已隐藏'
+                title='切换卡片前台显隐状态'
+                onChange={() => toggleHideHandle(card)}
+                loading={loadingCardID === card.id}
+              />
+              {/* 目前卡片编辑还严重耦合登录用户state，修改别的用户的卡片在数据同步上有点绕，先隐藏 */}
+              {/* <Button onClick={() => history.push(`./card/edit/${card.id}`)}>
                   编辑
                 </Button> */}
-              </Space>
-            );
-          },
+            </Space>
+          );
         },
-      ];
-    }, [loadingCardID, toggleHideHandle, toggleRetiredHandle]);
+      },
+    ];
+  }, [loadingCardID, toggleHideHandle, toggleRetiredHandle]);
 
-    return (
-      <Table
-        loading={loading}
-        columns={columns}
-        dataSource={data}
-        pagination={false}
-      />
-    );
-  },
-);
+  return (
+    <Table
+      loading={loading}
+      columns={columns}
+      dataSource={data}
+      pagination={false}
+    />
+  );
+});
 
 /** 主页面 */
 export default function PagePerson() {

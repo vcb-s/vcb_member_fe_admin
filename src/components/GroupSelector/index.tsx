@@ -1,4 +1,11 @@
-import React, { useMemo, useCallback, useEffect } from 'react';
+import {
+  memo,
+  FC,
+  CSSProperties,
+  useMemo,
+  useCallback,
+  useEffect,
+} from 'react';
 import { useDispatch } from 'umi';
 import { Select } from 'antd';
 
@@ -19,9 +26,9 @@ interface Props {
   onChange: (value: Group.Item[]) => void;
 
   className?: string;
-  style?: React.CSSProperties;
+  style?: CSSProperties;
 }
-export const GroupSelector: React.FC<Props> = React.memo(
+export const GroupSelector: FC<Props> = memo(
   ({
     loading: outLoading = false,
     value,

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState, memo, ChangeEvent } from 'react';
 import { Form, Input, Typography } from 'antd';
 import { useAsyncFn, useDebounce } from 'react-use';
 
@@ -11,7 +11,7 @@ const tailLayout = {
   wrapperCol: { span: 8, offset: 4 },
 };
 
-const PassCalc = React.memo(function PassCalc() {
+const PassCalc = memo(function PassCalc() {
   const [pass, setPass] = useState('');
 
   const [
@@ -41,12 +41,9 @@ const PassCalc = React.memo(function PassCalc() {
 
   const [isReady, cancel] = useDebounce(calc, 200, [pass]);
 
-  const passChangeHandle = useCallback(
-    (evt: React.ChangeEvent<HTMLInputElement>) => {
-      setPass(evt.target.value);
-    },
-    [],
-  );
+  const passChangeHandle = useCallback((evt: ChangeEvent<HTMLInputElement>) => {
+    setPass(evt.target.value);
+  }, []);
 
   return (
     <div style={{ padding: 24 }}>

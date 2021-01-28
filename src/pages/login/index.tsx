@@ -1,4 +1,5 @@
-import React, {
+import {
+  ChangeEvent,
   useEffect,
   useCallback,
   useState,
@@ -85,7 +86,7 @@ const Login = function Login() {
   // }, [lastSearchValue, nameSelectHandle]);
 
   const passChangeHandle = useCallback(
-    (evt: React.ChangeEvent<HTMLInputElement>) => {
+    (evt: ChangeEvent<HTMLInputElement>) => {
       loginStore.dispatch.fieldSync(
         dispatch,
         loginStore.utils.fieldPayloadCreator('login', 'pass', evt.target.value),

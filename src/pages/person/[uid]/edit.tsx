@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, ChangeEvent } from 'react';
 import { useParams, useDispatch, useHistory } from 'umi';
 import { Form, Button, Space, Input, message, PageHeader } from 'antd';
 import produce from 'immer';
@@ -28,7 +28,7 @@ const EditUser = function EditUser() {
   const loading = fetchLoading || submitLoading;
 
   const avastChangeHandle = useCallback(
-    (evt: React.ChangeEvent<HTMLInputElement>) => {
+    (evt: ChangeEvent<HTMLInputElement>) => {
       const avast = evt.target.value;
       setForm((preform) =>
         produce(preform, (form) => {
@@ -39,7 +39,7 @@ const EditUser = function EditUser() {
     [],
   );
   const nicknameChangeHandle = useCallback(
-    (evt: React.ChangeEvent<HTMLInputElement>) => {
+    (evt: ChangeEvent<HTMLInputElement>) => {
       const avast = evt.target.value;
       setForm((preform) =>
         produce(preform, (form) => {

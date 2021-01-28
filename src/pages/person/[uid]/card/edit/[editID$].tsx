@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useCallback } from 'react';
+import { useEffect, useMemo, useCallback, ChangeEvent } from 'react';
 import { useParams, useDispatch, useHistory } from 'umi';
 import classnames from 'classnames';
 import {
@@ -93,7 +93,7 @@ export default function PagePerson() {
 
   /** 头像链接 */
   const avastChangeHandle = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
+    (event: ChangeEvent<HTMLInputElement>) => {
       const url = event.target.value;
       if (url && '/'.indexOf(url) > -1 && 'https://'.indexOf(url) !== 0) {
         message.error('请填写完整链接');
@@ -128,7 +128,7 @@ export default function PagePerson() {
 
   /** 昵称 */
   const nicknameChangeHandle = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
+    (event: ChangeEvent<HTMLInputElement>) => {
       PersonCardEditModel.dispatch.fieldSync(
         dispatch,
         PersonCardEditModel.utils.fieldPayloadCreator(
@@ -149,7 +149,7 @@ export default function PagePerson() {
 
   /** 职位 */
   const jobChangeHandle = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
+    (event: ChangeEvent<HTMLInputElement>) => {
       PersonCardEditModel.dispatch.fieldSync(
         dispatch,
         PersonCardEditModel.utils.fieldPayloadCreator(
@@ -164,7 +164,7 @@ export default function PagePerson() {
 
   /** 个人介绍 */
   const bioChangeHandle = useCallback(
-    (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    (event: ChangeEvent<HTMLTextAreaElement>) => {
       PersonCardEditModel.dispatch.fieldSync(
         dispatch,
         PersonCardEditModel.utils.fieldPayloadCreator(

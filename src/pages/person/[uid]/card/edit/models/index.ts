@@ -162,8 +162,6 @@ const { model, actions, globalActions, utils, ...helpers } = modelCreator({
       try {
         yield call(service, param);
 
-        yield put(PersonCardEditModel.actions.submitCardInfo());
-
         yield put(PersonModel.actions.getPersonInfo({ uid: personInfo.id }));
 
         // 卡片更新

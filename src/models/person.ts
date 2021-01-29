@@ -201,6 +201,26 @@ const { model, actions, globalActions, utils, ...helpers } = modelCreator({
       history.replace('/login');
     },
 
+    *removeUserCard(
+      {
+        payload: { id },
+      }: {
+        payload: { id: string };
+      },
+      { call, put, select },
+    ): Generator<any, void, any> {
+      const param: Services.CardList.RemoveParam = { id };
+
+      try {
+        yield call(Services.CardList.remove, param);
+
+        const { personInfo }: State = yield select(utils.currentStore);
+        yield put(actions.getPersonInfo({ uid: personInfo.id }));
+      } catch (error) {
+        message.error(error.message);
+      }
+    },
+
     *restPass(
       {
         payload,

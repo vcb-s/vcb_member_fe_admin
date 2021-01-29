@@ -1,6 +1,6 @@
 import { FC, useEffect, useMemo, useCallback } from 'react';
 import { useParams, history, useDispatch } from 'umi';
-import { Typography, Table, Avatar, Button, Tag, Space } from 'antd';
+import { Typography, Table, Avatar, Button, Tag, Space, Modal } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 
 import { GO_BOOL } from '@/utils/types';
@@ -11,6 +11,7 @@ import { PersonModel } from '@/models/person';
 import { PageParam } from '../types';
 
 import styles from './index.scss';
+import { useImmer } from '@/utils/hooks/useImmer';
 
 const PagePersonCard: FC = function PagePersonCard() {
   const dispatch = useDispatch();
@@ -18,12 +19,15 @@ const PagePersonCard: FC = function PagePersonCard() {
   const cardList = PersonModel.hooks.useStore('cardList');
   const { uid } = useParams<PageParam>();
   const tableLoading = PersonModel.hooks.useLoading('getPersonInfo');
+  const [loadingCard, setLoadingCard] = useImmer(new Set(''));
 
   useEffect(() => {
     PersonModel.dispatch.getPersonInfo(dispatch, { uid });
   }, [dispatch, personInfo.id, uid]);
 
-  /** 退休 */
+  useEffect(() => {
+    if (tableLoading) setLoadingCard(() => new Set(''));
+  }, [setLoadingCard, tableLoading]);
 
   /** 新增 */
   const createHandle = useCallback(() => {
@@ -34,6 +38,26 @@ const PagePersonCard: FC = function PagePersonCard() {
   const editHandle = useCallback((id: string) => {
     history.push(`./card/edit/${id}`);
   }, []);
+
+  /** 删除 */
+  const deleteHandle = useCallback(
+    (id: string) => {
+      Modal.confirm({
+        title: '删除这张卡片',
+        content: '该操作不可恢复',
+        cancelText: '不删除',
+        okText: '确认删除',
+        centered: true,
+        onOk: () => {
+          setLoadingCard((pre) => {
+            pre.add(id);
+          });
+          PersonModel.dispatch.removeUserCard(dispatch, { id });
+        },
+      });
+    },
+    [dispatch, setLoadingCard],
+  );
 
   const columns = useMemo<ColumnsType<UserCard.Item>>(() => {
     return [
@@ -97,18 +121,33 @@ const PagePersonCard: FC = function PagePersonCard() {
         title: '操作',
         key: 'action',
         align: 'center',
+        width: 260,
         render: (item: UserCard.Item) => {
           return (
             <Button.Group>
-              <Button ghost type='primary' onClick={() => editHandle(item.id)}>
+              <Button
+                loading={loadingCard.has(item.id)}
+                ghost
+                type='primary'
+                onClick={() => editHandle(item.id)}
+              >
                 编辑
+              </Button>
+              <Button
+                ghost
+                danger
+                type='primary'
+                loading={loadingCard.has(item.id)}
+                onClick={() => deleteHandle(item.id)}
+              >
+                删除
               </Button>
             </Button.Group>
           );
         },
       },
     ];
-  }, [editHandle]);
+  }, [deleteHandle, editHandle, loadingCard]);
 
   return (
     <div className={styles.wrap}>

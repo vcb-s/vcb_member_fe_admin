@@ -53,6 +53,15 @@ export namespace Services {
         method: 'post',
       });
     };
+
+    export type RemoveParam = { id: string };
+    /** 移除卡片 */
+    export const remove = (data: RemoveParam): Promise<void> => {
+      return request('/admin/user-card/delete', {
+        data,
+        method: 'post',
+      });
+    };
   }
   export namespace TinyCardList {
     export type ReadParam = {

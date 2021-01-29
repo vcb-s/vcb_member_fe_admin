@@ -1,8 +1,9 @@
 import { useState, useCallback, useRef, useMemo } from 'react';
 import type { Dispatch } from 'react';
 import { produce, Draft, Patch, applyPatches, nothing } from 'immer';
-import { enablePatches } from 'immer';
+import { enablePatches, enableMapSet } from 'immer';
 enablePatches();
+enableMapSet();
 
 type Nothing = typeof nothing;
 type SetAction<S> = S | ((pre: S) => S | void | Nothing);

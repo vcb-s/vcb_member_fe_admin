@@ -1,9 +1,8 @@
 import { defineConfig } from 'umi';
-import fiber from 'fibers';
 
 const __DEV__ = process.env.NODE_ENV === 'development';
 
-const cacheHost = 'https://cache.cswsadlab.com';
+const cacheHost = '';
 const base = '/vcbs_member/admin/';
 const publicPath = __DEV__ ? base : `${cacheHost}${base}`;
 
@@ -14,7 +13,7 @@ export default defineConfig({
 
   hash: true,
   dynamicImport: {},
-  forkTSChecker: {},
+  // forkTSChecker: {},
   nodeModulesTransform: { type: 'none' },
   favicon: `${cacheHost}/wp-content/customRes/favicon@180.png`,
 
@@ -131,7 +130,6 @@ export default defineConfig({
 
   sass: {
     sassOptions: {
-      fiber,
     },
   },
 });

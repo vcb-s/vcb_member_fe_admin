@@ -7,6 +7,7 @@ import {
   MouseEvent,
   useEffect,
   useReducer,
+  PropsWithChildren,
 } from 'react';
 import { usePrevious } from 'react-use';
 import { Modal, Form, Input } from 'antd';
@@ -74,70 +75,67 @@ export interface RestPassProps {
   show: boolean;
   onClose: (uid?: string) => void;
 }
-export const RestPass: FC<RestPassProps> = memo(function RestPass({
-  children,
-  uid,
-  show,
-  onClose,
-}) {
-  const dispatch = useDispatch();
-  const prevShow = usePrevious(show);
-  const submitLoading = PersonModel.hooks.useLoading('restPass');
-  const okButtonProps = useMemo((): ModalProps['okButtonProps'] => {
-    return { loading: submitLoading };
-  }, [submitLoading]);
+export const RestPass: FC<PropsWithChildren<RestPassProps>> = memo(
+  function RestPass({ children, uid, show, onClose }) {
+    const dispatch = useDispatch();
+    const prevShow = usePrevious(show);
+    const submitLoading = PersonModel.hooks.useLoading('restPass');
+    const okButtonProps = useMemo((): ModalProps['okButtonProps'] => {
+      return { loading: submitLoading };
+    }, [submitLoading]);
 
-  const { state, open, close, reset, change } = useRestPass();
+    const { state, open, close, reset, change } = useRestPass();
 
-  const changeHandle = useCallback(
-    (evt: ChangeEvent<HTMLInputElement>) => {
-      change(evt.target.value);
-    },
-    [change],
-  );
+    const changeHandle = useCallback(
+      (evt: ChangeEvent<HTMLInputElement>) => {
+        change(evt.target.value);
+      },
+      [change],
+    );
 
-  const submitHandle = useCallback(() => {
-    PersonModel.dispatch.restPass(dispatch, {
-      pass: state.pass,
-      uid,
-      cb: () => close(),
-    });
-  }, [close, dispatch, state.pass, uid]);
+    const submitHandle = useCallback(() => {
+      PersonModel.dispatch.restPass(dispatch, {
+        pass: state.pass,
+        uid,
+        cb: () => close(),
+      });
+    }, [close, dispatch, state.pass, uid]);
 
-  const afterCloseHandle = useCallback(() => {
-    reset();
-    onClose();
-  }, [onClose, reset]);
+    const afterCloseHandle = useCallback(() => {
+      reset();
+      onClose();
+    }, [onClose, reset]);
 
-  useEffect(() => {
-    if (!prevShow && show) {
-      open();
-    }
-  }, [open, prevShow, show]);
+    useEffect(() => {
+      if (!prevShow && show) {
+        open();
+      }
+    }, [open, prevShow, show]);
 
-  return (
-    <>
-      {children}
+    return (
+      <>
+        {children}
 
-      <Modal
-        visible={state.show}
-        onCancel={close}
-        onOk={submitHandle}
-        okButtonProps={okButtonProps}
-        afterClose={afterCloseHandle}
-        centered
-        title='重置登录密码'
-      >
-        <Form>
-          <Form.Item label='新密码' help='重置成功后注意保存新密码'>
-            <Input
-              placeholder='留空则重置为系统生成的4位数字随机密码'
-              value={state.pass}
-              onChange={changeHandle}
-            />
-          </Form.Item>
-        </Form>
-      </Modal>
-    </>
-  );
-});
+        <Modal
+          visible={state.show}
+          onCancel={close}
+          onOk={submitHandle}
+          okButtonProps={okButtonProps}
+          afterClose={afterCloseHandle}
+          centered
+          title='重置登录密码'
+        >
+          <Form>
+            <Form.Item label='新密码' help='重置成功后注意保存新密码'>
+              <Input
+                placeholder='留空则重置为系统生成的4位数字随机密码'
+                value={state.pass}
+                onChange={changeHandle}
+              />
+            </Form.Item>
+          </Form>
+        </Modal>
+      </>
+    );
+  },
+);

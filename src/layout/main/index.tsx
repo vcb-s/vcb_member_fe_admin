@@ -1,5 +1,7 @@
-import { FC } from 'react';
+import { FC, PropsWithChildren } from 'react';
 
-export const MainLayout: FC = function MainLayout({ children }) {
+export const MainLayout: FC<PropsWithChildren<unknown>> = function MainLayout({
+  children,
+}) {
   return <>{children}</>;
 };

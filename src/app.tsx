@@ -1,4 +1,4 @@
-import { FC, createElement } from 'react';
+import { FC, createElement, PropsWithChildren } from 'react';
 import { ConfigProvider } from 'antd';
 import zhCN from 'antd/es/locale/zh_CN';
 
@@ -10,7 +10,7 @@ export function render(oldRender: () => any) {
   });
 }
 
-const Root: FC = function Root({ children }) {
+const Root: FC<PropsWithChildren<unknown>> = function Root({ children }) {
   return <ConfigProvider locale={zhCN}>{children}</ConfigProvider>;
 };
 

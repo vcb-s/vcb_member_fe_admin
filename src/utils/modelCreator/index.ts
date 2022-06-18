@@ -1,205 +1,231 @@
-import { useSelector } from 'umi';
 import { EffectsCommandMap } from 'dva';
-import { SagaConvertor } from './convertor/saga';
-import { ReducerConvertor } from './convertor/reducer';
+import { useMemo } from 'react';
+import { useSelector, shallowEqual, useDispatch } from 'react-redux';
 import {
-  DispatchConvertorForSaga,
+  ActionFactorysConvertorForEffects,
+  ActionFactorysConvertorForReducers,
+} from './types/convertor/actionFactory';
+import {
+  ActionsConvertorForEffects,
+  ActionsConvertorForReducers,
+} from './types/convertor/dispatch';
+import {
+  DispatchConvertorForEffects,
   DispatchConvertorForReducer,
-} from './convertor/dispatch';
-import { Util } from './util';
-import { Hooks } from './hooks';
+} from './types/convertor/dispatch/v1';
+import { Util } from './types/util';
+import { Hooks } from './types/hooks';
 
-/**
- *
- *
- * @example
- * ```typescript
- * // ./model.ts
- * import { EffectsCommandMap } from 'dva'
- *
- * interface State {
- *   name: string;
- *   pass: string;
- *   token: string;
- * }
- * const INITAL_STATE: State = {
- *   name: '',
- *   pass: '',
- *   token: '',
- * }
- *
- * const { model, actions, utils, ...helpers } = modalCreator({
- *   namespace: 'pages.login',
- *   state: INITAL_STATE,
- *   effects: {
- *     *login (_: undefined, { call, put, select }: EffectsCommandMap): Generator<unknown, void, any> {
- *       const { name, pass }: State = yield select(utils.currentStore)
- *       try {
- *         const { token } = yield call(login, { name, pass })
- *         yield put(actions.loginSuccess({ token }))
- *       } catch (e) {
- *         yield put(actions.loginFail({ token }))
- *       }
- *     }
- *   },
- *   reducers: {
- *     loginSuccess (state, { payload}: { payload: { token: string }}) {
- *       state.name = ''
- *       state.pass = ''
- *       state.token = payload.token
- *     },
- *     loginFail () {
- *       state.pass = ''
- *     },
- *   },
- * })
- *
- * export const loginStore = { utils, ...helpers }
- *
- * // 这里不能写`export default model`，否则就要设置`skipModelValidate`为`false`
- * // 不然这个model不被识别
- * export default {
- *   namespace: model.namespace,
- *   state: model.state,
- *   effects: model.effects,
- *   reducers: model.reducers,
- * }
- * ```
- *
- * ```typescriptreact
- * // index.tsx
- * import { loginStore } from './model'
- *
- * export default () => {
- *   return <div onClick={() => loginStore.dispatch.login()}>登录</div>
- * }
- * ```
- */
+interface Modal<Namespace, State, Effects, Reducers, Subscriptions> {
+  namespace: Namespace;
+  state: State;
+  effects: Effects;
+  reducers: Reducers;
+  subscriptions?: Subscriptions;
+}
+interface ModalCreatorResult<
+  Namespace,
+  State,
+  Effects,
+  Reducers,
+  Subscriptions,
+> {
+  /**
+   * 喂给 export default 的
+   */
+  model: Modal<Namespace, State, Effects, Reducers, Subscriptions>;
+  // 用来构造actions
+  actions: ActionFactorysConvertorForEffects<Effects, null> &
+    ActionFactorysConvertorForReducers<Reducers, null>;
+  /** @deprecated 带namaspace的actions */
+  globalActions: ActionFactorysConvertorForEffects<Effects, Namespace> &
+    ActionFactorysConvertorForReducers<Reducers, Namespace, State>;
+  /** @deprecated 使用 hooks.useActions 代替  */
+  dispatch: DispatchConvertorForEffects<Effects> &
+    DispatchConvertorForReducer<Reducers, State>;
+  // 一些用于hooks的工具函数
+  hooks: Hooks<State, Effects, Reducers>;
+  // 一些用于saga或者组件的工具函数
+  utils: Util<State, Effects, Reducers, Namespace>;
+}
+
 /** 创建model */
 export const modelCreator = <
-  S,
-  N extends string,
-  E extends {
+  State,
+  Namespace extends string,
+  Effects extends {
     [key: string]: (
       action: any,
       effects: EffectsCommandMap,
     ) => Generator<unknown, unknown, unknown>;
   },
-  R extends { [key: string]: (state: S, action: { payload: any }) => S | void }
->(model: {
-  namespace: N;
-  state: S;
-  effects: E;
-  reducers: R;
-  subscriptions?: {};
-}): {
-  // 喂给 export default 的
-  model: typeof model;
-  // 不带namaspace的actions
-  actions: SagaConvertor<E, undefined, S> & ReducerConvertor<R, undefined, S>;
-  // 带namaspace的actions
-  globalActions: SagaConvertor<E, N> & ReducerConvertor<R, N, S>;
-  // dispatch
-  dispatch: DispatchConvertorForSaga<E> & DispatchConvertorForReducer<R, S>;
-  // 一些用于hooks的工具函数
-  hooks: Hooks<S, E>;
-  // 一些用于saga或者组件的工具函数
-  utils: Util<S, E & R, N>;
-} => {
+  Reducers extends {
+    [key: string]: (state: State, action: { payload: any }) => State | void;
+  },
+  Subscriptions extends {
+    [key: string]: (
+      val: { dispatch: <A>(action: A) => unknown; history: History },
+      onError: (err: unknown) => void,
+    ) => void | (() => void);
+  },
+>(
+  model: Modal<Namespace, State, Effects, Reducers, Subscriptions>,
+): ModalCreatorResult<Namespace, State, Effects, Reducers, Subscriptions> => {
   const { namespace } = model;
 
-  const actions: any = {};
-  const globalActions: any = {};
-  const dispatch: any = {};
-  const dvaLoadingSelector: any = {};
-  const effectKeys: any = {};
-  const reducerKeys: any = {};
+  const effectKeysArr = Object.keys(model.effects);
+  const reducerKeysArr = Object.keys(model.reducers);
+  const allKeysArr = [...effectKeysArr, ...reducerKeysArr];
 
-  const hooks: Hooks<S, E> = {
-    useStore: (key?: string, key2?: string, key3?: string, key4?: string) => {
+  /** 将key数组映射为hash table */
+  // @ts-expect-error Object.fromEntries无法得到合适的类型
+  const keys: Util<State, Effects, Reducers, Namespace>['keys'] =
+    Object.fromEntries(allKeysArr.map((k) => [k, k]));
+
+  /** 将key数组映射为能拿到带namespace前缀的key的hash table */
+  // @ts-expect-error Object.fromEntries无法得到合适的类型
+  const globalKeys: Util<State, Effects, Reducers, Namespace>['globalKeys'] =
+    Object.fromEntries(
+      Object.entries(keys).map(([key, value]) => [
+        key,
+        `${namespace}/${value}`,
+      ]),
+    );
+
+  /** @deprecated 获取key对应的loading-plugin里对应的state选择器 */
+  // @ts-expect-error Object.fromEntries无法得到合适的类型
+  const loadingSelector: Util<
+    State,
+    Effects,
+    Reducers,
+    Namespace
+  >['loadingSelector'] = Object.fromEntries(
+    Object.entries(keys).map(([key, value]) => [
+      key,
+      (_: any) => _.loading.effects[`${namespace}/${key}`],
+    ]),
+  );
+
+  /** 方便从key得到globalKey或反之 */
+  // @ts-expect-error Map的 constructor 有个诡异的 readonly 要求，导致 entries 的出参没法只动吻合
+  // 用 as unknown as readonly [string, string][] 也可以，但那样看起来好长
+  const mapBetweenKeys = new Map<string, string>([
+    // 'key' => 'ns/key'
+    ...Object.entries(globalKeys),
+    // 'ns/key' => 'key'
+    ...Object.entries(globalKeys).map(([k, v]) => [v, k]),
+  ]);
+
+  // @ts-expect-error Object.fromEntries无法得到合适的类型
+  const actions: ActionFactorysConvertorForEffects<Effects, null> &
+    ActionFactorysConvertorForReducers<Reducers, null> = Object.fromEntries(
+    allKeysArr.map((k) => [
+      k,
+      (payload: any, global = false) => ({
+        type: global ? globalKeys[k] : k,
+        payload,
+        __IS_SAGA: true,
+      }),
+    ]),
+  );
+
+  // @ts-expect-error Object.fromEntries无法得到合适的类型
+  const globalActions: ActionFactorysConvertorForEffects<Effects, Namespace> &
+    ActionFactorysConvertorForReducers<Reducers, Namespace, State> =
+    Object.fromEntries(
+      allKeysArr.map((k) => [
+        k,
+        (payload: any, global = true) => ({
+          type: global ? globalKeys[k] : k,
+          payload,
+          __IS_SAGA: true,
+        }),
+      ]),
+    );
+
+  // @ts-ignore
+  const dispatch: DispatchConvertorForEffects<Effects> &
+    DispatchConvertorForReducer<Reducers, State> = Object.fromEntries(
+    allKeysArr.map((k) => [
+      k,
+      (dispatch: Function, payload?: any) => {
+        // 需要保证传值数量正确
+        return dispatch(actions[k](payload, true));
+      },
+    ]),
+  );
+
+  const hooks: Hooks<State, Effects, Reducers> = {
+    useStore: <T>(
+      selector: null | string | ((state: State) => T) = null,
+      ...keys: string[]
+    ) => {
       return useSelector((_: any) => {
-        if (key) {
-          if (key2) {
-            if (key3) {
-              if (key4) {
-                return _[namespace][key][key2][key3][key4];
-              }
-              return _[namespace][key][key2][key3];
+        if (selector) {
+          if (typeof selector === 'string') {
+            let result = _[namespace][selector];
+
+            while (keys.length) {
+              result = result[keys.pop()!];
             }
-            return _[namespace][key][key2];
+
+            return result;
           }
-          return _[namespace][key];
+
+          return selector(_[namespace]);
         }
 
         return _[namespace];
+      }, shallowEqual);
+    },
+    useLoading: <K extends keyof Effects>(
+      selector?: string | ((state: Record<K, boolean>) => boolean),
+    ) => {
+      return useSelector((_: any) => {
+        if (selector !== undefined) {
+          if (typeof selector === 'string') {
+            return _.loading.effects[`${namespace}/${selector}`] as boolean;
+          }
+
+          return !!selector(
+            Object.keys(keys).reduce((obj, key) => {
+              obj[key as K] = !!_.loading.effects[mapBetweenKeys.get(key)!];
+              return obj;
+            }, {} as Record<K, boolean>),
+          );
+        }
+        return _.loading.models[namespace] as boolean;
       });
     },
-    useLoading: (key?: string) =>
-      useSelector((_: any) => {
-        if (key !== undefined) {
-          return _.loading.effects[`${namespace}/${key}`] as boolean;
-        } else {
-          return _.loading.models[namespace] as boolean;
-        }
-      }),
+    useStoreLoading: () =>
+      useSelector((_: any) => _.loading.models[namespace] as boolean),
+    useActions: () => {
+      const _dispatch = useDispatch();
+
+      return useMemo((): ActionsConvertorForEffects<Effects> &
+        ActionsConvertorForReducers<Reducers, State> => {
+        return Object.keys(dispatch).reduce((pre, current) => {
+          pre[current] = (payload?: any) =>
+            // 需要保证传值数量正确
+            dispatch[current](_dispatch, payload);
+
+          return pre;
+        }, {} as any);
+      }, [_dispatch]);
+    },
   };
 
-  Object.keys(model.effects).forEach((sagaKey) => {
-    actions[sagaKey] = (payload: any) => ({
-      type: sagaKey,
-      payload,
-      __IS_SAGA: true,
-    });
-
-    globalActions[sagaKey] = (payload: any) => ({
-      type: `${namespace}/${sagaKey}`,
-      payload,
-      __IS_SAGA: true,
-    });
-
-    dispatch[sagaKey] = (dispatch: (action: any) => any, payload: any) =>
-      dispatch(globalActions[sagaKey](payload));
-
-    effectKeys[sagaKey] = sagaKey;
-    dvaLoadingSelector[sagaKey] = (_: any) =>
-      _.loading.effects[`${namespace}/${sagaKey}`];
-  });
-
-  Object.keys(model.reducers).forEach((reducerKey) => {
-    actions[reducerKey] = (payload: any) => ({
-      type: reducerKey,
-      payload,
-      __IS_SAGA: true,
-    });
-
-    globalActions[reducerKey] = (payload: any) => ({
-      type: `${namespace}/${reducerKey}`,
-      payload,
-      __IS_SAGA: true,
-    });
-
-    dispatch[reducerKey] = (dispatch: (action: any) => any, payload: any) =>
-      dispatch(globalActions[reducerKey](payload));
-
-    reducerKeys[reducerKey] = reducerKey;
-  });
-
-  const allKeys = { ...reducerKeys, ...reducerKeys };
-  const allGlobalKeys = { ...allKeys };
-  Object.keys(allGlobalKeys).forEach((key) => {
-    allGlobalKeys[key] = `${namespace}/${allGlobalKeys[key]}`;
-  });
-
-  const utils: Util<S, E & R, N> = {
+  const utils: Util<State, Effects, Reducers, Namespace> = {
     currentStore: (_) => _[namespace],
-    loadingSelector: dvaLoadingSelector,
-    globalKeys: allGlobalKeys,
-    keys: allKeys,
+    loadingSelector: loadingSelector,
+    globalKeys: globalKeys,
+    keys: keys,
     fieldPayloadCreator: ((name: unknown, key: unknown, value: unknown) => {
       return {
         name,
         key,
         value,
+        // magic str
         __private_symbol: Symbol.for('FieldSyncPayloadCreator'),
       };
     }) as any,

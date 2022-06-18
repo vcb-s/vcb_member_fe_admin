@@ -2,11 +2,11 @@ const __private_symbol = Symbol.for('FieldSyncPayloadCreator');
 
 export type PrivateSymbol = typeof __private_symbol;
 
-export interface FieldSyncPayloadCreator<S extends { form: unknown }> {
+interface FieldSyncPayloadCreator<S extends { form: unknown }> {
   <
     N extends keyof S['form'],
     K extends keyof S['form'][N],
-    V extends S['form'][N][K]
+    V extends S['form'][N][K],
   >(
     name: N,
     key: K,
@@ -19,21 +19,21 @@ export interface FieldSyncPayloadCreator<S extends { form: unknown }> {
   };
 }
 
-type dvaLoadingSelector<E> = {
-  [K in keyof E]: () => boolean;
-};
-
-export interface Util<S, E, N> {
+export interface Util<S, E, R, N, EnR = E & R> {
   globalKeys: {
     // @ts-expect-error
-    [K in keyof E]: `${N}/${K}`;
+    [K in keyof EnR]: `${N}/${K}`;
   };
   keys: {
-    [K in keyof E]: K;
+    [K in keyof EnR]: K;
   };
   /** 获取当前model值 */
   currentStore: (globalStore: any) => S;
-  loadingSelector: dvaLoadingSelector<E>;
+  /** @deprecated */
+  loadingSelector: {
+    [K in keyof E]: () => boolean;
+  };
+  /** @deprecated */
   fieldPayloadCreator: S extends { form: unknown }
     ? FieldSyncPayloadCreator<S>
     : never;

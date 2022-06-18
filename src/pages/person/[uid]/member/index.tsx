@@ -11,7 +11,7 @@ import {
   ChangeEvent,
 } from 'react';
 import { produce } from 'immer';
-import { useRouteMatch, useDispatch } from 'umi';
+import { useRouteMatch, useDispatch, useHistory } from 'umi';
 import { useMountedState, useThrottle } from 'react-use';
 
 import {
@@ -651,6 +651,8 @@ export default function PagePerson() {
     setCurrentUID('');
   }, []);
 
+  const history = useHistory();
+
   const columns = useMemo<ColumnsType<PersonInfo.Item>>(() => {
     return [
       {
@@ -716,6 +718,15 @@ export default function PagePerson() {
         render: (person: PersonInfo.Item) => {
           return (
             <Space>
+              <Button
+                onClick={() => {
+                  history.push(`/person/${person.id}/card`);
+                  message.success(`你正在查看${person.nickname}的主页`);
+                }}
+              >
+                管理
+              </Button>
+
               <RestPass
                 uid={person.id}
                 show={currentUID === person.id}
@@ -780,6 +791,7 @@ export default function PagePerson() {
     banHandle,
     currentUID,
     filtedUserGroupMap,
+    history,
     kickHandle,
     resetCurrentUID,
     resetPersonPassHandle,

@@ -42,6 +42,10 @@ export default defineConfig({
   dva: {
     immer: true,
     hmr: false,
+    // 跳过校验可以写export default model但后果是models文件夹下不能有不export model的文件否则编译会警告
+    skipModelValidate: false,
+    // 否则项目的ts全瞎了
+    disableModelsReExport: true,
   },
 
   /** @link https://caniuse.com/async-functions */

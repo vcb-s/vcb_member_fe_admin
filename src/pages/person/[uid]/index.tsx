@@ -1,7 +1,10 @@
-import { Redirect, useParams } from 'umi';
+import { Navigate, useSearchParams } from "umi";
 
-import { PageParam } from './types';
 export default function () {
-  const { uid } = useParams<PageParam>();
-  return <Redirect push={false} to={`/person/${uid}/card`} />;
+  const [param] = useSearchParams();
+  const uid = param.get("uid");
+  if (uid) {
+    return <Navigate to={`/person/${uid}/card`} replace />;
+  }
+  return null;
 }

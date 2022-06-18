@@ -1,32 +1,23 @@
-import {
-  ChangeEvent,
-  useEffect,
-  useCallback,
-  useState,
-  useRef,
-  useMemo,
-} from 'react';
-import { useDispatch, useLocation, useHistory } from 'umi';
-import { parse } from 'query-string';
-import { Form, Input, Button, Select, Avatar } from 'antd';
-import classnames from 'classnames';
-
-import { UsersModel } from '@/models/users';
-import { User } from '@/utils/types/User';
-import { MAGIC } from '@/utils/constant';
-import { loginStore } from './model';
-
-import styles from './index.scss';
+import { UsersModel } from "@/models/users";
+import { MAGIC } from "@/utils/constant";
+import { User } from "@/utils/types/User";
+import { Avatar, Button, Form, Input, Select } from "antd";
+import classnames from "classnames";
+import { parse } from "query-string";
+import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useDispatch, useLocation, useNavigate } from "umi";
+import styles from "./index.scss";
+import { loginStore } from "./model";
 
 const Login = function Login() {
   const dispatch = useDispatch();
-  const loginForm = loginStore.hooks.useStore('form', 'login');
+  const loginForm = loginStore.hooks.useStore("form", "login");
 
   const userState = UsersModel.hooks.useStore();
   const { search } = useLocation();
-  const history = useHistory();
+  const navigate = useNavigate();
 
-  const userlistLoading = UsersModel.hooks.useLoading('getUserList');
+  const userlistLoading = UsersModel.hooks.useLoading("getUserList");
 
   const loginLoading = loginStore.hooks.useLoading();
 
@@ -47,25 +38,22 @@ const Login = function Login() {
   }, [dispatch]);
 
   // 最后输入的搜索值，为了让antd的select在没有选择的时候也保留输入值
-  const [lastSearchValue, setLastSearchValue] = useState('');
+  const [lastSearchValue, setLastSearchValue] = useState("");
   const hasSelectAfterTypeSearch = useRef<boolean>(false);
 
   const filtedUsers = useMemo(() => {
     return userState.usersList.data.filter((user) => {
-      return (
-        user.id === lastSearchValue ||
-        user.nickname.indexOf(lastSearchValue) >= 0
-      );
+      return user.id === lastSearchValue || user.nickname.indexOf(lastSearchValue) >= 0;
     });
   }, [lastSearchValue, userState.usersList.data]);
 
   const nameSelectHandle = useCallback(
-    (id: User.Item['id']) => {
+    (id: User.Item["id"]) => {
       hasSelectAfterTypeSearch.current = true;
 
       loginStore.dispatch.fieldSync(
         dispatch,
-        loginStore.utils.fieldPayloadCreator('login', 'id', id),
+        loginStore.utils.fieldPayloadCreator("login", "id", id),
       );
     },
     [dispatch],
@@ -89,7 +77,7 @@ const Login = function Login() {
     (evt: ChangeEvent<HTMLInputElement>) => {
       loginStore.dispatch.fieldSync(
         dispatch,
-        loginStore.utils.fieldPayloadCreator('login', 'pass', evt.target.value),
+        loginStore.utils.fieldPayloadCreator("login", "pass", evt.target.value),
       );
     },
     [dispatch],
@@ -97,19 +85,19 @@ const Login = function Login() {
 
   useEffect(() => {
     const query = parse(search);
-    const username = query[MAGIC.loginPageUserNameQueryKey] || '';
-    const code = query[MAGIC.loginPageAuthCodeQueryKey] || '';
+    const username = query[MAGIC.loginPageUserNameQueryKey] || "";
+    const code = query[MAGIC.loginPageAuthCodeQueryKey] || "";
     if (
       // 有可能因为参数错误而parse产生一个数组
-      typeof username === 'string' &&
-      typeof code === 'string' &&
+      typeof username === "string" &&
+      typeof code === "string" &&
       username &&
       code
     ) {
       nameSelectHandle(username);
       loginStore.dispatch.fieldSync(
         dispatch,
-        loginStore.utils.fieldPayloadCreator('login', 'pass', code),
+        loginStore.utils.fieldPayloadCreator("login", "pass", code),
       );
     }
   }, [dispatch, nameSelectHandle, search]);
@@ -128,17 +116,17 @@ const Login = function Login() {
 
     if (token && UID) {
       const query = parse(search);
-      let navQuery = query[MAGIC.loginPageNavQueryKey] || '';
+      let navQuery = query[MAGIC.loginPageNavQueryKey] || "";
 
       if (Array.isArray(navQuery)) {
-        navQuery = navQuery.pop() || '';
+        navQuery = navQuery.pop() || "";
       }
 
       const navURL = navQuery ? JSON.parse(navQuery) : `/person/${UID}`;
 
-      history.replace(navURL);
+      navigate(navURL, { replace: true });
     }
-  }, [history, search]);
+  }, [navigate, search]);
 
   return (
     <div className={styles.wrap}>
@@ -147,26 +135,21 @@ const Login = function Login() {
         <div
           className={classnames(
             styles.loginInfoPreviewUserName,
-            currentSelectedUser?.nickname &&
-              styles.loginInfoPreviewUserNameActive,
+            currentSelectedUser?.nickname && styles.loginInfoPreviewUserNameActive,
           )}
         >
           {currentSelectedUser?.nickname
             ? `欢迎回来，${currentSelectedUser.nickname}`
-            : 'お風呂にする？ご飯にする？それとも……わ・た・し？'}
+            : "お風呂にする？ご飯にする？それとも……わ・た・し？"}
         </div>
       </div>
 
       <div className={styles.mainForm}>
-        <Form
-          className={styles.mainForm}
-          layout='vertical'
-          onSubmitCapture={loginHandle}
-        >
-          <Form.Item label='用户'>
+        <Form className={styles.mainForm} layout="vertical" onSubmitCapture={loginHandle}>
+          <Form.Item label="用户">
             <Select
               showSearch
-              placeholder='可输入用户昵称进行搜索'
+              placeholder="可输入用户昵称进行搜索"
               loading={userlistLoading}
               value={loginForm.id || undefined}
               filterOption={false}
@@ -178,24 +161,22 @@ const Login = function Login() {
             >
               {filtedUsers.map((user) => (
                 <Select.Option key={user.key} value={user.id}>
-                  <Avatar src={user.avast} size='small' />
-                  <span className={styles.userSeletorNickname}>
-                    {user.nickname}
-                  </span>
+                  <Avatar src={user.avast} size="small" />
+                  <span className={styles.userSeletorNickname}>{user.nickname}</span>
                 </Select.Option>
               ))}
             </Select>
           </Form.Item>
-          <Form.Item label='密码'>
+          <Form.Item label="密码">
             <Input.Password
               value={loginForm.pass}
               onChange={passChangeHandle}
               onPressEnter={loginHandle}
-              autoComplete='new-password'
+              autoComplete="new-password"
               // autoComplete='off'
             />
           </Form.Item>
-          <Form.Item style={{ textAlign: 'right' }}>
+          <Form.Item style={{ textAlign: "right" }}>
             <Button.Group>
               {/* <Button
                 type='primary'
@@ -206,11 +187,11 @@ const Login = function Login() {
                 主站登录
               </Button> */}
               <Button
-                type='primary'
+                type="primary"
                 ghost
                 loading={loginLoading}
                 // onClick={loginHandle}
-                htmlType='submit'
+                htmlType="submit"
                 disabled={!loginForm.pass}
               >
                 登录

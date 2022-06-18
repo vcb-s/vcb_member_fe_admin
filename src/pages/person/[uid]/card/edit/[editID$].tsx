@@ -1,39 +1,27 @@
-import { useEffect, useMemo, useCallback, ChangeEvent } from 'react';
-import { useParams, useDispatch, useHistory } from 'umi';
-import classnames from 'classnames';
-import {
-  Form,
-  Switch,
-  Button,
-  Space,
-  Input,
-  message,
-  Modal,
-  PageHeader,
-  Tooltip,
-} from 'antd';
-import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
-
-import { defaultFormLayout, textareaAutoSize } from '@/utils/constant';
-import { GroupSelector } from '@/components/GroupSelector';
-import { PersonModel } from '@/models/person';
-
-import { PageParam } from './types';
-import { GO_BOOL } from '@/utils/types';
-import { Group } from '@/utils/types/Group';
-
-import { PersonCardEditModel } from './models';
-import styles from './[editID].scss';
+import { GroupSelector } from "@/components/GroupSelector";
+import { PersonModel } from "@/models/person";
+import { defaultFormLayout, textareaAutoSize } from "@/utils/constant";
+import { GO_BOOL } from "@/utils/types";
+import { Group } from "@/utils/types/Group";
+import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
+import { Button, Form, Input, message, Modal, PageHeader, Space, Switch, Tooltip } from "antd";
+import classnames from "classnames";
+import { ChangeEvent, useCallback, useEffect, useMemo } from "react";
+import { useDispatch, useNavigate, useParams } from "umi";
+import { PersonCardEditModel } from "./models";
+import { PageParam } from "./types";
+import styles from "./[editID].scss";
 
 const yesIcon = <CheckOutlined />;
 const noIcon = <CloseOutlined />;
 
 export default function PagePerson() {
+  // @ts-expect-error useParams的泛型有点问题
   const { editID: editID, uid } = useParams<PageParam>();
   const dispatch = useDispatch();
-  const history = useHistory();
-  const form = PersonCardEditModel.hooks.useStore('form', 'card');
-  const personInfo = PersonModel.hooks.useStore('personInfo');
+  const navigate = useNavigate();
+  const form = PersonCardEditModel.hooks.useStore("form", "card");
+  const personInfo = PersonModel.hooks.useStore("personInfo");
   const editModelLoading = PersonCardEditModel.hooks.useLoading();
   const personLoading = PersonModel.hooks.useLoading();
 
@@ -41,7 +29,7 @@ export default function PagePerson() {
 
   /** 刷新个人信息 */
   useEffect(() => {
-    PersonModel.dispatch.getPersonInfo(dispatch, { uid });
+    PersonModel.dispatch.getPersonInfo(dispatch, { uid: uid || "" });
   }, [dispatch, personInfo.id, uid]);
 
   /** 刷新/重置 */
@@ -73,8 +61,8 @@ export default function PagePerson() {
   /** 重置按钮 */
   const resetClickHandle = useCallback(() => {
     Modal.confirm({
-      title: '操作确认',
-      content: '尚未提交的修改将会丢失',
+      title: "操作确认",
+      content: "尚未提交的修改将会丢失",
       onOk: () => {
         if (editID) {
           refreshHandle(editID);
@@ -95,17 +83,13 @@ export default function PagePerson() {
   const avastChangeHandle = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       const url = event.target.value;
-      if (url && '/'.indexOf(url) > -1 && 'https://'.indexOf(url) !== 0) {
-        message.error('请填写完整链接');
+      if (url && "/".indexOf(url) > -1 && "https://".indexOf(url) !== 0) {
+        message.error("请填写完整链接");
         return;
       }
       PersonCardEditModel.dispatch.fieldSync(
         dispatch,
-        PersonCardEditModel.utils.fieldPayloadCreator(
-          'card',
-          'originAvast',
-          event.target.value,
-        ),
+        PersonCardEditModel.utils.fieldPayloadCreator("card", "originAvast", event.target.value),
       );
     },
     [dispatch],
@@ -116,11 +100,7 @@ export default function PagePerson() {
     (bool: boolean) => {
       PersonCardEditModel.dispatch.fieldSync(
         dispatch,
-        PersonCardEditModel.utils.fieldPayloadCreator(
-          'card',
-          'setAsUserAvatar',
-          bool,
-        ),
+        PersonCardEditModel.utils.fieldPayloadCreator("card", "setAsUserAvatar", bool),
       );
     },
     [dispatch],
@@ -131,32 +111,21 @@ export default function PagePerson() {
     (event: ChangeEvent<HTMLInputElement>) => {
       PersonCardEditModel.dispatch.fieldSync(
         dispatch,
-        PersonCardEditModel.utils.fieldPayloadCreator(
-          'card',
-          'nickname',
-          event.target.value,
-        ),
+        PersonCardEditModel.utils.fieldPayloadCreator("card", "nickname", event.target.value),
       );
     },
     [dispatch],
   );
 
   /** 选择的组别 */
-  const selectedGroup = useMemo(
-    (): string[] => form.group.map((group) => group.id),
-    [form.group],
-  );
+  const selectedGroup = useMemo((): string[] => form.group.map((group) => group.id), [form.group]);
 
   /** 职位 */
   const jobChangeHandle = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       PersonCardEditModel.dispatch.fieldSync(
         dispatch,
-        PersonCardEditModel.utils.fieldPayloadCreator(
-          'card',
-          'job',
-          event.target.value,
-        ),
+        PersonCardEditModel.utils.fieldPayloadCreator("card", "job", event.target.value),
       );
     },
     [dispatch],
@@ -167,11 +136,7 @@ export default function PagePerson() {
     (event: ChangeEvent<HTMLTextAreaElement>) => {
       PersonCardEditModel.dispatch.fieldSync(
         dispatch,
-        PersonCardEditModel.utils.fieldPayloadCreator(
-          'card',
-          'bio',
-          event.target.value,
-        ),
+        PersonCardEditModel.utils.fieldPayloadCreator("card", "bio", event.target.value),
       );
     },
     [dispatch],
@@ -182,7 +147,7 @@ export default function PagePerson() {
     (groups: Group.Item[]) => {
       PersonCardEditModel.dispatch.fieldSync(
         dispatch,
-        PersonCardEditModel.utils.fieldPayloadCreator('card', 'group', groups),
+        PersonCardEditModel.utils.fieldPayloadCreator("card", "group", groups),
       );
     },
     [dispatch],
@@ -194,8 +159,8 @@ export default function PagePerson() {
       PersonCardEditModel.dispatch.fieldSync(
         dispatch,
         PersonCardEditModel.utils.fieldPayloadCreator(
-          'card',
-          'retired',
+          "card",
+          "retired",
           checked ? GO_BOOL.yes : GO_BOOL.no,
         ),
       );
@@ -209,8 +174,8 @@ export default function PagePerson() {
       PersonCardEditModel.dispatch.fieldSync(
         dispatch,
         PersonCardEditModel.utils.fieldPayloadCreator(
-          'card',
-          'hide',
+          "card",
+          "hide",
           checked ? GO_BOOL.yes : GO_BOOL.no,
         ),
       );
@@ -220,21 +185,21 @@ export default function PagePerson() {
 
   /** 返回上一页 */
   const goBackHandle = useCallback(() => {
-    history.goBack();
-  }, [history]);
+    navigate(-1);
+  }, [navigate]);
 
   return (
     <div className={styles.wrap}>
-      <PageHeader title='编辑卡片' onBack={goBackHandle} />
+      <PageHeader title="编辑卡片" onBack={goBackHandle} />
 
       <Form {...defaultFormLayout.normal} className={styles.form}>
-        <Form.Item label='头像' required>
+        <Form.Item label="头像" required>
           <Input
             value={form.originAvast}
             disabled={formLoading}
             onChange={avastChangeHandle}
             suffix={
-              <Tooltip defaultVisible title='是否同步设置该图片为登录头像'>
+              <Tooltip defaultVisible title="是否同步设置该图片为登录头像">
                 <Switch
                   loading={formLoading}
                   checked={form.setAsUserAvatar}
@@ -247,23 +212,15 @@ export default function PagePerson() {
           />
         </Form.Item>
 
-        <Form.Item label='昵称' required>
-          <Input
-            value={form.nickname}
-            disabled={formLoading}
-            onChange={nicknameChangeHandle}
-          />
+        <Form.Item label="昵称" required>
+          <Input value={form.nickname} disabled={formLoading} onChange={nicknameChangeHandle} />
         </Form.Item>
 
-        <Form.Item label='职称' required>
-          <Input
-            value={form.job}
-            disabled={formLoading}
-            onChange={jobChangeHandle}
-          />
+        <Form.Item label="职称" required>
+          <Input value={form.job} disabled={formLoading} onChange={jobChangeHandle} />
         </Form.Item>
 
-        <Form.Item label='个人简介' required>
+        <Form.Item label="个人简介" required>
           <Input.TextArea
             value={form.bio}
             autoSize={textareaAutoSize}
@@ -273,9 +230,9 @@ export default function PagePerson() {
         </Form.Item>
 
         <Form.Item
-          label='组别'
+          label="组别"
           required
-          help='主要不要跟你的别的卡片重叠选择，不然会出现一个组别重复出现多个您的卡片'
+          help="主要不要跟你的别的卡片重叠选择，不然会出现一个组别重复出现多个您的卡片"
         >
           <GroupSelector
             value={form.group}
@@ -285,10 +242,7 @@ export default function PagePerson() {
           />
         </Form.Item>
 
-        <Form.Item
-          label='退休'
-          help='设置退休状态后将会在组员名称上显示退休标识'
-        >
+        <Form.Item label="退休" help="设置退休状态后将会在组员名称上显示退休标识">
           <Switch
             loading={formLoading}
             checked={form.retired === GO_BOOL.yes}
@@ -299,11 +253,9 @@ export default function PagePerson() {
         </Form.Item>
 
         <Form.Item
-          label='隐藏'
-          help='隐藏后将不会被展示在前台'
-          className={classnames(
-            form.hide === GO_BOOL.yes && styles.heightLightHelper,
-          )}
+          label="隐藏"
+          help="隐藏后将不会被展示在前台"
+          className={classnames(form.hide === GO_BOOL.yes && styles.heightLightHelper)}
         >
           <Switch
             loading={formLoading}
@@ -314,18 +266,14 @@ export default function PagePerson() {
           />
         </Form.Item>
 
-        <div style={{ height: '20px' }} />
+        <div style={{ height: "20px" }} />
 
         <Form.Item {...defaultFormLayout.tail}>
           <Space>
-            <Button
-              type='default'
-              loading={formLoading}
-              onClick={resetClickHandle}
-            >
+            <Button type="default" loading={formLoading} onClick={resetClickHandle}>
               重置
             </Button>
-            <Button type='primary' loading={formLoading} onClick={submitHandle}>
+            <Button type="primary" loading={formLoading} onClick={submitHandle}>
               提交
             </Button>
           </Space>

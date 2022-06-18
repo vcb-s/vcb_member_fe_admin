@@ -13,16 +13,12 @@
     "strict": true,
     "paths": {
       "@/*": [
-        "src/*"
+        "*"
       ],
       "@@/*": [
-        "src/.umi/*"
+        ".umi/*"
       ]
     },
     "allowSyntheticDefaultImports": true
-  },
-  "include": [
-    "src",
-    ".umirc.ts"
-  ]
+  }
 }

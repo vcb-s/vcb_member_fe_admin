@@ -1,8 +1,7 @@
-import { FC, createElement, PropsWithChildren } from 'react';
-import { ConfigProvider } from 'antd';
-import zhCN from 'antd/es/locale/zh_CN';
-
-import poyfill from '@/utils/asyncPoyfill';
+import poyfill from "@/utils/asyncPoyfill";
+import { ConfigProvider } from "antd";
+import zhCN from "antd/es/locale/zh_CN";
+import { createElement, FC, PropsWithChildren } from "react";
 
 export function render(oldRender: () => any) {
   poyfill().then(() => {
@@ -17,5 +16,3 @@ const Root: FC<PropsWithChildren<unknown>> = function Root({ children }) {
 export function rootContainer(container: any) {
   return createElement(Root, null, container);
 }
-
-export { config as request } from '@/utils/requestConfig';

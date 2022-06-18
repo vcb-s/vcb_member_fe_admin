@@ -1,89 +1,85 @@
+import { GroupSelector } from "@/components/GroupSelector";
+import { RestPass } from "@/components/rest-pass";
+import { AppModel } from "@/models/app";
+import { PersonModel } from "@/models/person";
+import { UsersModel } from "@/models/users";
+import { useBoolean } from "@/utils/hooks/useBoolean";
+import { ModelAdapter } from "@/utils/modelAdapter";
+import { Services } from "@/utils/services";
+import { GO_BOOL } from "@/utils/types";
+import { Group } from "@/utils/types/Group";
+import { PersonInfo } from "@/utils/types/PersonInfo";
+import { User } from "@/utils/types/User";
+import { UserCard } from "@/utils/types/UserCard";
+import { DownOutlined } from "@ant-design/icons";
 import {
-  useEffect,
-  useMemo,
-  useCallback,
-  useState,
-  ReactChild,
-  useRef,
-  memo,
-  CSSProperties,
-  FC,
-  ChangeEvent,
-} from 'react';
-import { produce } from 'immer';
-import { useRouteMatch, useDispatch, useHistory } from 'umi';
-import { useMountedState, useThrottle } from 'react-use';
-
-import {
-  Typography,
-  Table,
   Avatar,
   Button,
-  Tag,
   Dropdown,
-  Space,
-  Menu,
-  Modal,
   Input,
-  Select,
+  Menu,
   message,
+  Modal,
+  Select,
+  Space,
   Switch,
-} from 'antd';
-import { ButtonProps } from 'antd/es/button';
-import { DownOutlined } from '@ant-design/icons';
-import { ColumnsType } from 'antd/lib/table';
+  Table,
+  Tag,
+  Typography,
+} from "antd";
+import { ButtonProps } from "antd/es/button";
+import { ColumnsType } from "antd/lib/table";
+import { produce } from "immer";
+import {
+  ChangeEvent,
+  CSSProperties,
+  FC,
+  memo,
+  ReactChild,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { useMountedState, useThrottle } from "react-use";
+import { useDispatch, useNavigate, useSearchParams } from "umi";
+import styles from "./index.scss";
 
-import { UsersModel } from '@/models/users';
-import { PersonModel } from '@/models/person';
-import { Services } from '@/utils/services';
-import { GO_BOOL } from '@/utils/types';
-import { Group } from '@/utils/types/Group';
-import { PersonInfo } from '@/utils/types/PersonInfo';
-import { User } from '@/utils/types/User';
-import { PageParam } from '@/pages/person/[uid]/types';
-import { GroupSelector } from '@/components/GroupSelector';
-import { RestPass } from '@/components/rest-pass';
-import { useBoolean } from '@/utils/hooks/useBoolean';
-import { AppModel } from '@/models/app';
-import { ModelAdapter } from '@/utils/modelAdapter';
-import { UserCard } from '@/utils/types/UserCard';
-
-import styles from './index.scss';
-
-const AMModalStyle: CSSProperties = { minWidth: '12em' };
+const AMModalStyle: CSSProperties = { minWidth: "12em" };
 
 interface TagProps {
   title: string;
 }
-const NormalTag: FC<TagProps> = memo(function NormalTag({ title = '' }) {
-  return <Tag color='default'>{title}</Tag>;
+const NormalTag: FC<TagProps> = memo(function NormalTag({ title = "" }) {
+  return <Tag color="default">{title}</Tag>;
 });
-const ErrorTag: FC<TagProps> = memo(function ErrorTag({ title = '' }) {
-  return <Tag color='error'>{title}</Tag>;
+const ErrorTag: FC<TagProps> = memo(function ErrorTag({ title = "" }) {
+  return <Tag color="error">{title}</Tag>;
 });
 
 /** 新建组员按钮及其弹层 */
 const CreateUserBtn = memo(function CreateUserBtn() {
   const dispatch = useDispatch();
-  const match = useRouteMatch<PageParam>();
-  const uid = match.params.uid;
+  const [param] = useSearchParams();
+  const uid = param.get("uid");
 
-  const addMemberModal = PersonModel.hooks.useStore('addMemberModal');
+  const addMemberModal = PersonModel.hooks.useStore("addMemberModal");
 
   const [selectedGroups, setSelectedGroups] = useState<Group.Item[]>([]);
 
-  const [nickname, setNickname] = useState<string>('');
+  const [nickname, setNickname] = useState<string>("");
 
   const addMemberHandle = useCallback(() => {
     PersonModel.dispatch.preAddMember(dispatch);
   }, [dispatch]);
 
-  const modalLoading = PersonModel.hooks.useLoading('addMember');
+  const modalLoading = PersonModel.hooks.useLoading("addMember");
   const ModalFooterSubmitProps: Partial<ButtonProps> = useMemo(
     () => ({
       loading: modalLoading,
       disabled: !selectedGroups.length,
-      title: !selectedGroups.length ? '至少选择一个组' : '',
+      title: !selectedGroups.length ? "至少选择一个组" : "",
     }),
     [modalLoading, selectedGroups.length],
   );
@@ -94,14 +90,11 @@ const CreateUserBtn = memo(function CreateUserBtn() {
     [modalLoading],
   );
 
-  const nicknameChangeHandle = useCallback(
-    (evt: ChangeEvent<HTMLInputElement>) => {
-      setNickname(evt.target.value);
-    },
-    [],
-  );
+  const nicknameChangeHandle = useCallback((evt: ChangeEvent<HTMLInputElement>) => {
+    setNickname(evt.target.value);
+  }, []);
   const closeModalHandle = useCallback(() => {
-    setNickname('');
+    setNickname("");
     setSelectedGroups([]);
     PersonModel.dispatch.closeAMModel(dispatch);
   }, [dispatch]);
@@ -120,7 +113,7 @@ const CreateUserBtn = memo(function CreateUserBtn() {
       <Button onClick={addMemberHandle}>萌新入组</Button>
       <Modal
         visible={addMemberModal.show}
-        title='新增一名组员'
+        title="新增一名组员"
         centered
         maskClosable={false}
         onCancel={closeModalHandle}
@@ -129,14 +122,14 @@ const CreateUserBtn = memo(function CreateUserBtn() {
         okButtonProps={ModalFooterSubmitProps}
         cancelButtonProps={ModalFooterCancelProps}
       >
-        <Space direction='vertical'>
+        <Space direction="vertical">
           <div>默认用户名：</div>
           <Input
             value={nickname}
             onChange={nicknameChangeHandle}
-            size='middle'
+            size="middle"
             disabled={modalLoading}
-            placeholder='新用户'
+            placeholder="新用户"
           />
           <div>新增组员将自动关联到以下组别：</div>
           <GroupSelector
@@ -144,7 +137,7 @@ const CreateUserBtn = memo(function CreateUserBtn() {
             onChange={setSelectedGroups}
             style={AMModalStyle}
             loading={modalLoading}
-            underCurrentUser={uid}
+            underCurrentUser={uid || ""}
             undeAdmin
           />
           <div>新增成功后将会出现一个登录用链接，访问即可登录(注意保密)</div>
@@ -157,8 +150,8 @@ const CreateUserBtn = memo(function CreateUserBtn() {
 /** 从别的组招募人员 */
 const RecruitFromOtherGroups = memo(function RecruitFromOtherGroups() {
   const dispatch = useDispatch();
-  const match = useRouteMatch<PageParam>();
-  const uid = match.params.uid;
+  const [param] = useSearchParams();
+  const uid = param.get("uid");
 
   const [show, setShow] = useState(false);
   const [selectedGroups, setSelectedGroups] = useState<Group.Item[]>([]);
@@ -173,15 +166,15 @@ const RecruitFromOtherGroups = memo(function RecruitFromOtherGroups() {
     setShow(true);
   }, []);
 
-  const submitLoading = PersonModel.hooks.useLoading('updatePersonInfo');
-  const fetchLoading = UsersModel.hooks.useLoading('getUserList');
+  const submitLoading = PersonModel.hooks.useLoading("updatePersonInfo");
+  const fetchLoading = UsersModel.hooks.useLoading("getUserList");
   const loading = submitLoading || fetchLoading;
 
   const ModalFooterSubmitProps: Partial<ButtonProps> = useMemo(
     () => ({
       loading: loading,
       disabled: !selectedGroups.length,
-      title: !selectedGroups.length ? '至少选择一个组' : '',
+      title: !selectedGroups.length ? "至少选择一个组" : "",
     }),
     [loading, selectedGroups.length],
   );
@@ -192,9 +185,9 @@ const RecruitFromOtherGroups = memo(function RecruitFromOtherGroups() {
     [loading],
   );
 
-  const usersList = UsersModel.hooks.useStore('usersList');
+  const usersList = UsersModel.hooks.useStore("usersList");
 
-  const [lastSearchValue, setLastSearchValue] = useState('');
+  const [lastSearchValue, setLastSearchValue] = useState("");
   const [newUser, setNewUser] = useState<User.Item | undefined>(undefined);
   const filtedUsers = useMemo(() => {
     let resultUsers = usersList.data.filter((user) => user.id !== uid);
@@ -203,10 +196,7 @@ const RecruitFromOtherGroups = memo(function RecruitFromOtherGroups() {
       return resultUsers;
     }
     resultUsers = resultUsers.filter((user) => {
-      return (
-        user.id === lastSearchValue ||
-        user.nickname.indexOf(lastSearchValue) >= 0
-      );
+      return user.id === lastSearchValue || user.nickname.indexOf(lastSearchValue) >= 0;
     });
 
     return resultUsers;
@@ -216,7 +206,7 @@ const RecruitFromOtherGroups = memo(function RecruitFromOtherGroups() {
     (uid: string) => {
       const selectedUser = filtedUsers.filter((user) => user.id === uid)[0];
       if (!selectedUser) {
-        message.error('uid无效，数据错误');
+        message.error("uid无效，数据错误");
         return;
       }
 
@@ -230,7 +220,7 @@ const RecruitFromOtherGroups = memo(function RecruitFromOtherGroups() {
   }, []);
   const submitModalHandle = useCallback(() => {
     if (!newUser) {
-      message.error('uid无效，数据错误');
+      message.error("uid无效，数据错误");
       return;
     }
     PersonModel.dispatch
@@ -244,17 +234,17 @@ const RecruitFromOtherGroups = memo(function RecruitFromOtherGroups() {
   const resetModal = useCallback(() => {
     setSelectedGroups([]);
     setNewUser(undefined);
-    setLastSearchValue('');
+    setLastSearchValue("");
   }, []);
 
   return (
     <>
-      <Button onClick={addMemberHandle} title='指定某位组员加入本组'>
+      <Button onClick={addMemberHandle} title="指定某位组员加入本组">
         大佬换户口
       </Button>
       <Modal
         visible={show}
-        title='招募一名组员'
+        title="招募一名组员"
         centered
         maskClosable={false}
         onCancel={closeModalHandle}
@@ -263,24 +253,22 @@ const RecruitFromOtherGroups = memo(function RecruitFromOtherGroups() {
         okButtonProps={ModalFooterSubmitProps}
         cancelButtonProps={ModalFooterCancelProps}
       >
-        <Space direction='vertical'>
+        <Space direction="vertical">
           <div>将该组员：</div>
           <Select
             showSearch
-            placeholder='可输入用户昵称进行搜索'
+            placeholder="可输入用户昵称进行搜索"
             loading={loading}
             value={newUser?.id}
             filterOption={false}
             onSelect={selectUserHandle}
             onSearch={setLastSearchValue}
-            style={{ minWidth: '14em' }}
+            style={{ minWidth: "14em" }}
           >
             {filtedUsers.map((user) => (
               <Select.Option key={user.key} value={user.id}>
-                <Avatar src={user.avast} size='small' />
-                <span className={styles.userSeletorNickname}>
-                  {user.nickname}
-                </span>
+                <Avatar src={user.avast} size="small" />
+                <span className={styles.userSeletorNickname}>{user.nickname}</span>
               </Select.Option>
             ))}
           </Select>
@@ -290,10 +278,10 @@ const RecruitFromOtherGroups = memo(function RecruitFromOtherGroups() {
             onChange={setSelectedGroups}
             style={AMModalStyle}
             loading={loading}
-            underCurrentUser={uid}
+            underCurrentUser={uid || ""}
             undeAdmin
             disabled={!newUser}
-            placeholder={!newUser ? '请选择大佬' : undefined}
+            placeholder={!newUser ? "请选择大佬" : undefined}
           />
         </Space>
       </Modal>
@@ -305,16 +293,14 @@ interface CardSubTableProps {
   uid: string;
 }
 /** 子表格，指定UID，展示对应UID的所有卡片 */
-const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
-  uid,
-}) {
+const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({ uid }) {
   const componentID = useRef(1);
   const getMounted = useMountedState();
   const [data, setData] = useState<UserCard.Item[]>([]);
   const [loading, loadingAction] = useBoolean(true);
-  const [loadingCardID, setLoadingCardID] = useState('');
+  const [loadingCardID, setLoadingCardID] = useState("");
 
-  const groups = AppModel.hooks.useStore('group', 'data');
+  const groups = AppModel.hooks.useStore("group", "data");
 
   // 加载数据源
   useEffect(() => {
@@ -333,7 +319,7 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
           setData(() => ModelAdapter.UserCards(data.res, groups));
         }
       } catch (e) {
-        message.error(e.message || '未知错误');
+        message.error(e.message || "未知错误");
       }
     };
 
@@ -369,7 +355,7 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
           const { destroy } = Modal.confirm({
             centered: true,
             title: `切换${card.nickname}的显隐状态为: ${
-              params.hide! === GO_BOOL.yes ? '显示' : '隐藏'
+              params.hide! === GO_BOOL.yes ? "显示" : "隐藏"
             }`,
             onOk: () => {
               destroy();
@@ -393,7 +379,7 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
           return;
         }
 
-        setLoadingCardID(() => '');
+        setLoadingCardID(() => "");
 
         // 更新列表数据
         setData((pre) =>
@@ -424,7 +410,7 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
           const { destroy } = Modal.confirm({
             centered: true,
             title: `切换${card.nickname}的退休状态为: ${
-              params.retired! === GO_BOOL.yes ? '已退休' : '活跃中'
+              params.retired! === GO_BOOL.yes ? "已退休" : "活跃中"
             }`,
             onOk: () => {
               destroy();
@@ -447,7 +433,7 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
           return;
         }
 
-        setLoadingCardID(() => '');
+        setLoadingCardID(() => "");
 
         // 更新列表数据
         setData((pre) =>
@@ -467,36 +453,36 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
   const columns = useMemo<ColumnsType<UserCard.Item>>(() => {
     return [
       {
-        title: '昵称',
-        dataIndex: 'nickname',
+        title: "昵称",
+        dataIndex: "nickname",
       },
       {
-        title: '头像',
-        dataIndex: 'avast',
-        align: 'center',
+        title: "头像",
+        dataIndex: "avast",
+        align: "center",
         render: (avatar) => <Avatar src={avatar} />,
       },
       {
-        title: '操作',
-        key: 'action',
-        align: 'left',
+        title: "操作",
+        key: "action",
+        align: "left",
         width: 380,
         render: (card: UserCard.Item) => {
           return (
             <Space>
               <Switch
                 checked={card.retired === GO_BOOL.no}
-                checkedChildren='活跃'
-                unCheckedChildren='咸鱼'
-                title='切换退休状态'
+                checkedChildren="活跃"
+                unCheckedChildren="咸鱼"
+                title="切换退休状态"
                 onChange={() => toggleRetiredHandle(card)}
                 loading={loadingCardID === card.id}
               />
               <Switch
                 checked={card.hide === GO_BOOL.no}
-                checkedChildren='kirakira!'
-                unCheckedChildren='已隐藏'
-                title='切换卡片前台显隐状态'
+                checkedChildren="kirakira!"
+                unCheckedChildren="已隐藏"
+                title="切换卡片前台显隐状态"
                 onChange={() => toggleHideHandle(card)}
                 loading={loadingCardID === card.id}
               />
@@ -511,25 +497,18 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
     ];
   }, [loadingCardID, toggleHideHandle, toggleRetiredHandle]);
 
-  return (
-    <Table
-      loading={loading}
-      columns={columns}
-      dataSource={data}
-      pagination={false}
-    />
-  );
+  return <Table loading={loading} columns={columns} dataSource={data} pagination={false} />;
 });
 
 /** 主页面 */
 export default function PagePerson() {
-  const match = useRouteMatch<PageParam>();
-  const uid = match.params.uid;
+  const [param] = useSearchParams();
+  const uid = param.get("uid");
   const dispatch = useDispatch();
-  const personInfo = PersonModel.hooks.useStore('personInfo');
-  const userList = PersonModel.hooks.useStore('userList');
+  const personInfo = PersonModel.hooks.useStore("personInfo");
+  const userList = PersonModel.hooks.useStore("userList");
 
-  const tableLoading = PersonModel.hooks.useLoading('getPersonInfo');
+  const tableLoading = PersonModel.hooks.useLoading("getPersonInfo");
 
   const banHandle = useCallback(
     (person: PersonInfo.Item) => {
@@ -552,8 +531,8 @@ export default function PagePerson() {
       );
 
       if (ban === GO_BOOL.yes) {
-        okText = '解封';
-        content = '解封后用户可以正常登录，展示列表也会恢复展示';
+        okText = "解封";
+        content = "解封后用户可以正常登录，展示列表也会恢复展示";
       }
       Modal.confirm({
         title: `${okText}该用户: ${nickname}`,
@@ -578,7 +557,7 @@ export default function PagePerson() {
 
   const kickHandle = useCallback(
     (groupID: string | number, item: PersonInfo.Item) => {
-      let groupName = '未知';
+      let groupName = "未知";
 
       item.group.forEach((group) => {
         if (`${group.id}` === `${groupID}`) {
@@ -615,11 +594,11 @@ export default function PagePerson() {
   );
 
   useEffect(() => {
-    PersonModel.dispatch.getPersonInfo(dispatch, { uid });
+    PersonModel.dispatch.getPersonInfo(dispatch, { uid: uid || "" });
   }, [dispatch, uid]);
 
-  const [currentUID, setCurrentUID] = useState('');
-  const [keyword, setKeyword] = useState('');
+  const [currentUID, setCurrentUID] = useState("");
+  const [keyword, setKeyword] = useState("");
   const throttledKeyword = useThrottle(keyword);
   const filtedUserData = useMemo(() => {
     return userList.data.filter((user) => {
@@ -648,27 +627,27 @@ export default function PagePerson() {
   }, [filtedUserData]);
 
   const resetCurrentUID = useCallback(() => {
-    setCurrentUID('');
+    setCurrentUID("");
   }, []);
 
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const columns = useMemo<ColumnsType<PersonInfo.Item>>(() => {
     return [
       {
-        title: '昵称',
-        dataIndex: 'nickname',
+        title: "昵称",
+        dataIndex: "nickname",
       },
       {
-        title: '头像',
-        dataIndex: 'avast',
-        align: 'center',
+        title: "头像",
+        dataIndex: "avast",
+        align: "center",
         render: (avatar) => <Avatar src={avatar} />,
       },
       {
-        title: '组别',
-        dataIndex: 'group',
-        align: 'center',
+        title: "组别",
+        dataIndex: "group",
+        align: "center",
         width: 200,
         filters: [...filtedUserGroupMap.keys()].map((id) => ({
           text: filtedUserGroupMap.get(id),
@@ -695,56 +674,43 @@ export default function PagePerson() {
         },
       },
       {
-        title: '状态',
-        key: 'status',
-        align: 'center',
+        title: "状态",
+        key: "status",
+        align: "center",
         width: 200,
         render: (item: PersonInfo.Item) => (
           <Space>
             {/* <NormalTag title={!!item.admin.length ? '组长' : '组员'} /> */}
-            {item.ban === GO_BOOL.yes ? (
-              <ErrorTag title='封禁' />
-            ) : (
-              <NormalTag title='可登录' />
-            )}
+            {item.ban === GO_BOOL.yes ? <ErrorTag title="封禁" /> : <NormalTag title="可登录" />}
           </Space>
         ),
       },
       {
-        title: '操作',
-        key: 'action',
-        align: 'left',
+        title: "操作",
+        key: "action",
+        align: "left",
         width: 380,
         render: (person: PersonInfo.Item) => {
           return (
             <Space>
               <Button
                 onClick={() => {
-                  history.push(`/person/${person.id}/card`);
+                  navigate(`/person/${person.id}/card`);
                   message.success(`你正在查看${person.nickname}的主页`);
                 }}
               >
                 管理
               </Button>
 
-              <RestPass
-                uid={person.id}
-                show={currentUID === person.id}
-                onClose={resetCurrentUID}
-              >
-                <Button
-                  loading={!!person.loading}
-                  onClick={() => resetPersonPassHandle(person.id)}
-                >
+              <RestPass uid={person.id} show={currentUID === person.id} onClose={resetCurrentUID}>
+                <Button loading={!!person.loading} onClick={() => resetPersonPassHandle(person.id)}>
                   修改密码
                 </Button>
               </RestPass>
 
               <Dropdown
                 overlay={
-                  <Menu
-                    onClick={({ key: groupID }) => kickHandle(groupID, person)}
-                  >
+                  <Menu onClick={({ key: groupID }) => kickHandle(groupID, person)}>
                     {person.group.map((group) => (
                       <Menu.Item
                         key={group.id}
@@ -766,19 +732,14 @@ export default function PagePerson() {
               {person.ban === GO_BOOL.yes ? (
                 <Button
                   ghost
-                  type='primary'
+                  type="primary"
                   loading={!!person.loading}
                   onClick={() => banHandle(person)}
                 >
                   解封
                 </Button>
               ) : (
-                <Button
-                  danger
-                  ghost
-                  loading={!!person.loading}
-                  onClick={() => banHandle(person)}
-                >
+                <Button danger ghost loading={!!person.loading} onClick={() => banHandle(person)}>
                   封禁
                 </Button>
               )}
@@ -791,8 +752,8 @@ export default function PagePerson() {
     banHandle,
     currentUID,
     filtedUserGroupMap,
-    history,
     kickHandle,
+    navigate,
     resetCurrentUID,
     resetPersonPassHandle,
   ]);
@@ -801,7 +762,7 @@ export default function PagePerson() {
     return <CardSubTable uid={record.id} />;
   }, []);
 
-  console.log('what is filtedUserData', filtedUserData);
+  console.log("what is filtedUserData", filtedUserData);
 
   return (
     <div className={styles.wrap}>
@@ -810,7 +771,7 @@ export default function PagePerson() {
         <Input.Search
           value={keyword}
           onChange={(evt) => setKeyword(evt.target.value)}
-          placeholder='可搜索 用户id/昵称'
+          placeholder="可搜索 用户id/昵称"
           onSearch={setKeyword}
         />
         {personInfo.admin.length ? (

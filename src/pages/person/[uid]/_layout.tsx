@@ -1,16 +1,14 @@
-import { useState, useCallback, useMemo, useEffect, FC } from 'react';
-import { useDispatch, NavLink, useParams, useLocation, useHistory } from 'umi';
-import { Menu, Avatar, Space, Dropdown, message, Modal, Tooltip } from 'antd';
-import { MenuClickEventHandler } from 'rc-menu/lib/interface';
-import { SelectInfo as SelectParam } from 'rc-menu/lib/interface';
-import { ApartmentOutlined, IdcardOutlined } from '@ant-design/icons';
-import CopyToClipboard from 'react-copy-to-clipboard';
-import { PageParam } from './types';
-import { compile } from 'path-to-regexp';
-import { RestPass } from '@/components/rest-pass';
-import { PersonModel } from '@/models/person';
-
-import styles from './_layout.scss';
+import { RestPass } from "@/components/rest-pass";
+import { PersonModel } from "@/models/person";
+import { ApartmentOutlined, IdcardOutlined } from "@ant-design/icons";
+import { Avatar, Dropdown, Menu, message, Modal, Space, Tooltip } from "antd";
+import { compile } from "path-to-regexp";
+import { MenuClickEventHandler, SelectInfo as SelectParam } from "rc-menu/lib/interface";
+import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import CopyToClipboard from "react-copy-to-clipboard";
+import { NavLink, Outlet, useDispatch, useLocation, useNavigate, useParams } from "umi";
+import { PageParam } from "./types";
+import styles from "./_layout.scss";
 
 enum MenuLevel {
   all = 0,
@@ -21,15 +19,15 @@ class MenuData {
   public readonly menuData = [
     {
       Icon: IdcardOutlined,
-      router: '/person/:uid/card',
-      name: '我的卡片' as const,
+      router: "/person/:uid/card",
+      name: "我的卡片" as const,
       show: true,
       level: MenuLevel.all,
     },
     {
       Icon: ApartmentOutlined,
-      router: '/person/:uid/member',
-      name: '我的组员' as const,
+      router: "/person/:uid/member",
+      name: "我的组员" as const,
       show: true,
       level: MenuLevel.admin,
     },
@@ -44,7 +42,7 @@ class MenuData {
 
 const MenuSide: FC = function () {
   const personState = PersonModel.hooks.useStore();
-  const { uid = '' } = useParams<any>();
+  const { uid = "" } = useParams();
   const location = useLocation();
 
   const menuData = useMemo(() => {
@@ -79,14 +77,11 @@ const MenuSide: FC = function () {
     return [menuData[0].key];
   });
 
-  const selectHandle = useCallback(
-    ({ selectedKeys: selected }: SelectParam) => {
-      if (selected) {
-        setSelectedKeys(selected.map((i) => `${i}`));
-      }
-    },
-    [],
-  );
+  const selectHandle = useCallback(({ selectedKeys: selected }: SelectParam) => {
+    if (selected) {
+      setSelectedKeys(selected.map((i) => `${i}`));
+    }
+  }, []);
 
   useEffect(() => {
     for (const menuItem of menuData) {
@@ -104,17 +99,17 @@ const MenuSide: FC = function () {
     <div className={styles.menuWrap}>
       <a
         className={styles.logo}
-        href='https://vcb-s.com'
-        target='_blank'
-        rel='noopener'
-        referrerPolicy='no-referrer'
+        href="https://vcb-s.com"
+        target="_blank"
+        rel="noopener"
+        referrerPolicy="no-referrer"
       />
       <Menu
-        theme='dark'
+        theme="dark"
         className={styles.menu}
         selectedKeys={selectedKeys}
         onSelect={selectHandle}
-        mode='inline'
+        mode="inline"
       >
         {menuData.map((menuItem) => (
           <Menu.Item key={menuItem.key}>
@@ -129,19 +124,20 @@ const MenuSide: FC = function () {
   );
 };
 
-const PersonLaylout: FC = function PersonLaylout({ children }) {
+export default function PersonLaylout() {
   const personState = PersonModel.hooks.useStore();
   const dispatch = useDispatch();
+  // @ts-expect-error useParams的泛型有点问题
   const { uid } = useParams<PageParam>();
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const logoutHandle = useCallback(() => {
     PersonModel.dispatch.logout(dispatch);
   }, [dispatch]);
 
   const editUserHandle = useCallback(() => {
-    history.push(`/person/${uid}/edit`);
-  }, [history, uid]);
+    navigate(`/person/${uid}/edit`);
+  }, [navigate, uid]);
 
   const [show, setShow] = useState(false);
   const closeHandle = useCallback(() => {
@@ -151,15 +147,15 @@ const PersonLaylout: FC = function PersonLaylout({ children }) {
   const menuChangeHandle: MenuClickEventHandler = useCallback(
     ({ key }) => {
       switch (`${key}`) {
-        case 'editUser': {
+        case "editUser": {
           editUserHandle();
           break;
         }
-        case 'resetPass': {
+        case "resetPass": {
           setShow(() => true);
           break;
         }
-        case 'logout': {
+        case "logout": {
           logoutHandle();
           break;
         }
@@ -168,7 +164,7 @@ const PersonLaylout: FC = function PersonLaylout({ children }) {
         //   break;
         // }
         default: {
-          message.error('未知选项');
+          message.error("未知选项");
         }
       }
     },
@@ -182,17 +178,17 @@ const PersonLaylout: FC = function PersonLaylout({ children }) {
   const menuJsx = useMemo((): JSX.Element[] => {
     if (personState.personInfo.avast) {
       return [
-        <Menu.Item key='editUser'>修改信息</Menu.Item>,
-        <Menu.Item key='resetPass'>
+        <Menu.Item key="editUser">修改信息</Menu.Item>,
+        <Menu.Item key="resetPass">
           <RestPass show={show} onClose={closeHandle}>
             修改密码
           </RestPass>
         </Menu.Item>,
-        <Menu.Item key='logout'>退出登录</Menu.Item>,
+        <Menu.Item key="logout">退出登录</Menu.Item>,
       ];
     } else {
       return [
-        <Menu.Item key='login' disabled>
+        <Menu.Item key="login" disabled>
           请稍候...
         </Menu.Item>,
       ];
@@ -210,18 +206,15 @@ const PersonLaylout: FC = function PersonLaylout({ children }) {
               overlay={<Menu onClick={menuChangeHandle}>{menuJsx}</Menu>}
             >
               <Space>
-                <Avatar
-                  src={personState.personInfo.avast || undefined}
-                  shape='circle'
-                />
+                <Avatar src={personState.personInfo.avast || undefined} shape="circle" />
                 <div>{personState.personInfo.nickname}</div>
               </Space>
             </Dropdown>
           </header>
-          {children}
+          <Outlet />
           <footer className={styles.footer}>
-            我们的征途是星河大海 Powered By{' '}
-            <a href='https://vcb-s.com' target='_blank'>
+            我们的征途是星河大海 Powered By{" "}
+            <a href="https://vcb-s.com" target="_blank">
               VCB-Studio
             </a>
           </footer>
@@ -231,26 +224,22 @@ const PersonLaylout: FC = function PersonLaylout({ children }) {
       <Modal
         visible={personState.resetPassSuccessModal.show}
         centered
-        title='重置成功'
+        title="重置成功"
         onOk={closeRSPModelHandle}
-        cancelButtonProps={{ style: { display: 'none' } }}
-        okText='保存好了'
+        cancelButtonProps={{ style: { display: "none" } }}
+        okText="保存好了"
       >
         新的密码为：
         <CopyToClipboard
           text={personState.resetPassSuccessModal.newPass}
-          onCopy={() => message.success('复制成功')}
+          onCopy={() => message.success("复制成功")}
         >
-          <Tooltip placement='topLeft' overlay='点击复制' mouseEnterDelay={0}>
-            <span className={styles.passCopyBtn}>
-              {personState.resetPassSuccessModal.newPass}
-            </span>
+          <Tooltip placement="topLeft" overlay="点击复制" mouseEnterDelay={0}>
+            <span className={styles.passCopyBtn}>{personState.resetPassSuccessModal.newPass}</span>
           </Tooltip>
         </CopyToClipboard>
         , 该密码只会出现一次，请在保存之后再关闭弹窗
       </Modal>
     </>
   );
-};
-
-export default PersonLaylout;
+}

@@ -1,21 +1,37 @@
-import { request } from 'umi';
+import { requestConfig } from "@/utils/requestConfig";
+import { message } from "antd";
+import { extend } from "umi-request";
+import { GO_BOOL } from "./types";
+import { Group as GroupType } from "./types/Group";
+import { PaginationParam } from "./types/Pagination";
+import { PersonInfo } from "./types/PersonInfo";
+import { ResponseData } from "./types/ResponseData";
+import { User } from "./types/User";
+import { UserCard } from "./types/UserCard";
 
-import { PaginationParam } from './types/Pagination';
-import { ResponseData } from './types/ResponseData';
-import { UserCard } from './types/UserCard';
-import { User } from './types/User';
-import { PersonInfo } from './types/PersonInfo';
-import { GO_BOOL } from './types';
-import { Group as GroupType } from './types/Group';
+const request = extend({
+  prefix: "/vcbs_member_api",
+  headers: {},
+  errorHandler(err) {
+    message.error(err.message);
+  },
+});
+
+requestConfig.requestInterceptors.forEach((interceptor) =>
+  request.interceptors.request.use(interceptor),
+);
+requestConfig.responseInterceptors.forEach((interceptor) =>
+  request.interceptors.response.use(interceptor),
+);
 
 export namespace Services {
   export namespace CardList {
     export interface ReadParam extends Partial<PaginationParam> {
-      group?: GroupType.Item['id'];
-      id?: UserCard.Item['id'];
-      uid?: UserCard.Item['uid'];
-      retired?: UserCard.Item['retired'];
-      keyword?: UserCard.Item['id'] | UserCard.Item['nickname'];
+      group?: GroupType.Item["id"];
+      id?: UserCard.Item["id"];
+      uid?: UserCard.Item["uid"];
+      retired?: UserCard.Item["retired"];
+      keyword?: UserCard.Item["id"] | UserCard.Item["nickname"];
       sticky?: GO_BOOL;
       tiny?: GO_BOOL;
       includeHide?: GO_BOOL;
@@ -25,7 +41,7 @@ export namespace Services {
       total: number;
     }>;
     export const read = (params: ReadParam): Promise<ReadResponse> => {
-      return request('/user-card/list', { params });
+      return request("/user-card/list", { params });
     };
 
     export interface ActionResData {
@@ -34,32 +50,32 @@ export namespace Services {
 
     export interface CreateResponse extends ResponseData.Ok<ActionResData> {}
 
-    export type CreateParam = Omit<UserCard.ItemInResponse, 'id'>;
+    export type CreateParam = Omit<UserCard.ItemInResponse, "id">;
     export const create = (data: UpdateParam): Promise<CreateResponse> => {
-      return request('/admin/user-card/create', {
+      return request("/admin/user-card/create", {
         data,
-        method: 'post',
+        method: "post",
       });
     };
 
     export interface UpdateResponse extends ResponseData.Ok<ActionResData> {}
 
     export type UpdateParam = Partial<UserCard.ItemInResponse> & {
-      id: UserCard.ItemInResponse['id'];
+      id: UserCard.ItemInResponse["id"];
     };
     export const update = (data: UpdateParam): Promise<UpdateResponse> => {
-      return request('/admin/user-card/update', {
+      return request("/admin/user-card/update", {
         data,
-        method: 'post',
+        method: "post",
       });
     };
 
     export type RemoveParam = { id: string };
     /** 移除卡片 */
     export const remove = (data: RemoveParam): Promise<void> => {
-      return request('/admin/user-card/delete', {
+      return request("/admin/user-card/delete", {
         data,
-        method: 'post',
+        method: "post",
       });
     };
   }
@@ -72,11 +88,8 @@ export namespace Services {
       res: UserCard.TinyItemInResponse[];
       total: number;
     }>;
-    export const read = ({
-      includeHide,
-      inOrder = true,
-    }: ReadParam): Promise<ReadResponse> => {
-      return request('/user-card/list', {
+    export const read = ({ includeHide, inOrder = true }: ReadParam): Promise<ReadResponse> => {
+      return request("/user-card/list", {
         params: {
           tiny: GO_BOOL.yes,
           includeHide: includeHide ? GO_BOOL.yes : GO_BOOL.no,
@@ -91,7 +104,7 @@ export namespace Services {
       total: number;
     }>;
     export const read = (): Promise<ReadResponse> => {
-      return request('/group/list');
+      return request("/group/list");
     };
   }
   export namespace Login {
@@ -102,9 +115,9 @@ export namespace Services {
     }
     export type LoginResponse = ResponseData.Ok<undefined>;
     export const login = (data: LoginParam) => {
-      return request('/admin/login', {
+      return request("/admin/login", {
         data,
-        method: 'post',
+        method: "post",
       });
     };
   }
@@ -125,17 +138,17 @@ export namespace Services {
     }
     export type InfoResponse = ResponseData.Ok<InfoData>;
     export const info = (data: InfoParam): Promise<InfoResponse> => {
-      return request('/admin/user/info', {
+      return request("/admin/user/info", {
         data,
-        method: 'post',
+        method: "post",
       });
     };
     export interface UpdateParam extends Partial<PersonInfo.ItemInResponse> {
       id: string;
     }
     export const update = (data: UpdateParam): Promise<ResponseData.Ok> => {
-      return request('/admin/user/update', {
-        method: 'post',
+      return request("/admin/user/update", {
+        method: "post",
         data,
       });
     };
@@ -145,11 +158,9 @@ export namespace Services {
       /** 组别id数组 */
       group: string[];
     }
-    export const pullMember = (
-      data: PullMemberParam,
-    ): Promise<ResponseData.Ok> => {
-      return request('/admin/user/group/add', {
-        method: 'post',
+    export const pullMember = (data: PullMemberParam): Promise<ResponseData.Ok> => {
+      return request("/admin/user/group/add", {
+        method: "post",
         data,
       });
     };
@@ -159,25 +170,23 @@ export namespace Services {
       group: string;
     }
     export const kickoff = (data: KickOffParam) => {
-      return request('/admin/user/kickoff', {
-        method: 'post',
+      return request("/admin/user/kickoff", {
+        method: "post",
         data,
       });
     };
 
     export type ResetPassParam = Partial<UserCard.ItemInResponse> & {
-      uid: PersonInfo.ItemInResponse['id'];
+      uid: PersonInfo.ItemInResponse["id"];
       new?: string;
     };
     export type ResetPassResponse = ResponseData.Ok<{
       newPass: string;
     }>;
-    export const resetPass = (
-      data: ResetPassParam,
-    ): Promise<ResetPassResponse> => {
-      return request('/admin/password/reset', {
+    export const resetPass = (data: ResetPassParam): Promise<ResetPassResponse> => {
+      return request("/admin/password/reset", {
         data,
-        method: 'post',
+        method: "post",
       });
     };
 
@@ -186,14 +195,14 @@ export namespace Services {
       nickname: string;
     };
     export type CreateResponse = ResponseData.Ok<{
-      cardID: UserCard.ItemInResponse['id'];
-      UID: PersonInfo.ItemInResponse['id'];
+      cardID: UserCard.ItemInResponse["id"];
+      UID: PersonInfo.ItemInResponse["id"];
       pass: string;
     }>;
     export const create = (data: CreateParam): Promise<CreateResponse> => {
-      return request('/admin/user/create', {
+      return request("/admin/user/create", {
         data,
-        method: 'post',
+        method: "post",
       });
     };
   }
@@ -211,9 +220,9 @@ export namespace Services {
       total: number;
     }>;
     export const read = (data: ReadParam): Promise<ReadResponse> => {
-      return request('/user/list', {
+      return request("/user/list", {
         data,
-        method: 'get',
+        method: "get",
       });
     };
   }

@@ -1,5 +1,5 @@
-import { Redirect } from 'umi';
+import { Navigate } from "umi";
 
 export default function () {
-  return <Redirect to='/login' />;
+  return <Navigate to="/login" replace />;
 }

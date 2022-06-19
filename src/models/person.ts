@@ -3,7 +3,7 @@ import { history } from 'umi';
 import { createPath } from 'history';
 import { stringify } from 'query-string';
 
-import { AppModel, State as AppModelState } from '@/models/app';
+import { AppModel, AppModelState } from '@/models/app';
 import { GO_BOOL } from '@/utils/types';
 import type { CommonList } from '@/utils/types/CommonList';
 import type { UserCard } from '@/utils/types/UserCard';
@@ -60,7 +60,7 @@ const initalState: State = {
 
 const namespace = 'global.personinfo';
 
-const { model, actions, globalActions, utils, ...helpers } = modelCreator({
+export const PersonModel = modelCreator({
   namespace,
   effects: {
     *getPersonInfo(
@@ -97,7 +97,7 @@ const { model, actions, globalActions, utils, ...helpers } = modelCreator({
         const { data }: Services.Person.InfoResponse = person;
 
         yield put(
-          actions.getPersonInfoSuccess({
+          PersonModel.actions.getPersonInfoSuccess({
             info: data.info,
             cards: data.cards.res,
             users: data.users.res,
@@ -105,7 +105,7 @@ const { model, actions, globalActions, utils, ...helpers } = modelCreator({
           }),
         );
       } catch (error) {
-        yield put(actions.getPersonInfoFail({ error }));
+        yield put(PersonModel.actions.getPersonInfoFail({ error }));
         message.error(error.message);
       }
     },
@@ -122,17 +122,19 @@ const { model, actions, globalActions, utils, ...helpers } = modelCreator({
     ): Generator<any, void, any> {
       try {
         const param = payload;
-        yield put(actions.toggleLoadingForPerson({ id: param.id }));
+        yield put(PersonModel.actions.toggleLoadingForPerson({ id: param.id }));
         yield call(Services.Person.update, param);
-        const { personInfo }: State = yield select(utils.currentStore);
-        yield put(actions.updatePersonInfoSuccess());
-        yield put(actions.getPersonInfo({ uid: personInfo.id }));
+        const { personInfo }: State = yield select(
+          PersonModel.utils.currentStore,
+        );
+        yield put(PersonModel.actions.updatePersonInfoSuccess());
+        yield put(PersonModel.actions.getPersonInfo({ uid: personInfo.id }));
       } catch (error) {
         message.error(error.message);
         // yield put(
         //   createAction(ActionType.updatePersonInfoFail, false)({ error }),
         // );
-        yield put(actions.updatePersonInfoFail({ error }));
+        yield put(PersonModel.actions.updatePersonInfoFail({ error }));
       }
     },
 
@@ -147,12 +149,14 @@ const { model, actions, globalActions, utils, ...helpers } = modelCreator({
         };
 
         yield call(Services.Person.pullMember, param);
-        const { personInfo }: State = yield select(utils.currentStore);
-        yield put(actions.addMemberSuccess());
-        yield put(actions.getPersonInfo({ uid: personInfo.id }));
+        const { personInfo }: State = yield select(
+          PersonModel.utils.currentStore,
+        );
+        yield put(PersonModel.actions.addMemberSuccess());
+        yield put(PersonModel.actions.getPersonInfo({ uid: personInfo.id }));
       } catch (error) {
         message.error(error.message);
-        yield put(actions.pullMemberFail({ error }));
+        yield put(PersonModel.actions.pullMemberFail({ error }));
       }
     },
 
@@ -170,11 +174,11 @@ const { model, actions, globalActions, utils, ...helpers } = modelCreator({
       try {
         const param = payload;
         yield call(Services.Person.kickoff, param);
-        yield put(actions.kickoffPersonSuccess(payload));
+        yield put(PersonModel.actions.kickoffPersonSuccess(payload));
         message.success('离组完成');
       } catch (error) {
         message.error(error.message);
-        yield put(actions.kickoffPersonFail({ error }));
+        yield put(PersonModel.actions.kickoffPersonFail({ error }));
       }
     },
 
@@ -214,8 +218,10 @@ const { model, actions, globalActions, utils, ...helpers } = modelCreator({
       try {
         yield call(Services.CardList.remove, param);
 
-        const { personInfo }: State = yield select(utils.currentStore);
-        yield put(actions.getPersonInfo({ uid: personInfo.id }));
+        const { personInfo }: State = yield select(
+          PersonModel.utils.currentStore,
+        );
+        yield put(PersonModel.actions.getPersonInfo({ uid: personInfo.id }));
       } catch (error) {
         message.error(error.message);
       }
@@ -234,7 +240,9 @@ const { model, actions, globalActions, utils, ...helpers } = modelCreator({
       { put, call, select },
     ): Generator<any, void, any> {
       const { cb, uid, pass } = payload;
-      const { personInfo }: State = yield select(utils.currentStore);
+      const { personInfo }: State = yield select(
+        PersonModel.utils.currentStore,
+      );
 
       const param: Services.Person.ResetPassParam = {
         uid: uid || personInfo.id,
@@ -250,13 +258,15 @@ const { model, actions, globalActions, utils, ...helpers } = modelCreator({
           param,
         );
 
-        yield put(actions.restPassSuccess({ newPass: data.newPass }));
+        yield put(
+          PersonModel.actions.restPassSuccess({ newPass: data.newPass }),
+        );
 
         cb && cb(true);
       } catch (error) {
         cb && cb(false);
         message.error(error.message);
-        yield put(actions.restPassFail({ error }));
+        yield put(PersonModel.actions.restPassFail({ error }));
       }
     },
 
@@ -280,7 +290,7 @@ const { model, actions, globalActions, utils, ...helpers } = modelCreator({
         );
 
         // 关闭弹层
-        yield put(actions.closeAMModel());
+        yield put(PersonModel.actions.closeAMModel());
 
         // 展示登录链接弹层
         yield call(() => {
@@ -396,11 +406,9 @@ const { model, actions, globalActions, utils, ...helpers } = modelCreator({
   state: initalState,
 });
 
-export const PersonModel = { actions: globalActions, utils, ...helpers };
-
 export default {
-  namespace: model.namespace,
-  state: model.state,
-  effects: model.effects,
-  reducers: model.reducers,
+  namespace: PersonModel.model.namespace,
+  state: PersonModel.model.state,
+  effects: PersonModel.model.effects,
+  reducers: PersonModel.model.reducers,
 };

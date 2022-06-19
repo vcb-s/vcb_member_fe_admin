@@ -22,7 +22,6 @@ export function errorConfigAdaptor(
   res: any,
   ctx: ResContext,
 ): ErrorInfoStructure {
-  // console.log('what is res', res, ctx);
   let errorMessage = res.message || res.msg;
   if (
     !ctx.res.ok &&

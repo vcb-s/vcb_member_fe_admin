@@ -1,6 +1,6 @@
 import { message } from 'antd';
 
-import { AppModel, State as AppState } from '@/models/app';
+import { AppModel, AppModelState as AppState } from '@/models/app';
 import type { CommonList } from '@/utils/types/CommonList';
 import type { User } from '@/utils/types/User';
 import type { Group } from '@/utils/types/Group';
@@ -17,7 +17,7 @@ const initalState: State = {
   usersList: emptyList,
 };
 
-const { model, actions, utils, globalActions, ...helpers } = modelCreator({
+export const UsersModel = modelCreator({
   namespace: 'global.users',
   state: initalState,
   effects: {
@@ -45,13 +45,13 @@ const { model, actions, utils, globalActions, ...helpers } = modelCreator({
         const { data }: Services.UsersList.ReadResponse = users;
 
         yield put(
-          actions.getUserListSuccess({
+          UsersModel.actions.getUserListSuccess({
             res: data.res,
             group: group.data,
           }),
         );
       } catch (error) {
-        yield put(actions.getUserListFail({ error }));
+        yield put(UsersModel.actions.getUserListFail({ error }));
         message.error(error.message);
       }
     },
@@ -85,11 +85,9 @@ const { model, actions, utils, globalActions, ...helpers } = modelCreator({
   },
 });
 
-export const UsersModel = { actions: globalActions, utils, ...helpers };
-
 export default {
-  namespace: model.namespace,
-  state: model.state,
-  effects: model.effects,
-  reducers: model.reducers,
+  namespace: UsersModel.model.namespace,
+  state: UsersModel.model.state,
+  effects: UsersModel.model.effects,
+  reducers: UsersModel.model.reducers,
 };

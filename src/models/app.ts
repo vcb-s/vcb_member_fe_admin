@@ -9,43 +9,45 @@ import { modelCreator } from '@/utils/modelCreator';
 
 const namespace = 'global.app';
 
-export interface State {
+export interface AppModelState {
   userCards: UserCard.TinyList;
   group: Group.List;
 }
 
-const initalState: State = {
+const initalState: AppModelState = {
   userCards: emptyList,
   group: emptyList,
 };
-const { model, actions, utils, globalActions, ...helpers } = modelCreator({
+export const AppModel = modelCreator({
   namespace,
   effects: {
     *ensureGroupData(
       action: undefined,
       { take, put, select, race },
     ): Generator<any, void, any> {
-      const loading = yield select(utils.loadingSelector.getGroup);
+      const loading = yield select(AppModel.utils.loadingSelector.getGroup);
 
-      const { group }: State = yield select(utils.currentStore);
+      const { group }: AppModelState = yield select(
+        AppModel.utils.currentStore,
+      );
       if (group.data.length) {
-        yield put(actions.ensureGroupDataSuccess());
+        yield put(AppModel.actions.ensureGroupDataSuccess());
         return;
       }
 
       if (!loading) {
-        yield put(actions.getGroup());
+        yield put(AppModel.actions.getGroup());
       }
 
       const { s, f } = yield race({
-        s: take(utils.keys.getGroupSuccess),
-        f: take(utils.keys.getGroupFail),
+        s: take(AppModel.utils.keys.getGroupSuccess),
+        f: take(AppModel.utils.keys.getGroupFail),
       });
 
       if (s) {
-        yield put(actions.ensureGroupDataSuccess());
+        yield put(AppModel.actions.ensureGroupDataSuccess());
       } else if (f) {
-        yield put(actions.ensureGroupDataFail({ error: f }));
+        yield put(AppModel.actions.ensureGroupDataFail({ error: f }));
       }
     },
     *getGroup(_: undefined, { call, put }): Generator<any, void, any> {
@@ -54,10 +56,10 @@ const { model, actions, utils, globalActions, ...helpers } = modelCreator({
           Services.Group.read,
         );
 
-        yield put(actions.getGroupSuccess({ data: data.res }));
+        yield put(AppModel.actions.getGroupSuccess({ data: data.res }));
       } catch (err) {
         yield put(
-          actions.getGroupFail({
+          AppModel.actions.getGroupFail({
             error: err,
           }),
         );
@@ -87,11 +89,9 @@ const { model, actions, utils, globalActions, ...helpers } = modelCreator({
   state: initalState,
 });
 
-export const AppModel = { actions: globalActions, utils, ...helpers };
-
 export default {
-  namespace: model.namespace,
-  state: model.state,
-  effects: model.effects,
-  reducers: model.reducers,
+  namespace: AppModel.model.namespace,
+  state: AppModel.model.state,
+  effects: AppModel.model.effects,
+  reducers: AppModel.model.reducers,
 };

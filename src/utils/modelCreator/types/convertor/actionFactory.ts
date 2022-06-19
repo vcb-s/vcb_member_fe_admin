@@ -1,3 +1,4 @@
+// @ts-expect-error dva-type
 import { EffectsCommandMap } from 'dva';
 import {
   ExtractPayloadFromAction,

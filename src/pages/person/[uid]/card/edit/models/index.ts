@@ -3,7 +3,7 @@ import { history } from 'umi';
 import { Modal } from 'antd';
 
 import type { UserCard } from '@/utils/types/UserCard';
-import { AppModel, State as AppState } from '@/models/app';
+import { AppModel, AppModelState } from '@/models/app';
 import { PersonModel, State as PersonState } from '@/models/person';
 import { GO_BOOL } from '@/utils/types';
 import { PrivateSymbol } from '@/utils/modelCreator/types/util';
@@ -19,7 +19,7 @@ export interface State {
   };
 }
 
-const initalState: State = {
+const STATE: State = {
   form: {
     card: {
       key: '',
@@ -40,15 +40,9 @@ const initalState: State = {
   },
 };
 
-const {
-  model: model,
-  actions,
-  globalActions,
-  utils,
-  ...helpers
-} = modelCreator({
+export const PersonCardEditModel = modelCreator({
   namespace: 'pages.person.card.edit',
-  state: initalState,
+  state: STATE,
   effects: {
     *getCardInfo(
       { payload }: { payload: { id: string } },
@@ -72,11 +66,15 @@ const {
         });
 
         if (g.f) {
-          yield put(actions.getCardInfoFail({ error: g.f.payload }));
+          yield put(
+            PersonCardEditModel.actions.getCardInfoFail({ error: g.f.payload }),
+          );
           return;
         }
 
-        const { group }: AppState = yield select(AppModel.utils.currentStore);
+        const { group }: AppModelState = yield select(
+          AppModel.utils.currentStore,
+        );
 
         const { data }: Services.CardList.ReadResponse = person;
 
@@ -85,12 +83,12 @@ const {
         }
 
         yield put(
-          actions.getCardInfoSuccess({
+          PersonCardEditModel.actions.getCardInfoSuccess({
             card: ModelAdapter.UserCards(data.res, group.data)[0],
           }),
         );
       } catch (error) {
-        yield put(actions.getCardInfoFail({ error }));
+        yield put(PersonCardEditModel.actions.getCardInfoFail({ error }));
         message.error(error.message);
       }
     },
@@ -98,7 +96,9 @@ const {
       _: undefined,
       { select, put, call, race, take, all },
     ): Generator<any, void, any> {
-      const { form: allForm }: State = yield select(utils.currentStore);
+      const { form: allForm }: State = yield select(
+        PersonCardEditModel.utils.currentStore,
+      );
 
       const { personInfo }: PersonState = yield select(
         PersonModel.utils.currentStore,
@@ -179,14 +179,14 @@ const {
 
         history.goBack();
       } catch (error) {
-        yield put(actions.submitCardInfoFail({ error }));
+        yield put(PersonCardEditModel.actions.submitCardInfoFail({ error }));
         message.error(error.message);
       }
     },
   },
   reducers: {
     reset() {
-      return initalState;
+      return STATE;
     },
 
     submitCardInfoSuccess() {},
@@ -230,15 +230,9 @@ const {
   },
 });
 
-export const PersonCardEditModel = {
-  actions: globalActions,
-  utils,
-  ...helpers,
-};
-
 export default {
-  namespace: model.namespace,
-  state: model.state,
-  effects: model.effects,
-  reducers: model.reducers,
+  namespace: PersonCardEditModel.model.namespace,
+  state: PersonCardEditModel.model.state,
+  effects: PersonCardEditModel.model.effects,
+  reducers: PersonCardEditModel.model.reducers,
 };

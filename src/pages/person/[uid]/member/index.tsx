@@ -526,10 +526,10 @@ export default function PagePerson() {
   const match = useRouteMatch<PageParam>();
   const uid = match.params.uid;
   const dispatch = useDispatch();
-  const personInfo = PersonModel.hooks.useStore('personInfo');
-  const userList = PersonModel.hooks.useStore('userList');
+  const personInfo = PersonModel.hooks.useStore((s) => s.personInfo);
+  const userList = PersonModel.hooks.useStore((s) => s.userList);
 
-  const tableLoading = PersonModel.hooks.useLoading('getPersonInfo');
+  const tableLoading = PersonModel.hooks.useLoading((s) => s.getPersonInfo);
 
   const banHandle = useCallback(
     (person: PersonInfo.Item) => {
@@ -800,8 +800,6 @@ export default function PagePerson() {
   const expandedRowRender = useCallback((record: PersonInfo.Item) => {
     return <CardSubTable uid={record.id} />;
   }, []);
-
-  console.log('what is filtedUserData', filtedUserData);
 
   return (
     <div className={styles.wrap}>

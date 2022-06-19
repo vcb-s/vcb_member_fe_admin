@@ -1,3 +1,4 @@
+// @ts-expect-error dva-type
 import { EffectsCommandMap } from 'dva';
 import { useMemo } from 'react';
 import { useSelector, shallowEqual, useDispatch } from 'react-redux';
@@ -37,9 +38,6 @@ interface ModalCreatorResult<
   // 用来构造actions
   actions: ActionFactorysConvertorForEffects<Effects, null> &
     ActionFactorysConvertorForReducers<Reducers, null>;
-  /** @deprecated 带namaspace的actions */
-  globalActions: ActionFactorysConvertorForEffects<Effects, Namespace> &
-    ActionFactorysConvertorForReducers<Reducers, Namespace, State>;
   /** @deprecated 使用 hooks.useActions 代替  */
   dispatch: DispatchConvertorForEffects<Effects> &
     DispatchConvertorForReducer<Reducers, State>;
@@ -121,27 +119,13 @@ export const modelCreator = <
     ActionFactorysConvertorForReducers<Reducers, null> = Object.fromEntries(
     allKeysArr.map((k) => [
       k,
-      (payload: any, global = false) => ({
+      (payload: any, global = true) => ({
         type: global ? globalKeys[k] : k,
         payload,
         __IS_SAGA: true,
       }),
     ]),
   );
-
-  // @ts-expect-error Object.fromEntries无法得到合适的类型
-  const globalActions: ActionFactorysConvertorForEffects<Effects, Namespace> &
-    ActionFactorysConvertorForReducers<Reducers, Namespace, State> =
-    Object.fromEntries(
-      allKeysArr.map((k) => [
-        k,
-        (payload: any, global = true) => ({
-          type: global ? globalKeys[k] : k,
-          payload,
-          __IS_SAGA: true,
-        }),
-      ]),
-    );
 
   // @ts-ignore
   const dispatch: DispatchConvertorForEffects<Effects> &
@@ -234,7 +218,6 @@ export const modelCreator = <
   return {
     model,
     actions,
-    globalActions,
     dispatch,
     hooks,
     utils,

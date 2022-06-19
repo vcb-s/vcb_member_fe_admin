@@ -19,3 +19,9 @@ export function rootContainer(container: any) {
 }
 
 export { config as request } from '@/utils/requestConfig';
+
+export const dva = {
+  config: {
+    namespacePrefixWarning: false,
+  },
+};

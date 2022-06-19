@@ -1,5 +1,6 @@
 import { message } from 'antd';
 import { history } from 'umi';
+// @ts-expect-error dva-type
 import { EffectsCommandMap } from 'dva';
 import { parse } from 'query-string';
 
@@ -34,13 +35,7 @@ const initalState: State = {
   },
 };
 
-const {
-  model: dva,
-  actions,
-  globalActions,
-  utils,
-  ...helpers
-} = modelCreator({
+export const loginStore = modelCreator({
   namespace: 'pages.login',
   state: initalState,
   effects: {
@@ -48,7 +43,7 @@ const {
       _: undefined,
       { select, put, call }: EffectsCommandMap,
     ): Generator<unknown, void, any> {
-      const { form }: State = yield select(utils.currentStore);
+      const { form }: State = yield select(loginStore.utils.currentStore);
 
       const { id, pass, remember } = form.login;
       try {
@@ -80,10 +75,10 @@ const {
           localStorage.setItem(MAGIC.AuthToken, token.token);
           localStorage.setItem(MAGIC.LOGIN_UID, param.uid);
         }
-        yield put(actions.loginSuccess());
+        yield put(loginStore.actions.loginSuccess());
       } catch (e) {
         message.error(e.message);
-        yield put(actions.loginFail());
+        yield put(loginStore.actions.loginFail());
       }
     },
   },
@@ -116,10 +111,8 @@ const {
 });
 
 export default {
-  namespace: dva.namespace,
-  state: dva.state,
-  effects: dva.effects,
-  reducers: dva.reducers,
+  namespace: loginStore.model.namespace,
+  state: loginStore.model.state,
+  effects: loginStore.model.effects,
+  reducers: loginStore.model.reducers,
 };
-
-export const loginStore = { actions: globalActions, utils, ...helpers };

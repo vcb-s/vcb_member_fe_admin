@@ -1,4 +1,11 @@
-import { useState, useCallback, useMemo, useEffect, FC } from 'react';
+import {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  FC,
+  PropsWithChildren,
+} from 'react';
 import { useDispatch, NavLink, useParams, useLocation, useHistory } from 'umi';
 import { Menu, Avatar, Space, Dropdown, message, Modal, Tooltip } from 'antd';
 import { MenuClickEventHandler } from 'rc-menu/lib/interface';
@@ -9,6 +16,7 @@ import { PageParam } from './types';
 import { compile } from 'path-to-regexp';
 import { RestPass } from '@/components/rest-pass';
 import { PersonModel } from '@/models/person';
+import { ItemType } from 'antd/es/menu/hooks/useItems';
 
 import styles from './_layout.scss';
 
@@ -43,7 +51,9 @@ class MenuData {
 }
 
 const MenuSide: FC = function () {
-  const personState = PersonModel.hooks.useStore();
+  const isAdmin = PersonModel.hooks.useStore(
+    (s) => !!s.personInfo.admin.length,
+  );
   const { uid = '' } = useParams<any>();
   const location = useLocation();
 
@@ -60,14 +70,14 @@ const MenuSide: FC = function () {
             return true;
           }
           case MenuLevel.admin: {
-            return !!personState.personInfo.admin.length;
+            return isAdmin;
           }
           default: {
             return false;
           }
         }
       });
-  }, [personState.personInfo.admin.length, uid]);
+  }, [isAdmin, uid]);
 
   const [selectedKeys, setSelectedKeys] = useState<string[]>(() => {
     for (const menuItem of menuData) {
@@ -129,7 +139,7 @@ const MenuSide: FC = function () {
   );
 };
 
-const PersonLaylout: FC = function PersonLaylout({ children }) {
+export default function PersonLaylout({ children }: PropsWithChildren) {
   const personState = PersonModel.hooks.useStore();
   const dispatch = useDispatch();
   const { uid } = useParams<PageParam>();
@@ -179,23 +189,25 @@ const PersonLaylout: FC = function PersonLaylout({ children }) {
     PersonModel.dispatch.closeRSPModel(dispatch);
   }, [dispatch]);
 
-  const menuJsx = useMemo((): JSX.Element[] => {
+  const menuItems = useMemo((): ItemType[] => {
     if (personState.personInfo.avast) {
       return [
-        <Menu.Item key='editUser'>修改信息</Menu.Item>,
-        <Menu.Item key='resetPass'>
-          <RestPass show={show} onClose={closeHandle}>
-            修改密码
-          </RestPass>
-        </Menu.Item>,
-        <Menu.Item key='logout'>退出登录</Menu.Item>,
+        { key: 'editUser', label: '修改信息' },
+        {
+          key: 'resetPass',
+          label: (
+            <RestPass show={show} onClose={closeHandle}>
+              修改密码
+            </RestPass>
+          ),
+        },
+        {
+          key: 'logout',
+          label: '退出登录',
+        },
       ];
     } else {
-      return [
-        <Menu.Item key='login' disabled>
-          请稍候...
-        </Menu.Item>,
-      ];
+      return [{ key: 'login', label: '请稍候...' }];
     }
   }, [closeHandle, personState.personInfo.avast, show]);
 
@@ -207,7 +219,7 @@ const PersonLaylout: FC = function PersonLaylout({ children }) {
           <header className={styles.header}>
             <Dropdown
               className={styles.clickAble}
-              overlay={<Menu onClick={menuChangeHandle}>{menuJsx}</Menu>}
+              overlay={<Menu onClick={menuChangeHandle} items={menuItems} />}
             >
               <Space>
                 <Avatar
@@ -251,6 +263,4 @@ const PersonLaylout: FC = function PersonLaylout({ children }) {
       </Modal>
     </>
   );
-};
-
-export default PersonLaylout;
+}

@@ -312,6 +312,7 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
   const getMounted = useMountedState();
   const [data, setData] = useState<UserCard.Item[]>([]);
   const [loading, loadingAction] = useBoolean(true);
+  // const history = useHistory();
   const [loadingCardID, setLoadingCardID] = useState('');
 
   const groups = AppModel.hooks.useStore('group', 'data');
@@ -477,6 +478,29 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
         render: (avatar) => <Avatar src={avatar} />,
       },
       {
+        title: '组别',
+        dataIndex: 'group',
+        align: 'center',
+        width: 200,
+        render: (groups: Group.Item[]) => {
+          return (
+            <div className={styles.groupTagsWrap}>
+              {groups.map((group) => (
+                <Tag key={group.key} className={styles.groupTag}>
+                  {group.name}
+                </Tag>
+              ))}
+
+              <div className={styles.groupTagsLastlineAdjust} />
+            </div>
+          );
+        },
+      },
+      {
+        title: '职位',
+        dataIndex: 'job',
+      },
+      {
         title: '操作',
         key: 'action',
         align: 'left',
@@ -488,7 +512,9 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
                 checked={card.retired === GO_BOOL.no}
                 checkedChildren='活跃'
                 unCheckedChildren='咸鱼'
-                title='切换退休状态'
+                title={`切换为${
+                  card.retired === GO_BOOL.no ? '咸鱼' : '活跃'
+                }状态`}
                 onChange={() => toggleRetiredHandle(card)}
                 loading={loadingCardID === card.id}
               />
@@ -496,14 +522,13 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
                 checked={card.hide === GO_BOOL.no}
                 checkedChildren='kirakira!'
                 unCheckedChildren='已隐藏'
-                title='切换卡片前台显隐状态'
+                title={`${card.hide === GO_BOOL.no ? '隐藏' : '显示'}该卡片`}
                 onChange={() => toggleHideHandle(card)}
                 loading={loadingCardID === card.id}
               />
-              {/* 目前卡片编辑还严重耦合登录用户state，修改别的用户的卡片在数据同步上有点绕，先隐藏 */}
               {/* <Button onClick={() => history.push(`./card/edit/${card.id}`)}>
-                  编辑
-                </Button> */}
+                编辑
+              </Button> */}
             </Space>
           );
         },

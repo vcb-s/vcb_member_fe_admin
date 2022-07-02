@@ -312,7 +312,7 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
   const getMounted = useMountedState();
   const [data, setData] = useState<UserCard.Item[]>([]);
   const [loading, loadingAction] = useBoolean(true);
-  // const history = useHistory();
+  const history = useHistory();
   const [loadingCardID, setLoadingCardID] = useState('');
 
   const groups = AppModel.hooks.useStore('group', 'data');
@@ -526,15 +526,15 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
                 onChange={() => toggleHideHandle(card)}
                 loading={loadingCardID === card.id}
               />
-              {/* <Button onClick={() => history.push(`./card/edit/${card.id}`)}>
+              <Button onClick={() => history.push(`./card/edit/${card.id}`)}>
                 编辑
-              </Button> */}
+              </Button>
             </Space>
           );
         },
       },
     ];
-  }, [loadingCardID, toggleHideHandle, toggleRetiredHandle]);
+  }, [history, loadingCardID, toggleHideHandle, toggleRetiredHandle]);
 
   return (
     <Table

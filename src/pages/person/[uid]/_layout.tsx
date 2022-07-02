@@ -6,8 +6,9 @@ import {
   FC,
   PropsWithChildren,
 } from 'react';
-import { useDispatch, NavLink, useParams, useLocation, useHistory } from 'umi';
+import { useDispatch, useParams, useLocation, useHistory } from 'umi';
 import { Menu, Avatar, Space, Dropdown, message, Modal, Tooltip } from 'antd';
+import type { ItemType } from 'antd/es/menu/hooks/useItems';
 import { MenuClickEventHandler } from 'rc-menu/lib/interface';
 import { SelectInfo as SelectParam } from 'rc-menu/lib/interface';
 import { ApartmentOutlined, IdcardOutlined } from '@ant-design/icons';
@@ -16,7 +17,6 @@ import { PageParam } from './types';
 import { compile } from 'path-to-regexp';
 import { RestPass } from '@/components/rest-pass';
 import { PersonModel } from '@/models/person';
-import { ItemType } from 'antd/es/menu/hooks/useItems';
 
 import styles from './_layout.scss';
 
@@ -28,16 +28,16 @@ enum MenuLevel {
 class MenuData {
   public readonly menuData = [
     {
-      Icon: IdcardOutlined,
+      icon: <IdcardOutlined />,
       router: '/person/:uid/card',
-      name: '我的卡片' as const,
+      label: '我的卡片' as const,
       show: true,
       level: MenuLevel.all,
     },
     {
-      Icon: ApartmentOutlined,
+      icon: <ApartmentOutlined />,
       router: '/person/:uid/member',
-      name: '我的组员' as const,
+      label: '我的组员' as const,
       show: true,
       level: MenuLevel.admin,
     },
@@ -56,6 +56,7 @@ const MenuSide: FC = function () {
   );
   const { uid = '' } = useParams<any>();
   const location = useLocation();
+  const history = useHistory();
 
   const menuData = useMemo(() => {
     return new MenuData().menuData
@@ -78,6 +79,29 @@ const MenuSide: FC = function () {
         }
       });
   }, [isAdmin, uid]);
+
+  const menuItems = useMemo(() => {
+    return menuData.map<ItemType>((s) => ({
+      label: s.label,
+      key: s.key,
+      icon: s.icon,
+    }));
+  }, [menuData]);
+
+  const onClick = useCallback(
+    (evt: { key: string }) => {
+      console.log('evt', evt);
+      for (const menu of menuData) {
+        if (menu.key === evt.key) {
+          history.push(menu.presetPath);
+          return;
+        }
+      }
+
+      message.error(`未知菜单项: ${evt.key}`);
+    },
+    [history, menuData],
+  );
 
   const [selectedKeys, setSelectedKeys] = useState<string[]>(() => {
     for (const menuItem of menuData) {
@@ -125,16 +149,9 @@ const MenuSide: FC = function () {
         selectedKeys={selectedKeys}
         onSelect={selectHandle}
         mode='inline'
-      >
-        {menuData.map((menuItem) => (
-          <Menu.Item key={menuItem.key}>
-            <NavLink to={menuItem.presetPath} replace>
-              <menuItem.Icon />
-              {menuItem.name}
-            </NavLink>
-          </Menu.Item>
-        ))}
-      </Menu>
+        items={menuItems}
+        onClick={onClick}
+      />
     </div>
   );
 };

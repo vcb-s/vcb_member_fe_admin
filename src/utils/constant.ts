@@ -38,17 +38,17 @@ export const empty = {
   set: new Set(),
 };
 
-export const MAGIC = {
-  AuthToken: 'AuthToken',
-  LOGIN_UID: 'LOGIN_UID',
+export enum MAGIC {
+  AuthToken = 'AuthToken',
+  LOGIN_UID = 'LOGIN_UID',
 
   /** 登陆页登陆后跳转链接关键字 */
-  loginPageNavQueryKey: 'nav',
+  loginPageNavQueryKey = 'nav',
   /** 登陆页默认登录名 */
-  loginPageUserNameQueryKey: 'card',
+  loginPageUserNameQueryKey = 'card',
   /** 登陆页默认登陆密码 */
-  loginPageAuthCodeQueryKey: 'code',
-};
+  loginPageAuthCodeQueryKey = 'code',
+}
 
 export const color = {
   'primary-color': '#e74c3c',

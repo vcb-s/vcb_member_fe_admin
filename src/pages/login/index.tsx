@@ -1,13 +1,5 @@
-import {
-  ChangeEvent,
-  useEffect,
-  useCallback,
-  useState,
-  useRef,
-  useMemo,
-} from 'react';
-import { useDispatch, useLocation, useHistory } from 'umi';
-import { parse } from 'query-string';
+import { ChangeEvent, useEffect, useCallback, useState, useMemo } from 'react';
+import { useHistory } from 'umi';
 import { Form, Input, Button, Select, Avatar } from 'antd';
 import classnames from 'classnames';
 
@@ -17,22 +9,50 @@ import { MAGIC } from '@/utils/constant';
 import { loginStore } from './model';
 
 import styles from './index.scss';
+import { useQuery } from '@/utils/hooks/useQuery';
 
-const Login = function Login() {
-  const dispatch = useDispatch();
-  const loginForm = loginStore.hooks.useStore('form', 'login');
+/** 抽象用户列表获取逻辑 */
+function useUserList() {
+  const userList = UsersModel.hooks.useStore((s) => s.usersList.data);
+  const loading = UsersModel.hooks.useLoading((s) => s.getUserList);
+  const actions = UsersModel.hooks.useActions();
 
-  const userState = UsersModel.hooks.useStore();
-  const { search } = useLocation();
+  useEffect(() => {
+    actions.getUserList();
+  }, [actions]);
+
+  return [userList, loading] as const;
+}
+
+/** 登录页 */
+export default function Login() {
   const history = useHistory();
+  /** 路由参数 */
+  const query = useQuery<{
+    [MAGIC.loginPageAuthCodeQueryKey]: string;
+    [MAGIC.loginPageNavQueryKey]: string;
+    [MAGIC.loginPageUserNameQueryKey]: string;
+  }>();
 
-  const userlistLoading = UsersModel.hooks.useLoading('getUserList');
-
+  const [userList, userlistLoading] = useUserList();
+  const form = loginStore.hooks.useStore((s) => s.form.login);
   const loginLoading = loginStore.hooks.useLoading();
+  const loginActions = loginStore.hooks.useActions();
 
-  const currentSelectedUser = useMemo(() => {
-    const [user] = userState.usersList.data.filter((user) => {
-      return user.id === loginForm.id;
+  /** 用户输入的关键词 */
+  const [nameKeyword, setNameKeyword] = useState('');
+
+  /** 参数过滤后的用户列表 */
+  const filtedUsers = useMemo(() => {
+    return userList.filter((user) => {
+      return user.id === nameKeyword || user.nickname.indexOf(nameKeyword) >= 0;
+    });
+  }, [nameKeyword, userList]);
+
+  /** 当前选中用户 */
+  const selectedUser = useMemo(() => {
+    const [user] = userList.filter((user) => {
+      return user.id === form.id;
     });
 
     if (!user) {
@@ -40,119 +60,91 @@ const Login = function Login() {
     }
 
     return user;
-  }, [loginForm.id, userState.usersList.data]);
+  }, [form.id, userList]);
 
-  useEffect(() => {
-    UsersModel.dispatch.getUserList(dispatch);
-  }, [dispatch]);
-
-  // 最后输入的搜索值，为了让antd的select在没有选择的时候也保留输入值
-  const [lastSearchValue, setLastSearchValue] = useState('');
-  const hasSelectAfterTypeSearch = useRef<boolean>(false);
-
-  const filtedUsers = useMemo(() => {
-    return userState.usersList.data.filter((user) => {
-      return (
-        user.id === lastSearchValue ||
-        user.nickname.indexOf(lastSearchValue) >= 0
-      );
-    });
-  }, [lastSearchValue, userState.usersList.data]);
-
-  const nameSelectHandle = useCallback(
+  const onNameChange = useCallback(
     (id: User.Item['id']) => {
-      hasSelectAfterTypeSearch.current = true;
-
-      loginStore.dispatch.fieldSync(
-        dispatch,
+      loginActions.fieldSync(
         loginStore.utils.fieldPayloadCreator('login', 'id', id),
       );
     },
-    [dispatch],
+    [loginActions],
   );
 
-  // 暂时关闭ID显示这个设定，放弃keepass之类的填充；太小众然后使用起来有点怪怪的
-  // const dropdownVisibleChangeHandle = useCallback(() => {
-  //   if (hasSelectAfterTypeSearch.current) {
-  //     hasSelectAfterTypeSearch.current = false;
-  //     return;
-  //   }
-
-  //   if (lastSearchValue) {
-  //     nameSelectHandle(lastSearchValue);
-  //   }
-
-  //   setLastSearchValue(() => '');
-  // }, [lastSearchValue, nameSelectHandle]);
-
-  const passChangeHandle = useCallback(
+  const onPassChange = useCallback(
     (evt: ChangeEvent<HTMLInputElement>) => {
-      loginStore.dispatch.fieldSync(
-        dispatch,
+      loginActions.fieldSync(
         loginStore.utils.fieldPayloadCreator('login', 'pass', evt.target.value),
       );
     },
-    [dispatch],
+    [loginActions],
   );
 
-  useEffect(() => {
-    const query = parse(search);
-    const username = query[MAGIC.loginPageUserNameQueryKey] || '';
-    const code = query[MAGIC.loginPageAuthCodeQueryKey] || '';
-    if (
-      // 有可能因为参数错误而parse产生一个数组
-      typeof username === 'string' &&
-      typeof code === 'string' &&
-      username &&
-      code
-    ) {
-      nameSelectHandle(username);
-      loginStore.dispatch.fieldSync(
-        dispatch,
-        loginStore.utils.fieldPayloadCreator('login', 'pass', code),
+  /** 恢复登录表单 */
+  const restoreLoginForm = useCallback(
+    (info: { id: string; pass: string }) => {
+      loginActions.fieldSync(
+        loginStore.utils.fieldPayloadCreator('login', 'id', info.id),
       );
-    }
-  }, [dispatch, nameSelectHandle, search]);
+      loginActions.fieldSync(
+        loginStore.utils.fieldPayloadCreator('login', 'pass', info.pass),
+      );
+    },
+    [loginActions],
+  );
 
-  /** 主站关联登录 */
-  // const loginWithWpHandle = useCallback(() => {}, []);
-  /** 密码登录 */
-  const loginHandle = useCallback(() => {
-    loginStore.dispatch.login(dispatch);
-  }, [dispatch]);
-
-  // 已经登录的就不需要重复登录了
-  useEffect(() => {
-    const token = localStorage.getItem(MAGIC.AuthToken);
-    const UID = localStorage.getItem(MAGIC.LOGIN_UID);
-
-    if (token && UID) {
-      const query = parse(search);
+  /** 登录成功跳转 */
+  const onLoginSuccess = useCallback(
+    (uid: string) => {
       let navQuery = query[MAGIC.loginPageNavQueryKey] || '';
 
       if (Array.isArray(navQuery)) {
         navQuery = navQuery.pop() || '';
       }
 
-      const navURL = navQuery ? JSON.parse(navQuery) : `/person/${UID}`;
+      const navURL = navQuery ? JSON.parse(navQuery) : `/person/${uid}`;
 
       history.replace(navURL);
+    },
+    [history, query],
+  );
+
+  /** 密码登录 */
+  const loginHandle = useCallback(() => {
+    loginActions.login({ cb: onLoginSuccess });
+  }, [loginActions, onLoginSuccess]);
+
+  // 自动登录相关
+  useEffect(() => {
+    // 搜先检查有没有登录的key
+    const token = localStorage.getItem(MAGIC.AuthToken);
+    const UID = localStorage.getItem(MAGIC.LOGIN_UID);
+
+    if (token && UID) {
+      onLoginSuccess(UID);
+      return;
     }
-  }, [history, search]);
+
+    // 否则检查路由上有没有认证用键值
+    const username = `${query[MAGIC.loginPageUserNameQueryKey] || ''}`;
+    const pass = `${query[MAGIC.loginPageAuthCodeQueryKey] || ''}`;
+    if (username && pass) {
+      restoreLoginForm({ id: username, pass: pass });
+    }
+  }, [onLoginSuccess, query, restoreLoginForm]);
 
   return (
     <div className={styles.wrap}>
       <div className={styles.loginInfoPreview}>
-        <Avatar src={currentSelectedUser?.avast} size={80} />
+        <Avatar src={selectedUser?.avast} size={80} />
         <div
           className={classnames(
             styles.loginInfoPreviewUserName,
-            currentSelectedUser?.nickname &&
-              styles.loginInfoPreviewUserNameActive,
+            selectedUser?.nickname && styles.loginInfoPreviewUserNameActive,
           )}
         >
-          {currentSelectedUser?.nickname
-            ? `欢迎回来，${currentSelectedUser.nickname}`
+          {selectedUser?.nickname
+            ? `おかえり，${selectedUser.nickname}`
             : 'お風呂にする？ご飯にする？それとも……わ・た・し？'}
         </div>
       </div>
@@ -168,13 +160,11 @@ const Login = function Login() {
               showSearch
               placeholder='可输入用户昵称进行搜索'
               loading={userlistLoading}
-              value={loginForm.id || undefined}
+              disabled={userlistLoading}
+              value={form.id || undefined}
               filterOption={false}
-              // onChange={nameChangeHandle}
-              onSelect={nameSelectHandle}
-              onSearch={setLastSearchValue}
-              // onDropdownVisibleChange={dropdownVisibleChangeHandle}
-              // optionLabelProp='value'
+              onSelect={onNameChange}
+              onSearch={setNameKeyword}
             >
               {filtedUsers.map((user) => (
                 <Select.Option key={user.key} value={user.id}>
@@ -188,8 +178,8 @@ const Login = function Login() {
           </Form.Item>
           <Form.Item label='密码'>
             <Input.Password
-              value={loginForm.pass}
-              onChange={passChangeHandle}
+              value={form.pass}
+              onChange={onPassChange}
               onPressEnter={loginHandle}
               autoComplete='new-password'
               // autoComplete='off'
@@ -211,7 +201,7 @@ const Login = function Login() {
                 loading={loginLoading}
                 // onClick={loginHandle}
                 htmlType='submit'
-                disabled={!loginForm.pass}
+                disabled={!form.pass}
               >
                 登录
               </Button>
@@ -221,6 +211,4 @@ const Login = function Login() {
       </div>
     </div>
   );
-};
-
-export default Login;
+}

@@ -40,7 +40,7 @@ export const loginStore = modelCreator({
   state: initalState,
   effects: {
     *login(
-      _: undefined,
+      { payload }: { payload: { cb?: (uid: string) => void } },
       { select, put, call }: EffectsCommandMap,
     ): Generator<unknown, void, any> {
       const { form }: State = yield select(loginStore.utils.currentStore);
@@ -59,23 +59,15 @@ export const loginStore = modelCreator({
 
         yield call(Services.Login.login, param);
         message.success('登录成功');
-        const { search } = history.location;
-        const query = parse(search);
-        let navQuery = query[MAGIC.loginPageNavQueryKey] || '';
-
-        if (Array.isArray(navQuery)) {
-          navQuery = navQuery.pop() || '';
-        }
-
-        const navURL = navQuery ? JSON.parse(navQuery) : `/person/${param.uid}`;
-
-        history.replace(navURL);
 
         if (remember) {
           localStorage.setItem(MAGIC.AuthToken, token.token);
           localStorage.setItem(MAGIC.LOGIN_UID, param.uid);
         }
         yield put(loginStore.actions.loginSuccess());
+        if (typeof payload.cb === 'function') {
+          payload.cb(param.uid);
+        }
       } catch (e) {
         message.error(e.message);
         yield put(loginStore.actions.loginFail());

@@ -16,7 +16,6 @@ import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
 
 import { defaultFormLayout, textareaAutoSize } from '@/utils/constant';
 import { GroupSelector } from '@/components/GroupSelector';
-import { PersonModel } from '@/models/person';
 
 import { PageParam } from './types';
 import { GO_BOOL } from '@/utils/types';
@@ -33,16 +32,9 @@ export default function PagePerson() {
   const dispatch = useDispatch();
   const history = useHistory();
   const form = PersonCardEditModel.hooks.useStore('form', 'card');
-  const personInfo = PersonModel.hooks.useStore('personInfo');
   const editModelLoading = PersonCardEditModel.hooks.useLoading();
-  const personLoading = PersonModel.hooks.useLoading();
 
-  const formLoading = editModelLoading || personLoading;
-
-  /** 刷新个人信息 */
-  useEffect(() => {
-    PersonModel.dispatch.getPersonInfo(dispatch, { uid });
-  }, [dispatch, personInfo.id, uid]);
+  const formLoading = editModelLoading;
 
   /** 刷新/重置 */
   const refreshHandle = useCallback(

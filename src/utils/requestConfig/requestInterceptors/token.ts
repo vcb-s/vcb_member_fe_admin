@@ -15,6 +15,7 @@ export const tokenInterceptor: RequestInterceptor = function (url, options) {
     options.headers = { 'X-Token': token.token };
   }
 
-  options.credentials = 'omit';
+  // cf cookies
+  // options.credentials = 'omit';
   return { url, options };
 };

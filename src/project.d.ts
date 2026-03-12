@@ -12,7 +12,7 @@ declare const picHost: string;
 /** 当前部署地址 */
 declare const publicPath: string;
 /** 当前部署时间戳 */
-declare const buildTimestmap: string;
+declare const buildTimestamp: number;
 
 interface Window {
   routerBase: string;

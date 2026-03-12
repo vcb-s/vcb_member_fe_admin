@@ -1,155 +1,162 @@
 import {
   ChangeEvent,
-  useEffect,
   useCallback,
-  useState,
-  useRef,
+  useEffect,
   useMemo,
+  useRef,
+  useState,
 } from 'react';
-import { useDispatch, useLocation, useHistory } from 'umi';
-import { parse } from 'query-string';
-import { Form, Input, Button, Select, Avatar } from 'antd';
-import classnames from 'classnames';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { App, Avatar, Button, Form, Input, Select } from 'antd';
 
-import { UsersModel } from '@/models/users';
-import { User } from '@/utils/types/User';
+import { request } from '@/utils/request';
+import { token } from '@/utils/token';
 import { MAGIC } from '@/utils/constant';
-import { loginStore } from './model';
+import type { Services } from '@/utils/services';
+import type { User } from '@/utils/types/User';
 
-import styles from './index.scss';
+import styles from './index.module.scss';
+
+interface UserListItem {
+  id: string;
+  key: string;
+  nickname: string;
+  avast: string;
+}
+
+function parseSearch(search: string) {
+  return new URLSearchParams(search.startsWith('?') ? search.slice(1) : search);
+}
 
 const Login = function Login() {
-  const dispatch = useDispatch();
-  const loginForm = loginStore.hooks.useStore('form', 'login');
-
-  const userState = UsersModel.hooks.useStore();
+  const { message } = App.useApp();
   const { search } = useLocation();
-  const history = useHistory();
+  const navigate = useNavigate();
 
-  const userlistLoading = UsersModel.hooks.useLoading('getUserList');
+  const [formState, setFormState] = useState({ id: '', pass: '' });
+  const [usersList, setUsersList] = useState<UserListItem[]>([]);
+  const [userlistLoading, setUserlistLoading] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
 
-  const loginLoading = loginStore.hooks.useLoading();
-
-  const currentSelectedUser = useMemo(() => {
-    const [user] = userState.usersList.data.filter((user) => {
-      return user.id === loginForm.id;
-    });
-
-    if (!user) {
-      return null;
-    }
-
-    return user;
-  }, [loginForm.id, userState.usersList.data]);
-
+  // Load user list on mount
   useEffect(() => {
-    UsersModel.dispatch.getUserList(dispatch);
-  }, [dispatch]);
+    setUserlistLoading(true);
+    request<Services.UsersList.ReadResponse>('/user/list')
+      .then((res) => {
+        const items = res.data?.res ?? [];
+        setUsersList(
+          items.map((u: User.ItemInResponse) => ({
+            id: u.id,
+            key: u.id,
+            nickname: u.nickname,
+            avast: u.avast,
+          })),
+        );
+      })
+      .catch((err: Error) => {
+        message.error(err.message || '获取用户列表失败');
+      })
+      .finally(() => {
+        setUserlistLoading(false);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // 最后输入的搜索值，为了让antd的select在没有选择的时候也保留输入值
+  // Auto-fill from URL query params
+  useEffect(() => {
+    const query = parseSearch(search);
+    const username = query.get(MAGIC.loginPageUserNameQueryKey) ?? '';
+    const code = query.get(MAGIC.loginPageAuthCodeQueryKey) ?? '';
+    if (username && code) {
+      setFormState({ id: username, pass: code });
+    }
+  }, [search]);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    const savedToken = localStorage.getItem(MAGIC.AuthToken);
+    const uid = localStorage.getItem(MAGIC.LOGIN_UID);
+
+    if (savedToken && uid) {
+      const query = parseSearch(search);
+      const navQuery = query.get(MAGIC.loginPageNavQueryKey) ?? '';
+      const navURL = navQuery ? JSON.parse(navQuery) : `/person/${uid}`;
+      navigate(navURL, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const currentSelectedUser = useMemo(
+    () => usersList.find((u) => u.id === formState.id) ?? null,
+    [formState.id, usersList],
+  );
+
   const [lastSearchValue, setLastSearchValue] = useState('');
   const hasSelectAfterTypeSearch = useRef<boolean>(false);
 
-  const filtedUsers = useMemo(() => {
-    return userState.usersList.data.filter((user) => {
-      return (
-        user.id === lastSearchValue ||
-        user.nickname.indexOf(lastSearchValue) >= 0
-      );
-    });
-  }, [lastSearchValue, userState.usersList.data]);
-
-  const nameSelectHandle = useCallback(
-    (id: User.Item['id']) => {
-      hasSelectAfterTypeSearch.current = true;
-
-      loginStore.dispatch.fieldSync(
-        dispatch,
-        loginStore.utils.fieldPayloadCreator('login', 'id', id),
-      );
-    },
-    [dispatch],
+  const filteredUsers = useMemo(
+    () =>
+      usersList.filter(
+        (u) =>
+          u.id === lastSearchValue || u.nickname.indexOf(lastSearchValue) >= 0,
+      ),
+    [lastSearchValue, usersList],
   );
 
-  // 暂时关闭ID显示这个设定，放弃keepass之类的填充；太小众然后使用起来有点怪怪的
-  // const dropdownVisibleChangeHandle = useCallback(() => {
-  //   if (hasSelectAfterTypeSearch.current) {
-  //     hasSelectAfterTypeSearch.current = false;
-  //     return;
-  //   }
+  const nameSelectHandle = useCallback((id: string) => {
+    hasSelectAfterTypeSearch.current = true;
+    setFormState((prev) => ({ ...prev, id }));
+  }, []);
 
-  //   if (lastSearchValue) {
-  //     nameSelectHandle(lastSearchValue);
-  //   }
+  const passChangeHandle = useCallback((evt: ChangeEvent<HTMLInputElement>) => {
+    setFormState((prev) => ({ ...prev, pass: evt.target.value }));
+  }, []);
 
-  //   setLastSearchValue(() => '');
-  // }, [lastSearchValue, nameSelectHandle]);
+  const loginHandle = useCallback(async () => {
+    const { id, pass } = formState;
 
-  const passChangeHandle = useCallback(
-    (evt: ChangeEvent<HTMLInputElement>) => {
-      loginStore.dispatch.fieldSync(
-        dispatch,
-        loginStore.utils.fieldPayloadCreator('login', 'pass', evt.target.value),
-      );
-    },
-    [dispatch],
-  );
-
-  useEffect(() => {
-    const query = parse(search);
-    const username = query[MAGIC.loginPageUserNameQueryKey] || '';
-    const code = query[MAGIC.loginPageAuthCodeQueryKey] || '';
-    if (
-      // 有可能因为参数错误而parse产生一个数组
-      typeof username === 'string' &&
-      typeof code === 'string' &&
-      username &&
-      code
-    ) {
-      nameSelectHandle(username);
-      loginStore.dispatch.fieldSync(
-        dispatch,
-        loginStore.utils.fieldPayloadCreator('login', 'pass', code),
-      );
+    if (!id) {
+      message.error('该卡片尚未关联用户，请联系组长或网络组进行关联后登录');
+      return;
     }
-  }, [dispatch, nameSelectHandle, search]);
 
-  /** 主站关联登录 */
-  // const loginWithWpHandle = useCallback(() => {}, []);
-  /** 密码登录 */
-  const loginHandle = useCallback(() => {
-    loginStore.dispatch.login(dispatch);
-  }, [dispatch]);
+    const param: Services.Login.LoginParam = { uid: id, password: pass };
 
-  // 已经登录的就不需要重复登录了
-  useEffect(() => {
-    const token = localStorage.getItem(MAGIC.AuthToken);
-    const UID = localStorage.getItem(MAGIC.LOGIN_UID);
+    setLoginLoading(true);
+    try {
+      await request('/admin/login', { method: 'post', data: param });
+      message.success('登录成功');
 
-    if (token && UID) {
-      const query = parse(search);
-      let navQuery = query[MAGIC.loginPageNavQueryKey] || '';
+      localStorage.setItem(MAGIC.AuthToken, token.token);
+      localStorage.setItem(MAGIC.LOGIN_UID, id);
 
-      if (Array.isArray(navQuery)) {
-        navQuery = navQuery.pop() || '';
-      }
+      const query = parseSearch(search);
+      const navQuery = query.get(MAGIC.loginPageNavQueryKey) ?? '';
+      const navURL = navQuery ? JSON.parse(navQuery) : `/person/${id}`;
+      navigate(navURL, { replace: true });
 
-      const navURL = navQuery ? JSON.parse(navQuery) : `/person/${UID}`;
-
-      history.replace(navURL);
+      setFormState((prev) => ({ ...prev, pass: '' }));
+    } catch (e: unknown) {
+      const err = e as Error;
+      message.error(err.message || '登录失败');
+    } finally {
+      setLoginLoading(false);
     }
-  }, [history, search]);
+  }, [formState, message, navigate, search]);
 
   return (
     <div className={styles.wrap}>
       <div className={styles.loginInfoPreview}>
         <Avatar src={currentSelectedUser?.avast} size={80} />
         <div
-          className={classnames(
+          className={[
             styles.loginInfoPreviewUserName,
-            currentSelectedUser?.nickname &&
-              styles.loginInfoPreviewUserNameActive,
-          )}
+            currentSelectedUser?.nickname
+              ? styles.loginInfoPreviewUserNameActive
+              : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
         >
           {currentSelectedUser?.nickname
             ? `欢迎回来，${currentSelectedUser.nickname}`
@@ -160,62 +167,47 @@ const Login = function Login() {
       <div className={styles.mainForm}>
         <Form
           className={styles.mainForm}
-          layout='vertical'
-          onSubmitCapture={loginHandle}
+          layout="vertical"
+          onFinish={loginHandle}
         >
-          <Form.Item label='用户'>
+          <Form.Item label="用户">
             <Select
               showSearch
-              placeholder='可输入用户昵称进行搜索'
+              placeholder="可输入用户昵称进行搜索"
               loading={userlistLoading}
-              value={loginForm.id || undefined}
+              value={formState.id || undefined}
               filterOption={false}
-              // onChange={nameChangeHandle}
               onSelect={nameSelectHandle}
               onSearch={setLastSearchValue}
-              // onDropdownVisibleChange={dropdownVisibleChangeHandle}
-              // optionLabelProp='value'
             >
-              {filtedUsers.map((user) => (
+              {filteredUsers.map((user) => (
                 <Select.Option key={user.key} value={user.id}>
-                  <Avatar src={user.avast} size='small' />
-                  <span className={styles.userSeletorNickname}>
+                  <Avatar src={user.avast} size="small" />
+                  <span className={styles.userSelectorNickname}>
                     {user.nickname}
                   </span>
                 </Select.Option>
               ))}
             </Select>
           </Form.Item>
-          <Form.Item label='密码'>
+          <Form.Item label="密码">
             <Input.Password
-              value={loginForm.pass}
+              value={formState.pass}
               onChange={passChangeHandle}
               onPressEnter={loginHandle}
-              autoComplete='new-password'
-              // autoComplete='off'
+              autoComplete="new-password"
             />
           </Form.Item>
           <Form.Item style={{ textAlign: 'right' }}>
-            <Button.Group>
-              {/* <Button
-                type='primary'
-                ghost
-                onClick={loginWithWpHandle}
-                title='使用主站关联登录，需要先关联主站账号'
-              >
-                主站登录
-              </Button> */}
-              <Button
-                type='primary'
-                ghost
-                loading={loginLoading}
-                // onClick={loginHandle}
-                htmlType='submit'
-                disabled={!loginForm.pass}
-              >
-                登录
-              </Button>
-            </Button.Group>
+            <Button
+              type="primary"
+              ghost
+              loading={loginLoading}
+              htmlType="submit"
+              disabled={!formState.pass}
+            >
+              登录
+            </Button>
           </Form.Item>
         </Form>
       </div>
@@ -224,3 +216,5 @@ const Login = function Login() {
 };
 
 export default Login;
+
+

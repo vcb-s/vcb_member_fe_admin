@@ -9,10 +9,9 @@ import {
 import { useLocation, useNavigate } from 'react-router-dom';
 import { App, Avatar, Button, Form, Input, Select } from 'antd';
 
-import { request } from '@/utils/request';
+import { Services } from '@/utils/services';
 import { token } from '@/utils/token';
 import { MAGIC } from '@/utils/constant';
-import type { Services } from '@/utils/services';
 import type { User } from '@/utils/types/User';
 
 import styles from './index.module.scss';
@@ -41,7 +40,7 @@ const Login = function Login() {
   // Load user list on mount
   useEffect(() => {
     setUserlistLoading(true);
-    request<Services.UsersList.ReadResponse>('/user/list')
+    Services.UsersList.read()
       .then((res) => {
         const items = res.data?.res ?? [];
         setUsersList(
@@ -120,11 +119,9 @@ const Login = function Login() {
       return;
     }
 
-    const param: Services.Login.LoginParam = { uid: id, password: pass };
-
     setLoginLoading(true);
     try {
-      await request('/admin/login', { method: 'post', data: param });
+      await Services.Login.login({ uid: id, password: pass });
       message.success('登录成功');
 
       localStorage.setItem(MAGIC.AuthToken, token.token);
@@ -216,5 +213,3 @@ const Login = function Login() {
 };
 
 export default Login;
-
-

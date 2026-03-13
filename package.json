@@ -2,6 +2,7 @@
   "name": "vcb-member-fe-admin",
   "version": "2.0.0",
   "type": "module",
+  "packageManager": "pnpm@10.32.1",
   "description": "vcb-s成员介绍管理端",
   "private": true,
   "keywords": [],

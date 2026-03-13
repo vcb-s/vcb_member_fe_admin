@@ -198,19 +198,19 @@ export namespace Services {
     };
   }
   export namespace UsersList {
-    export interface ReadParam extends PaginationParam {
-      id: string;
-      keyword: string;
+    export interface ReadParam extends Partial<PaginationParam> {
+      id?: string;
+      keyword?: string;
       /** group id */
-      group: number;
-      retired: GO_BOOL;
-      includeBan: GO_BOOL;
+      group?: number;
+      retired?: GO_BOOL;
+      includeBan?: GO_BOOL;
     }
     export type ReadResponse = ResponseData.Ok<{
       res: User.ItemInResponse[];
       total: number;
     }>;
-    export const read = (data: ReadParam): Promise<ReadResponse> => {
+    export const read = (data?: ReadParam): Promise<ReadResponse> => {
       return request('/user/list', {
         data,
         method: 'get',

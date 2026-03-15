@@ -5,7 +5,7 @@ import * as responseInterceptors from './responseInterceptors';
 import * as responseAdaptor from './responseAdaptor';
 
 export const config: RequestConfig = {
-  prefix: '/vcbs_member_api',
+  prefix: 'https://vcb-s.com/vcbs_member_api',
   headers: {},
   errorConfig: {
     adaptor: responseAdaptor.errorConfigAdaptor,

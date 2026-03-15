@@ -11,7 +11,7 @@ import {
 } from 'react';
 import { usePrevious } from 'react-use';
 import { Modal, Form, Input } from 'antd';
-import { produce } from 'immer';
+import { produce } from 'limu';
 import { ModalProps } from 'antd/lib/modal';
 import { useDispatch } from 'umi';
 

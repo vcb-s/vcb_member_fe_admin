@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { App, Avatar, Button, Form, Input, Select } from 'antd';
+import useSWR from 'swr';
 
 import { Services } from '@/utils/services';
 import { token } from '@/utils/token';
@@ -33,33 +34,29 @@ const Login = function Login() {
   const navigate = useNavigate();
 
   const [formState, setFormState] = useState({ id: '', pass: '' });
-  const [usersList, setUsersList] = useState<UserListItem[]>([]);
-  const [userlistLoading, setUserlistLoading] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
 
-  // Load user list on mount
+  const { data: usersListData, isLoading: userlistLoading, error: usersListError } = useSWR(
+    'usersList',
+    () => Services.UsersList.read(),
+  );
+
   useEffect(() => {
-    setUserlistLoading(true);
-    Services.UsersList.read()
-      .then((res) => {
-        const items = res.data?.res ?? [];
-        setUsersList(
-          items.map((u: User.ItemInResponse) => ({
-            id: u.id,
-            key: u.id,
-            nickname: u.nickname,
-            avast: u.avast,
-          })),
-        );
-      })
-      .catch((err: Error) => {
-        message.error(err.message || '获取用户列表失败');
-      })
-      .finally(() => {
-        setUserlistLoading(false);
-      });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (usersListError) {
+      message.error((usersListError as Error).message || '获取用户列表失败');
+    }
+  }, [usersListError, message]);
+
+  const usersList = useMemo<UserListItem[]>(
+    () =>
+      (usersListData?.data?.res ?? []).map((u: User.ItemInResponse) => ({
+        id: u.id,
+        key: u.id,
+        nickname: u.nickname,
+        avast: u.avast,
+      })),
+    [usersListData],
+  );
 
   // Auto-fill from URL query params
   useEffect(() => {

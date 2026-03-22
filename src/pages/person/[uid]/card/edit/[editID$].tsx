@@ -74,7 +74,7 @@ export default function PagePerson() {
   const resetClickHandle = useCallback(() => {
     Modal.confirm({
       title: '操作确认',
-      content: '尚未提交的修改将会丢失',
+      content: '尚未提交保存的修改将会丢失',
       onOk: () => {
         if (editID) {
           refreshHandle(editID);
@@ -234,7 +234,10 @@ export default function PagePerson() {
             disabled={formLoading}
             onChange={avastChangeHandle}
             suffix={
-              <Tooltip defaultVisible title='是否同步设置该图片为登录头像'>
+              <Tooltip
+                defaultVisible
+                title='是否同步设置该图片为该用户的登录头像'
+              >
                 <Switch
                   loading={formLoading}
                   checked={form.setAsUserAvatar}

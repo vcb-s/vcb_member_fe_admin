@@ -11,7 +11,7 @@ import {
   ChangeEvent,
 } from 'react';
 import { produce } from 'immer';
-import { useRouteMatch, useDispatch } from 'umi';
+import { useRouteMatch, useDispatch, history } from 'umi';
 import { useMountedState, useThrottle } from 'react-use';
 
 import {
@@ -651,6 +651,11 @@ export default function PagePerson() {
     setCurrentUID('');
   }, []);
 
+  /** 编辑 */
+  const editHandle = useCallback((id: string) => {
+    history.push(`./card/edit/${id}`);
+  }, []);
+
   const columns = useMemo<ColumnsType<PersonInfo.Item>>(() => {
     return [
       {
@@ -751,6 +756,14 @@ export default function PagePerson() {
                   <DownOutlined />
                 </Button>
               </Dropdown>
+
+              <Button
+                ghost
+                type='primary'
+                onClick={() => editHandle(person.id)}
+              >
+                编辑
+              </Button>
 
               {person.ban === GO_BOOL.yes ? (
                 <Button

@@ -25,11 +25,14 @@ export default defineConfig({
   ignoreMomentLocale: true,
 
   proxy: {
-    '/vcbs_member_api': {
-      // target: 'http://localhost',
-      target: 'https://vcb-s.com',
-      changeOrigin: true,
-    },
+    // '/vcbs_member_api': {
+    //   // target: 'http://localhost',
+    //   target: 'https://vcb-s.com',
+    //   // cf will Redirects api request to some challenge pages
+    //   changeOrigin: false,
+    //   // cf will Redirects api request to some challenge pages
+    //   followRedirects: false,
+    // },
   },
 
   define: {

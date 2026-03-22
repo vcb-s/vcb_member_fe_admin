@@ -77,9 +77,9 @@ const PagePersonCard: FC = function PagePersonCard() {
         align: 'center',
         render: (groups: Group.Item[]) => {
           return groups.map((group) => (
-            <Tag.CheckableTag checked key={group.key}>
+            <Tag key={group.key} className={styles.groupTag}>
               {group.name}
-            </Tag.CheckableTag>
+            </Tag>
           ));
         },
       },

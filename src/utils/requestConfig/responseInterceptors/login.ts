@@ -14,12 +14,16 @@ export const loginInterceptor: ResponseInterceptor = async function (
   if (
     pathname !== loginPagePath &&
     response.ok &&
-    (await response.clone().json()).code === 401
+    ((await response.clone().json()).code === 401 ||
+      (await response.clone().json()).code === 403)
   ) {
     // 由于路由前缀的存在不能使用createHref
     // const navRoute = history.createHref({ pathname, search, hash });
 
     const navDescriptorObject = { pathname, search, hash };
+
+    localStorage.removeItem(MAGIC.AuthToken);
+    localStorage.removeItem(MAGIC.LOGIN_UID);
 
     history.replace({
       pathname: loginPagePath,

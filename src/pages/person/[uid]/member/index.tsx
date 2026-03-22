@@ -11,8 +11,15 @@ import {
   ChangeEvent,
 } from 'react';
 import { produce } from 'immer';
-import { useRouteMatch, useDispatch } from 'umi';
-import { useMountedState, useThrottle } from 'react-use';
+import {
+  useRouteMatch,
+  useDispatch,
+  history,
+  useLocation,
+  useParams,
+  useHistory,
+} from 'umi';
+import { useMountedState, useSearchParam, useThrottle } from 'react-use';
 
 import {
   Typography,
@@ -47,6 +54,8 @@ import { useBoolean } from '@/utils/hooks/useBoolean';
 import { AppModel } from '@/models/app';
 import { ModelAdapter } from '@/utils/modelAdapter';
 import { UserCard } from '@/utils/types/UserCard';
+import { TablePaginationConfig } from 'antd/es/table/interface';
+import { stringify } from 'query-string';
 
 import styles from './index.scss';
 
@@ -312,6 +321,7 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
   const getMounted = useMountedState();
   const [data, setData] = useState<UserCard.Item[]>([]);
   const [loading, loadingAction] = useBoolean(true);
+  // const history = useHistory();
   const [loadingCardID, setLoadingCardID] = useState('');
 
   const groups = AppModel.hooks.useStore('group', 'data');
@@ -368,8 +378,8 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
         await new Promise((resolve, reject) => {
           const { destroy } = Modal.confirm({
             centered: true,
-            title: `切换${card.nickname}的显隐状态为: ${
-              params.hide! === GO_BOOL.yes ? '显示' : '隐藏'
+            title: `切换 ${card.nickname} 的显隐状态为: ${
+              params.hide! === GO_BOOL.yes ? '隐藏' : '显示'
             }`,
             onOk: () => {
               destroy();
@@ -423,7 +433,7 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
         await new Promise((resolve, reject) => {
           const { destroy } = Modal.confirm({
             centered: true,
-            title: `切换${card.nickname}的退休状态为: ${
+            title: `切换 ${card.nickname} 的退休状态为: ${
               params.retired! === GO_BOOL.yes ? '已退休' : '活跃中'
             }`,
             onOk: () => {
@@ -477,6 +487,29 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
         render: (avatar) => <Avatar src={avatar} />,
       },
       {
+        title: '组别',
+        dataIndex: 'group',
+        align: 'center',
+        width: 200,
+        render: (groups: Group.Item[]) => {
+          return (
+            <div className={styles.groupTagsWrap}>
+              {groups.map((group) => (
+                <Tag key={group.key} className={styles.groupTag}>
+                  {group.name}
+                </Tag>
+              ))}
+
+              <div className={styles.groupTagsLastlineAdjust} />
+            </div>
+          );
+        },
+      },
+      {
+        title: '职位',
+        dataIndex: 'job',
+      },
+      {
         title: '操作',
         key: 'action',
         align: 'left',
@@ -488,7 +521,9 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
                 checked={card.retired === GO_BOOL.no}
                 checkedChildren='活跃'
                 unCheckedChildren='咸鱼'
-                title='切换退休状态'
+                title={`切换为${
+                  card.retired === GO_BOOL.no ? '咸鱼' : '活跃'
+                }状态`}
                 onChange={() => toggleRetiredHandle(card)}
                 loading={loadingCardID === card.id}
               />
@@ -496,14 +531,14 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
                 checked={card.hide === GO_BOOL.no}
                 checkedChildren='kirakira!'
                 unCheckedChildren='已隐藏'
-                title='切换卡片前台显隐状态'
+                title={`${card.hide === GO_BOOL.no ? '隐藏' : '显示'}该卡片`}
                 onChange={() => toggleHideHandle(card)}
                 loading={loadingCardID === card.id}
               />
-              {/* 目前卡片编辑还严重耦合登录用户state，修改别的用户的卡片在数据同步上有点绕，先隐藏 */}
-              {/* <Button onClick={() => history.push(`./card/edit/${card.id}`)}>
-                  编辑
-                </Button> */}
+
+              <Button onClick={() => history.push(`./card/edit/${card.id}`)}>
+                编辑
+              </Button>
             </Space>
           );
         },
@@ -523,12 +558,26 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
 
 /** 主页面 */
 export default function PagePerson() {
-  const match = useRouteMatch<PageParam>();
-  const uid = match.params.uid;
+  let history = useHistory();
+  const location = useLocation();
+  const currentInSearchParams = useSearchParam('current');
+  const pageSizeInSearchParams = useSearchParam('pageSize');
+  // const currentInSearchParams = 1;
+  // const pageSizeInSearchParams = 10;
+  const { uid } = useParams<PageParam>();
   const dispatch = useDispatch();
   const personInfo = PersonModel.hooks.useStore('personInfo');
   const userList = PersonModel.hooks.useStore('userList');
 
+  // console.log('currentInSearchParams', currentInSearchParams);
+  // console.log('pageSizeInSearchParams', currentInSearchParams);
+
+  const [pagination, setPagination] = useState(
+    (): TablePaginationConfig => ({
+      current: currentInSearchParams ? Number(currentInSearchParams) : 1,
+      pageSize: pageSizeInSearchParams ? Number(pageSizeInSearchParams) : 10,
+    }),
+  );
   const tableLoading = PersonModel.hooks.useLoading('getPersonInfo');
 
   const banHandle = useCallback(
@@ -789,7 +838,25 @@ export default function PagePerson() {
     return <CardSubTable uid={record.id} />;
   }, []);
 
-  console.log('what is filtedUserData', filtedUserData);
+  const onTableChange = useCallback(
+    (pagination: TablePaginationConfig) => {
+      history.replace(
+        {
+          ...location,
+          search:
+            '?' +
+            stringify({
+              current: pagination.current,
+              pageSize: pagination.pageSize,
+            }),
+        },
+        location.state,
+      );
+
+      setPagination(() => pagination);
+    },
+    [history, location],
+  );
 
   return (
     <div className={styles.wrap}>
@@ -814,6 +881,8 @@ export default function PagePerson() {
         expandable={{ expandedRowRender }}
         columns={columns}
         loading={tableLoading}
+        pagination={pagination}
+        onChange={(pagination) => onTableChange(pagination)}
       />
     </div>
   );

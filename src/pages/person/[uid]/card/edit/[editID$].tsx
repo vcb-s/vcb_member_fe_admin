@@ -29,10 +29,11 @@ const yesIcon = <CheckOutlined />;
 const noIcon = <CloseOutlined />;
 
 export default function PagePerson() {
-  const { editID: editID, uid } = useParams<PageParam>();
+  const { editID, uid } = useParams<PageParam>();
   const dispatch = useDispatch();
   const history = useHistory();
   const form = PersonCardEditModel.hooks.useStore('form', 'card');
+  const cardUid = PersonCardEditModel.hooks.useStore('form', 'card', 'uid');
   const personInfo = PersonModel.hooks.useStore('personInfo');
   const editModelLoading = PersonCardEditModel.hooks.useLoading();
   const personLoading = PersonModel.hooks.useLoading();
@@ -74,7 +75,7 @@ export default function PagePerson() {
   const resetClickHandle = useCallback(() => {
     Modal.confirm({
       title: '操作确认',
-      content: '尚未提交的修改将会丢失',
+      content: '尚未提交保存的修改将会丢失',
       onOk: () => {
         if (editID) {
           refreshHandle(editID);
@@ -234,7 +235,10 @@ export default function PagePerson() {
             disabled={formLoading}
             onChange={avastChangeHandle}
             suffix={
-              <Tooltip defaultVisible title='是否同步设置该图片为登录头像'>
+              <Tooltip
+                defaultVisible
+                title='是否同步设置该图片为该用户的登录头像'
+              >
                 <Switch
                   loading={formLoading}
                   checked={form.setAsUserAvatar}
@@ -281,7 +285,9 @@ export default function PagePerson() {
             value={form.group}
             loading={formLoading}
             onChange={groupChangeHandle}
-            underCurrentUser={uid}
+            // 如果是编辑自己，那就只拉自己的用户
+            // 不然就拉全部用户（避免显示不了自己组员的组别的问题）
+            underCurrentUser={cardUid === uid ? uid : false}
           />
         </Form.Item>
 

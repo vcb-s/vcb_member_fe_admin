@@ -11,8 +11,15 @@ import {
   ChangeEvent,
 } from 'react';
 import { produce } from 'immer';
-import { useRouteMatch, useDispatch, history } from 'umi';
-import { useMountedState, useThrottle } from 'react-use';
+import {
+  useRouteMatch,
+  useDispatch,
+  history,
+  useLocation,
+  useParams,
+  useHistory,
+} from 'umi';
+import { useMountedState, useSearchParam, useThrottle } from 'react-use';
 
 import {
   Typography,
@@ -47,6 +54,8 @@ import { useBoolean } from '@/utils/hooks/useBoolean';
 import { AppModel } from '@/models/app';
 import { ModelAdapter } from '@/utils/modelAdapter';
 import { UserCard } from '@/utils/types/UserCard';
+import { TablePaginationConfig } from 'antd/es/table/interface';
+import { stringify } from 'query-string';
 
 import styles from './index.scss';
 
@@ -526,9 +535,10 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
                 onChange={() => toggleHideHandle(card)}
                 loading={loadingCardID === card.id}
               />
-              {/* <Button onClick={() => history.push(`./card/edit/${card.id}`)}>
+
+              <Button onClick={() => history.push(`./card/edit/${card.id}`)}>
                 编辑
-              </Button> */}
+              </Button>
             </Space>
           );
         },
@@ -548,12 +558,26 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
 
 /** 主页面 */
 export default function PagePerson() {
-  const match = useRouteMatch<PageParam>();
-  const uid = match.params.uid;
+  let history = useHistory();
+  const location = useLocation();
+  const currentInSearchParams = useSearchParam('current');
+  const pageSizeInSearchParams = useSearchParam('pageSize');
+  // const currentInSearchParams = 1;
+  // const pageSizeInSearchParams = 10;
+  const { uid } = useParams<PageParam>();
   const dispatch = useDispatch();
   const personInfo = PersonModel.hooks.useStore('personInfo');
   const userList = PersonModel.hooks.useStore('userList');
 
+  // console.log('currentInSearchParams', currentInSearchParams);
+  // console.log('pageSizeInSearchParams', currentInSearchParams);
+
+  const [pagination, setPagination] = useState(
+    (): TablePaginationConfig => ({
+      current: currentInSearchParams ? Number(currentInSearchParams) : 1,
+      pageSize: pageSizeInSearchParams ? Number(pageSizeInSearchParams) : 10,
+    }),
+  );
   const tableLoading = PersonModel.hooks.useLoading('getPersonInfo');
 
   const banHandle = useCallback(
@@ -676,11 +700,6 @@ export default function PagePerson() {
     setCurrentUID('');
   }, []);
 
-  /** 编辑 */
-  const editHandle = useCallback((id: string) => {
-    history.push(`./card/edit/${id}`);
-  }, []);
-
   const columns = useMemo<ColumnsType<PersonInfo.Item>>(() => {
     return [
       {
@@ -782,14 +801,6 @@ export default function PagePerson() {
                 </Button>
               </Dropdown>
 
-              <Button
-                ghost
-                type='primary'
-                onClick={() => editHandle(person.id)}
-              >
-                编辑
-              </Button>
-
               {person.ban === GO_BOOL.yes ? (
                 <Button
                   ghost
@@ -827,7 +838,25 @@ export default function PagePerson() {
     return <CardSubTable uid={record.id} />;
   }, []);
 
-  console.log('what is filtedUserData', filtedUserData);
+  const onTableChange = useCallback(
+    (pagination: TablePaginationConfig) => {
+      history.replace(
+        {
+          ...location,
+          search:
+            '?' +
+            stringify({
+              current: pagination.current,
+              pageSize: pagination.pageSize,
+            }),
+        },
+        location.state,
+      );
+
+      setPagination(() => pagination);
+    },
+    [history, location],
+  );
 
   return (
     <div className={styles.wrap}>
@@ -852,6 +881,8 @@ export default function PagePerson() {
         expandable={{ expandedRowRender }}
         columns={columns}
         loading={tableLoading}
+        pagination={pagination}
+        onChange={(pagination) => onTableChange(pagination)}
       />
     </div>
   );

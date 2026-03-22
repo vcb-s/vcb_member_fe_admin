@@ -22,6 +22,9 @@ export const loginInterceptor: ResponseInterceptor = async function (
 
     const navDescriptorObject = { pathname, search, hash };
 
+    localStorage.removeItem(MAGIC.AuthToken);
+    localStorage.removeItem(MAGIC.LOGIN_UID);
+
     history.replace({
       pathname: loginPagePath,
       search: stringify({

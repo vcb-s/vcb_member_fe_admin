@@ -29,10 +29,11 @@ const yesIcon = <CheckOutlined />;
 const noIcon = <CloseOutlined />;
 
 export default function PagePerson() {
-  const { editID: editID, uid } = useParams<PageParam>();
+  const { editID, uid } = useParams<PageParam>();
   const dispatch = useDispatch();
   const history = useHistory();
   const form = PersonCardEditModel.hooks.useStore('form', 'card');
+  const cardUid = PersonCardEditModel.hooks.useStore('form', 'card', 'uid');
   const personInfo = PersonModel.hooks.useStore('personInfo');
   const editModelLoading = PersonCardEditModel.hooks.useLoading();
   const personLoading = PersonModel.hooks.useLoading();
@@ -284,7 +285,9 @@ export default function PagePerson() {
             value={form.group}
             loading={formLoading}
             onChange={groupChangeHandle}
-            underCurrentUser={uid}
+            // 如果是编辑自己，那就只拉自己的用户
+            // 不然就拉全部用户（避免显示不了自己组员的组别的问题）
+            underCurrentUser={cardUid === uid ? uid : false}
           />
         </Form.Item>
 

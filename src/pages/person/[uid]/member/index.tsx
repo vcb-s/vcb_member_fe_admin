@@ -368,8 +368,8 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
         await new Promise((resolve, reject) => {
           const { destroy } = Modal.confirm({
             centered: true,
-            title: `切换${card.nickname}的显隐状态为: ${
-              params.hide! === GO_BOOL.yes ? '显示' : '隐藏'
+            title: `切换 ${card.nickname} 的显隐状态为: ${
+              params.hide! === GO_BOOL.yes ? '隐藏' : '显示'
             }`,
             onOk: () => {
               destroy();
@@ -423,7 +423,7 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
         await new Promise((resolve, reject) => {
           const { destroy } = Modal.confirm({
             centered: true,
-            title: `切换${card.nickname}的退休状态为: ${
+            title: `切换 ${card.nickname} 的退休状态为: ${
               params.retired! === GO_BOOL.yes ? '已退休' : '活跃中'
             }`,
             onOk: () => {

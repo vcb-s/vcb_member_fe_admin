@@ -1,41 +1,38 @@
-import { ErrorShowType } from 'umi';
+import type { AxiosError } from 'axios';
+import { message } from 'antd';
 
-import { httpStatusCodeErrMessage } from './httpStatusCodeErrMessage';
-import { Context } from 'umi-request';
+/**
+ * Axios response error handler — attached as the rejection callback of the
+ * login interceptor so that HTTP-level errors surface as thrown Error objects
+ * (matching what the sagas already expect via `catch (error)`).
+ */
+export function responseErrorAdaptor(error: AxiosError): never {
+  const response = error.response;
+  let msg: string;
 
-// copy from import { RequestConfig } from 'umi'
-interface ErrorInfoStructure {
-  success: boolean; // if request is success
-  data?: any; // response data
-  errorCode?: string; // code for errorType
-  errorMessage?: string; // message display to user
-  showType?: number; // error display type： 0 silent; 1 message.warn; 2 message.error; 4 notification; 9 page
-  traceId?: string; // Convenient for back-end Troubleshooting: unique request ID
-  host?: string; // onvenient for backend Troubleshooting: host of current access server
-}
-
-export interface ResContext extends Context {
-  res: Response;
-}
-
-export function errorConfigAdaptor(
-  res: any,
-  ctx: ResContext,
-): ErrorInfoStructure {
-  // console.log('what is res', res, ctx);
-  let errorMessage = res.message || res.msg;
-  if (
-    !ctx.res.ok &&
-    /** 服务器有可能抛出有意义的错误 */
-    errorMessage === undefined
-  ) {
-    errorMessage = httpStatusCodeErrMessage(ctx.res);
+  if (response) {
+    const data = response.data as any;
+    msg =
+      data?.message ||
+      data?.msg ||
+      httpStatusCodeErrMessage(response.status, response.statusText);
+  } else {
+    msg = error.message || '网络错误';
   }
-  return {
-    success: res.code === 200,
-    data: res.data,
-    errorCode: res.code,
-    errorMessage: errorMessage || '未知错误',
-    showType: ErrorShowType.SILENT,
-  };
+
+  message.error(msg);
+  // Re-throw so sagas can catch it via try/catch
+  throw new Error(msg);
+}
+
+function httpStatusCodeErrMessage(status: number, statusText: string): string {
+  switch (status) {
+    case 404:
+      return '请求未找到';
+    case 500:
+    case 502:
+      return '服务错误，请稍候重试';
+    default:
+      return statusText || '未知错误';
+  }
 }

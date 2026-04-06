@@ -6,8 +6,10 @@ import {
   useRef,
   useMemo,
 } from 'react';
-import { useDispatch, useLocation, useHistory } from 'umi';
-import { parse } from 'query-string';
+import { useDispatch } from 'react-redux';
+import { useLocation, useNavigate } from 'react-router-dom';
+import queryString from 'query-string';
+const { parse } = queryString;
 import { Form, Input, Button, Select, Avatar } from 'antd';
 import classnames from 'classnames';
 
@@ -16,7 +18,7 @@ import { User } from '@/utils/types/User';
 import { MAGIC } from '@/utils/constant';
 import { loginStore } from './model';
 
-import styles from './index.scss';
+import styles from './index.css';
 
 const Login = function Login() {
   const dispatch = useDispatch();
@@ -24,7 +26,7 @@ const Login = function Login() {
 
   const userState = UsersModel.hooks.useStore();
   const { search } = useLocation();
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const userlistLoading = UsersModel.hooks.useLoading('getUserList');
 
@@ -136,7 +138,7 @@ const Login = function Login() {
 
       const navURL = navQuery ? JSON.parse(navQuery) : `/person/${UID}`;
 
-      history.replace(navURL);
+      navigate(navURL, { replace: true });
     }
   }, [history, search]);
 

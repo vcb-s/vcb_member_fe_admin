@@ -3,7 +3,7 @@
   "files.trimFinalNewlines": true,
   "files.eol": "\n",
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.defaultFormatter": "oxc.oxc-vscode",
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   }

@@ -1,7 +1,8 @@
 import { message } from 'antd';
-import { history } from 'umi';
-import { EffectsCommandMap } from 'dva';
-import { parse } from 'query-string';
+import { appNavigate, getLocation } from '@/utils/navigate';
+import { EffectsCommandMap } from '@/utils/types/DvaEffects';
+import queryString from 'query-string';
+const { parse } = queryString;
 
 import { Services } from '@/utils/services';
 import { MAGIC } from '@/utils/constant';
@@ -34,7 +35,13 @@ const initalState: State = {
   },
 };
 
-const { model: dva, actions, globalActions, utils, ...helpers } = modelCreator({
+const {
+  model: dva,
+  actions,
+  globalActions,
+  utils,
+  ...helpers
+} = modelCreator({
   namespace: 'pages.login',
   state: initalState,
   effects: {
@@ -58,7 +65,7 @@ const { model: dva, actions, globalActions, utils, ...helpers } = modelCreator({
 
         yield call(Services.Login.login, param);
         message.success('登录成功');
-        const { search } = history.location;
+        const { search } = getLocation();
         const query = parse(search);
         let navQuery = query[MAGIC.loginPageNavQueryKey] || '';
 
@@ -68,7 +75,7 @@ const { model: dva, actions, globalActions, utils, ...helpers } = modelCreator({
 
         const navURL = navQuery ? JSON.parse(navQuery) : `/person/${param.uid}`;
 
-        history.replace(navURL);
+        appNavigate(navURL, { replace: true });
 
         if (remember) {
           localStorage.setItem(MAGIC.AuthToken, token.token);
@@ -76,7 +83,7 @@ const { model: dva, actions, globalActions, utils, ...helpers } = modelCreator({
         }
         yield put(actions.loginSuccess());
       } catch (e) {
-        message.error(e.message);
+        message.error((e as Error).message);
         yield put(actions.loginFail());
       }
     },

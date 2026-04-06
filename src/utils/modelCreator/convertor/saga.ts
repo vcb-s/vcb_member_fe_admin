@@ -1,4 +1,4 @@
-import { EffectsCommandMap } from 'dva';
+import type { EffectsCommandMap } from '@/utils/types/DvaEffects';
 
 import {
   ExtractPayloadFromAction,
@@ -15,9 +15,9 @@ export type SagaConvertor<Effects, N, JUST_FOR_VS_CODE_COLOR = any> = {
     ? ExtractPayloadFromAction<Action> extends ACTION_IS_UNDEFINED
       ? () => MayBeGlobalAction<K, N, undefined, true>
       : ExtractPayloadFromAction<Action> extends never
-      ? never
-      : (
-          payload: ExtractPayloadFromAction<Action>,
-        ) => MayBeGlobalAction<K, N, ExtractPayloadFromAction<Action>, true>
+        ? never
+        : (
+            payload: ExtractPayloadFromAction<Action>,
+          ) => MayBeGlobalAction<K, N, ExtractPayloadFromAction<Action>, true>
     : never;
 };

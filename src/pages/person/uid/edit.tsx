@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback, ChangeEvent } from 'react';
-import { useParams, useDispatch, useHistory } from 'umi';
-import { Form, Button, Space, Input, message, PageHeader } from 'antd';
-import produce from 'immer';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { Form, Button, Space, Input, message, Typography } from 'antd';
+import { produce } from 'immer';
 
 import { defaultFormLayout } from '@/utils/constant';
 
@@ -10,12 +11,12 @@ import { PageParam } from './types';
 import { PersonInfo } from '@/utils/types/PersonInfo';
 import { PersonModel } from '@/models/person';
 
-import styles from './edit.scss';
+import styles from './edit.css';
 
 const EditUser = function EditUser() {
-  const { uid } = useParams<PageParam>();
+  const { uid = '' } = useParams<PageParam>();
   const dispatch = useDispatch();
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const personInfo = PersonModel.hooks.useStore('personInfo');
   const [form, setForm] = useState<PersonInfo.Item>(personInfo);
@@ -71,23 +72,26 @@ const EditUser = function EditUser() {
       return;
     }
 
-    dispatch(
-      PersonModel.dispatch.updatePersonInfo(dispatch, {
-        id: form.id,
-        avast: form.originAvast,
-        nickname: form.nickname,
-      }),
-    );
+    PersonModel.dispatch.updatePersonInfo(dispatch, {
+      id: form.id,
+      avast: form.originAvast,
+      nickname: form.nickname,
+    });
   }, [dispatch, form.id, form.nickname, form.originAvast]);
 
   /** 返回上一页 */
   const goBackHandle = useCallback(() => {
-    history.goBack();
+    navigate(-1);
   }, [history]);
 
   return (
     <div className={styles.wrap}>
-      <PageHeader title='编辑个人信息' onBack={goBackHandle} />
+      <Space style={{ marginBottom: 16 }}>
+        <Button onClick={goBackHandle}>返回</Button>
+        <Typography.Title level={4} style={{ margin: 0 }}>
+          编辑个人信息
+        </Typography.Title>
+      </Space>
       <Form {...defaultFormLayout.normal} className={styles.form}>
         <Form.Item label='头像' required>
           <Input

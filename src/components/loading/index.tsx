@@ -1,7 +1,7 @@
 import { FC, memo } from 'react';
 
 import loadingIcon from '@/assets/loading.svg';
-import './index.scss';
+import './index.css';
 
 interface Props {
   show?: boolean;

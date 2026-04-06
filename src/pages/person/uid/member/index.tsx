@@ -1,9 +1,9 @@
-import {
+import React, {
   useEffect,
   useMemo,
   useCallback,
   useState,
-  ReactChild,
+  ReactNode,
   useRef,
   memo,
   CSSProperties,
@@ -11,14 +11,8 @@ import {
   ChangeEvent,
 } from 'react';
 import { produce } from 'immer';
-import {
-  useRouteMatch,
-  useDispatch,
-  history,
-  useLocation,
-  useParams,
-  useHistory,
-} from 'umi';
+import { useDispatch } from 'react-redux';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { useMountedState, useSearchParam, useThrottle } from 'react-use';
 
 import {
@@ -36,9 +30,9 @@ import {
   message,
   Switch,
 } from 'antd';
-import { ButtonProps } from 'antd/es/button';
-import { DownOutlined } from '@ant-design/icons';
-import { ColumnsType } from 'antd/lib/table';
+import type { ButtonProps } from 'antd';
+import type { TableColumnsType } from 'antd';
+import type { TablePaginationConfig } from 'antd';
 
 import { UsersModel } from '@/models/users';
 import { PersonModel } from '@/models/person';
@@ -47,17 +41,18 @@ import { GO_BOOL } from '@/utils/types';
 import { Group } from '@/utils/types/Group';
 import { PersonInfo } from '@/utils/types/PersonInfo';
 import { User } from '@/utils/types/User';
-import { PageParam } from '@/pages/person/[uid]/types';
+import { PageParam } from '@/pages/person/uid/types';
 import { GroupSelector } from '@/components/GroupSelector';
 import { RestPass } from '@/components/rest-pass';
 import { useBoolean } from '@/utils/hooks/useBoolean';
 import { AppModel } from '@/models/app';
 import { ModelAdapter } from '@/utils/modelAdapter';
 import { UserCard } from '@/utils/types/UserCard';
-import { TablePaginationConfig } from 'antd/es/table/interface';
-import { stringify } from 'query-string';
+import { DownOutlined } from '@ant-design/icons';
+import queryString from 'query-string';
+const { stringify } = queryString;
 
-import styles from './index.scss';
+import styles from './index.css';
 
 const AMModalStyle: CSSProperties = { minWidth: '12em' };
 
@@ -74,8 +69,7 @@ const ErrorTag: FC<TagProps> = memo(function ErrorTag({ title = '' }) {
 /** 新建组员按钮及其弹层 */
 const CreateUserBtn = memo(function CreateUserBtn() {
   const dispatch = useDispatch();
-  const match = useRouteMatch<PageParam>();
-  const uid = match.params.uid;
+  const { uid = '' } = useParams<PageParam>();
 
   const addMemberModal = PersonModel.hooks.useStore('addMemberModal');
 
@@ -88,7 +82,7 @@ const CreateUserBtn = memo(function CreateUserBtn() {
   }, [dispatch]);
 
   const modalLoading = PersonModel.hooks.useLoading('addMember');
-  const ModalFooterSubmitProps: Partial<ButtonProps> = useMemo(
+  const ModalFooterSubmitProps = useMemo(
     () => ({
       loading: modalLoading,
       disabled: !selectedGroups.length,
@@ -96,7 +90,7 @@ const CreateUserBtn = memo(function CreateUserBtn() {
     }),
     [modalLoading, selectedGroups.length],
   );
-  const ModalFooterCancelProps: Partial<ButtonProps> = useMemo(
+  const ModalFooterCancelProps = useMemo(
     () => ({
       loading: modalLoading,
     }),
@@ -128,7 +122,7 @@ const CreateUserBtn = memo(function CreateUserBtn() {
     <>
       <Button onClick={addMemberHandle}>萌新入组</Button>
       <Modal
-        visible={addMemberModal.show}
+        open={addMemberModal.show}
         title='新增一名组员'
         centered
         maskClosable={false}
@@ -166,8 +160,7 @@ const CreateUserBtn = memo(function CreateUserBtn() {
 /** 从别的组招募人员 */
 const RecruitFromOtherGroups = memo(function RecruitFromOtherGroups() {
   const dispatch = useDispatch();
-  const match = useRouteMatch<PageParam>();
-  const uid = match.params.uid;
+  const { uid = '' } = useParams<PageParam>();
 
   const [show, setShow] = useState(false);
   const [selectedGroups, setSelectedGroups] = useState<Group.Item[]>([]);
@@ -186,7 +179,7 @@ const RecruitFromOtherGroups = memo(function RecruitFromOtherGroups() {
   const fetchLoading = UsersModel.hooks.useLoading('getUserList');
   const loading = submitLoading || fetchLoading;
 
-  const ModalFooterSubmitProps: Partial<ButtonProps> = useMemo(
+  const ModalFooterSubmitProps = useMemo(
     () => ({
       loading: loading,
       disabled: !selectedGroups.length,
@@ -194,7 +187,7 @@ const RecruitFromOtherGroups = memo(function RecruitFromOtherGroups() {
     }),
     [loading, selectedGroups.length],
   );
-  const ModalFooterCancelProps: Partial<ButtonProps> = useMemo(
+  const ModalFooterCancelProps = useMemo(
     () => ({
       loading: loading,
     }),
@@ -262,7 +255,7 @@ const RecruitFromOtherGroups = memo(function RecruitFromOtherGroups() {
         大佬换户口
       </Button>
       <Modal
-        visible={show}
+        open={show}
         title='招募一名组员'
         centered
         maskClosable={false}
@@ -319,6 +312,7 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
 }) {
   const componentID = useRef(1);
   const getMounted = useMountedState();
+  const navigate = useNavigate();
   const [data, setData] = useState<UserCard.Item[]>([]);
   const [loading, loadingAction] = useBoolean(true);
   // const history = useHistory();
@@ -343,7 +337,7 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
           setData(() => ModelAdapter.UserCards(data.res, groups));
         }
       } catch (e) {
-        message.error(e.message || '未知错误');
+        message.error((e as Error).message || '未知错误');
       }
     };
 
@@ -414,7 +408,7 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
           }),
         );
       } catch (e) {
-        message.error(e.message);
+        message.error((e as Error).message);
       }
     },
     [getMounted],
@@ -468,13 +462,13 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
           }),
         );
       } catch (e) {
-        message.error(e.message);
+        message.error((e as Error).message);
       }
     },
     [getMounted],
   );
 
-  const columns = useMemo<ColumnsType<UserCard.Item>>(() => {
+  const columns = useMemo<TableColumnsType<UserCard.Item>>(() => {
     return [
       {
         title: '昵称',
@@ -484,7 +478,7 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
         title: '头像',
         dataIndex: 'avast',
         align: 'center',
-        render: (avatar) => <Avatar src={avatar} />,
+        render: (avatar: string) => <Avatar src={avatar} />,
       },
       {
         title: '组别',
@@ -536,7 +530,7 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
                 loading={loadingCardID === card.id}
               />
 
-              <Button onClick={() => history.push(`./card/edit/${card.id}`)}>
+              <Button onClick={() => navigate(`./card/edit/${card.id}`)}>
                 编辑
               </Button>
             </Space>
@@ -558,13 +552,13 @@ const CardSubTable: FC<CardSubTableProps> = memo(function CardSubTable({
 
 /** 主页面 */
 export default function PagePerson() {
-  let history = useHistory();
+  const navigate = useNavigate();
   const location = useLocation();
   const currentInSearchParams = useSearchParam('current');
   const pageSizeInSearchParams = useSearchParam('pageSize');
   // const currentInSearchParams = 1;
   // const pageSizeInSearchParams = 10;
-  const { uid } = useParams<PageParam>();
+  const { uid = '' } = useParams<PageParam>();
   const dispatch = useDispatch();
   const personInfo = PersonModel.hooks.useStore('personInfo');
   const userList = PersonModel.hooks.useStore('userList');
@@ -584,7 +578,7 @@ export default function PagePerson() {
     (person: PersonInfo.Item) => {
       const { ban, nickname, id: uid } = person;
       let okText = `封禁`;
-      let content: ReactChild = (
+      let content: ReactNode = (
         <>
           <div>封禁后该用户：</div>
           <ul>
@@ -700,7 +694,7 @@ export default function PagePerson() {
     setCurrentUID('');
   }, []);
 
-  const columns = useMemo<ColumnsType<PersonInfo.Item>>(() => {
+  const columns = useMemo<TableColumnsType<PersonInfo.Item>>(() => {
     return [
       {
         title: '昵称',
@@ -710,7 +704,7 @@ export default function PagePerson() {
         title: '头像',
         dataIndex: 'avast',
         align: 'center',
-        render: (avatar) => <Avatar src={avatar} />,
+        render: (avatar: string) => <Avatar src={avatar} />,
       },
       {
         title: '组别',
@@ -721,7 +715,7 @@ export default function PagePerson() {
           text: filtedUserGroupMap.get(id),
           value: id,
         })),
-        onFilter: (value, record) => {
+        onFilter: (value: React.Key | boolean, record: PersonInfo.Item) => {
           for (const group of record.group) {
             if (group.id === value) return true;
           }
@@ -779,21 +773,15 @@ export default function PagePerson() {
               </RestPass>
 
               <Dropdown
-                overlay={
-                  <Menu
-                    onClick={({ key: groupID }) => kickHandle(groupID, person)}
-                  >
-                    {person.group.map((group) => (
-                      <Menu.Item
-                        key={group.id}
-                        disabled={!!person.loading}
-                        title={`将会移除该用户及其卡片的${group.name}组关联`}
-                      >
-                        {group.name}
-                      </Menu.Item>
-                    ))}
-                  </Menu>
-                }
+                menu={{
+                  items: person.group.map((group) => ({
+                    key: group.id,
+                    label: group.name,
+                    disabled: !!person.loading,
+                    title: `\u5c06\u4f1a\u79fb\u9664\u8be5\u7528\u6237\u53ca\u5176\u5361\u7247\u7684${group.name}\u7ec4\u5173\u8054`,
+                  })),
+                  onClick: ({ key: groupID }) => kickHandle(groupID, person),
+                }}
               >
                 <Button>
                   离组
@@ -840,7 +828,7 @@ export default function PagePerson() {
 
   const onTableChange = useCallback(
     (pagination: TablePaginationConfig) => {
-      history.replace(
+      navigate(
         {
           ...location,
           search:
@@ -850,12 +838,12 @@ export default function PagePerson() {
               pageSize: pagination.pageSize,
             }),
         },
-        location.state,
+        { replace: true },
       );
 
       setPagination(() => pagination);
     },
-    [history, location],
+    [navigate, location],
   );
 
   return (

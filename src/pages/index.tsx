@@ -1,5 +1,5 @@
-import { Redirect } from 'umi';
+import { Navigate } from 'react-router-dom';
 
 export default function () {
-  return <Redirect to='/login' />;
+  return <Navigate to='/login' replace />;
 }

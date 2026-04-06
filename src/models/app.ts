@@ -61,7 +61,7 @@ const { model, actions, utils, globalActions, ...helpers } = modelCreator({
             error: err,
           }),
         );
-        message.error(err.message);
+        message.error((err as Error).message);
       }
     },
   },

@@ -1,5 +1,5 @@
 import { message } from 'antd';
-import { history } from 'umi';
+import { appNavigate } from '@/utils/navigate';
 import { Modal } from 'antd';
 
 import type { UserCard } from '@/utils/types/UserCard';
@@ -85,7 +85,7 @@ const { model, actions, globalActions, utils, ...helpers } = modelCreator({
         );
       } catch (error) {
         yield put(actions.getCardInfoFail({ error }));
-        message.error(error.message);
+        message.error((error as Error).message);
       }
     },
     *submitCardInfo(
@@ -171,10 +171,10 @@ const { model, actions, globalActions, utils, ...helpers } = modelCreator({
           message.success('创建成功');
         }
 
-        history.goBack();
+        appNavigate(-1);
       } catch (error) {
         yield put(actions.submitCardInfoFail({ error }));
-        message.error(error.message);
+        message.error((error as Error).message);
       }
     },
   },

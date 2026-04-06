@@ -1,5 +1,5 @@
-import { useSelector } from 'umi';
-import { EffectsCommandMap } from 'dva';
+import { useSelector } from 'react-redux';
+import type { EffectsCommandMap } from '@/utils/types/DvaEffects';
 import { SagaConvertor } from './convertor/saga';
 import { ReducerConvertor } from './convertor/reducer';
 import {
@@ -85,7 +85,7 @@ export const modelCreator = <
       effects: EffectsCommandMap,
     ) => Generator<unknown, unknown, unknown>;
   },
-  R extends { [key: string]: (state: S, action: { payload: any }) => S | void }
+  R extends { [key: string]: (state: S, action: { payload: any }) => S | void },
 >(model: {
   namespace: N;
   state: S;

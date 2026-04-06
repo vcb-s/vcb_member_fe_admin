@@ -1,2 +1,2 @@
-export { tokenInterceptor } from './token';
-export { loginInterceptor } from './login';
+export { tokenResponseInterceptor } from './token';
+export { loginResponseInterceptor } from './login';

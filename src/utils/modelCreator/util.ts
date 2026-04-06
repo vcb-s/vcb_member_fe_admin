@@ -6,7 +6,7 @@ export interface FieldSyncPayloadCreator<S extends { form: unknown }> {
   <
     N extends keyof S['form'],
     K extends keyof S['form'][N],
-    V extends S['form'][N][K]
+    V extends S['form'][N][K],
   >(
     name: N,
     key: K,

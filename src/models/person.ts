@@ -1,7 +1,9 @@
 import { message, Modal } from 'antd';
-import { history } from 'umi';
-import { createPath } from 'history';
-import { stringify } from 'query-string';
+import { createPath } from 'react-router-dom';
+import queryString from 'query-string';
+const { stringify } = queryString;
+
+import { appNavigate } from '@/utils/navigate';
 
 import { AppModel, State as AppModelState } from '@/models/app';
 import { GO_BOOL } from '@/utils/types';
@@ -106,7 +108,7 @@ const { model, actions, globalActions, utils, ...helpers } = modelCreator({
         );
       } catch (error) {
         yield put(actions.getPersonInfoFail({ error }));
-        message.error(error.message);
+        message.error((error as Error).message);
       }
     },
 
@@ -128,7 +130,7 @@ const { model, actions, globalActions, utils, ...helpers } = modelCreator({
         yield put(actions.updatePersonInfoSuccess());
         yield put(actions.getPersonInfo({ uid: personInfo.id }));
       } catch (error) {
-        message.error(error.message);
+        message.error((error as Error).message);
         // yield put(
         //   createAction(ActionType.updatePersonInfoFail, false)({ error }),
         // );
@@ -151,7 +153,7 @@ const { model, actions, globalActions, utils, ...helpers } = modelCreator({
         yield put(actions.addMemberSuccess());
         yield put(actions.getPersonInfo({ uid: personInfo.id }));
       } catch (error) {
-        message.error(error.message);
+        message.error((error as Error).message);
         yield put(actions.pullMemberFail({ error }));
       }
     },
@@ -173,7 +175,7 @@ const { model, actions, globalActions, utils, ...helpers } = modelCreator({
         yield put(actions.kickoffPersonSuccess(payload));
         message.success('离组完成');
       } catch (error) {
-        message.error(error.message);
+        message.error((error as Error).message);
         yield put(actions.kickoffPersonFail({ error }));
       }
     },
@@ -198,7 +200,7 @@ const { model, actions, globalActions, utils, ...helpers } = modelCreator({
       token.clear();
       localStorage.setItem(MAGIC.LOGIN_UID, '');
 
-      history.replace('/login');
+      appNavigate('/login', { replace: true });
     },
 
     *removeUserCard(
@@ -217,7 +219,7 @@ const { model, actions, globalActions, utils, ...helpers } = modelCreator({
         const { personInfo }: State = yield select(utils.currentStore);
         yield put(actions.getPersonInfo({ uid: personInfo.id }));
       } catch (error) {
-        message.error(error.message);
+        message.error((error as Error).message);
       }
     },
 
@@ -255,7 +257,7 @@ const { model, actions, globalActions, utils, ...helpers } = modelCreator({
         cb && cb(true);
       } catch (error) {
         cb && cb(false);
-        message.error(error.message);
+        message.error((error as Error).message);
         yield put(actions.restPassFail({ error }));
       }
     },
@@ -285,13 +287,11 @@ const { model, actions, globalActions, utils, ...helpers } = modelCreator({
         // 展示登录链接弹层
         yield call(() => {
           const { origin } = window.location;
+          const base = '/vcbs_member/admin';
           Modal.info({
             title: '登录链接',
             centered: true,
-            content: `${origin}${window.routerBase.replace(
-              /\/$/,
-              '',
-            )}${createPath({
+            content: `${origin}${base.replace(/\/$/, '')}${createPath({
               pathname: '/login',
               search: stringify({
                 [MAGIC.loginPageUserNameQueryKey]: data.UID,
@@ -301,7 +301,7 @@ const { model, actions, globalActions, utils, ...helpers } = modelCreator({
           });
         });
       } catch (e) {
-        message.error(e.message || '未知错误');
+        message.error((e as Error).message || '未知错误');
         return;
       }
     },

@@ -1,4 +1,5 @@
-import { EffectsCommandMap } from 'dva';
+import type { Dispatch, UnknownAction } from 'redux';
+import type { EffectsCommandMap } from '@/utils/types/DvaEffects';
 
 import {
   ExtractPayloadFromAction,
@@ -11,13 +12,13 @@ export type DispatchConvertorForSaga<Effects> = {
     command: EffectsCommandMap,
   ) => Generator<any, infer Return, any>
     ? ExtractPayloadFromAction<Action> extends ACTION_IS_UNDEFINED
-      ? (dispatch: <A>(action: A) => unknown) => Promise<Return>
+      ? (dispatch: Dispatch<UnknownAction>) => Promise<Return>
       : ExtractPayloadFromAction<Action> extends never
-      ? never
-      : (
-          dispatch: <A>(action: A) => unknown,
-          payload: ExtractPayloadFromAction<Action>,
-        ) => Promise<Return>
+        ? never
+        : (
+            dispatch: Dispatch<UnknownAction>,
+            payload: ExtractPayloadFromAction<Action>,
+          ) => Promise<Return>
     : never;
 };
 
@@ -27,9 +28,9 @@ export type DispatchConvertorForReducer<Reducers, S = any> = {
     action: infer Action,
   ) => S | void
     ? ExtractPayloadFromAction<Action> extends ACTION_IS_UNDEFINED
-      ? (dispatch: <A>(action: A) => unknown) => void
+      ? (dispatch: Dispatch<UnknownAction>) => void
       : (
-          dispatch: <A>(action: A) => unknown,
+          dispatch: Dispatch<UnknownAction>,
           payload: ExtractPayloadFromAction<Action>,
         ) => void
     : never;

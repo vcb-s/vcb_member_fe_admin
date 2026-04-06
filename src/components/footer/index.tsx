@@ -1,6 +1,6 @@
 import { FC, memo } from 'react';
 
-import './index.scss';
+import './index.css';
 
 export interface Props {
   hide?: boolean;

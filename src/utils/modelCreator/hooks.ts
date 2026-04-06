@@ -3,7 +3,7 @@ interface useStore<S> {
     K extends keyof S,
     K2 extends keyof S[K],
     K3 extends keyof S[K][K2],
-    K4 extends keyof S[K][K2][K3]
+    K4 extends keyof S[K][K2][K3],
   >(
     key: K,
     key2: K2,

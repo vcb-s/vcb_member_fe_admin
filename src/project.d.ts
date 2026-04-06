@@ -1,6 +1,13 @@
 declare module 'fibers';
+declare module 'react-loadable';
+declare module 'rc-textarea' {
+  export interface AutoSizeType {
+    minRows?: number;
+    maxRows?: number;
+  }
+}
 
-declare module '*.scss';
+declare module '*.css';
 declare module '*.svg';
 declare module '*.png';
 declare module '*.jpg';

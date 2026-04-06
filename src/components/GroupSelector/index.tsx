@@ -1,4 +1,4 @@
-import {
+import React, {
   memo,
   FC,
   CSSProperties,
@@ -6,7 +6,7 @@ import {
   useCallback,
   useEffect,
 } from 'react';
-import { useDispatch } from 'umi';
+import { useDispatch } from 'react-redux';
 import { Select } from 'antd';
 
 import { AppModel } from '@/models/app';
@@ -75,13 +75,13 @@ export const GroupSelector: FC<Props> = memo(
       return allGroups;
     }, [allGroups, myAdminGroups, myGroups, undeAdmin, underCurrentUser]);
 
-    const selectorLoading = useMemo(() => !!(loading || allGroupsLoading), [
-      allGroupsLoading,
-      loading,
-    ]);
+    const selectorLoading = useMemo(
+      () => !!(loading || allGroupsLoading),
+      [allGroupsLoading, loading],
+    );
 
     /** 组别选项 */
-    const groupOptions = useMemo((): JSX.Element[] => {
+    const groupOptions = useMemo((): React.ReactElement[] => {
       return groups.map((group) => (
         <Select.Option key={group.key} value={group.id}>
           {group.name}

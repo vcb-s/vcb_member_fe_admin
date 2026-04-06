@@ -12,8 +12,8 @@ import {
 import { usePrevious } from 'react-use';
 import { Modal, Form, Input } from 'antd';
 import { produce } from 'immer';
-import { ModalProps } from 'antd/lib/modal';
-import { useDispatch } from 'umi';
+import type { ModalProps } from 'antd';
+import { useDispatch } from 'react-redux';
 
 import { PersonModel } from '@/models/person';
 
@@ -117,8 +117,8 @@ export const RestPass: FC<PropsWithChildren<RestPassProps>> = memo(
         {children}
 
         <Modal
-          visible={state.show}
-          onCancel={close}
+          open={state.show}
+          onCancel={() => close()}
           onOk={submitHandle}
           okButtonProps={okButtonProps}
           afterClose={afterCloseHandle}

@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useMemo } from 'react';
 import type { Dispatch } from 'react';
-import { produce, Draft, Patch, applyPatches, nothing } from 'immer';
+import { produceWithPatches, Draft, Patch, applyPatches, nothing } from 'immer';
 import { enablePatches, enableMapSet } from 'immer';
 enablePatches();
 enableMapSet();
@@ -28,23 +28,23 @@ function useImmer<S>(
 
   /** 返回被immer包裹的setState */
   const setStateThroughImmer = useCallback((setStateAction: SetAction<S>) => {
-    setState((pre) =>
-      produce<S, Draft<S>, void>(
-        pre,
-        (draftState) => {
+    setState((pre) => {
+      const [next, patchList] = produceWithPatches(
+        pre as object,
+        (draftState: Draft<S>) => {
           if (setStateAction instanceof Function) {
             const result = setStateAction(draftState as S);
             if (result !== undefined) {
-              return result;
+              return result as any;
             }
-
             return;
           }
-          return setStateAction;
+          return setStateAction as any;
         },
-        (p) => patches.current.push(...p),
-      ),
-    );
+      );
+      patches.current.push(...patchList);
+      return next as S;
+    });
   }, []);
 
   /** 获取patch */
@@ -57,11 +57,13 @@ function useImmer<S>(
       return compressedPatches;
     }
 
-    produce(
-      initalState,
-      (draft) => applyPatches(draft, patchesVal),
-      (p) => (compressedPatches = p),
+    const [, patchList] = produceWithPatches(
+      initalState as object,
+      (draft: Draft<S>) => {
+        applyPatches(draft as any, patchesVal);
+      },
     );
+    compressedPatches = patchList;
 
     patches.current = compressedPatches;
 

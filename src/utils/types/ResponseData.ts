@@ -4,8 +4,9 @@ export namespace ResponseData {
     data?: T;
     msg?: string;
   }
-  export interface Ok<T extends Record<string, any> | undefined = undefined>
-    extends Base<T> {
+  export interface Ok<
+    T extends Record<string, any> | undefined = undefined,
+  > extends Base<T> {
     data: T;
     msg: never;
   }

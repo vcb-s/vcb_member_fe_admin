@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useCallback, ChangeEvent } from 'react';
-import { useParams, useDispatch, useHistory } from 'umi';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import classnames from 'classnames';
 import {
   Form,
@@ -9,7 +10,7 @@ import {
   Input,
   message,
   Modal,
-  PageHeader,
+  Typography,
   Tooltip,
 } from 'antd';
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
@@ -23,15 +24,15 @@ import { GO_BOOL } from '@/utils/types';
 import { Group } from '@/utils/types/Group';
 
 import { PersonCardEditModel } from './models';
-import styles from './[editID].scss';
+import styles from './CardEdit.css';
 
 const yesIcon = <CheckOutlined />;
 const noIcon = <CloseOutlined />;
 
 export default function PagePerson() {
-  const { editID, uid } = useParams<PageParam>();
+  const { editID = '', uid = '' } = useParams<PageParam>();
   const dispatch = useDispatch();
-  const history = useHistory();
+  const navigate = useNavigate();
   const form = PersonCardEditModel.hooks.useStore('form', 'card');
   const cardUid = PersonCardEditModel.hooks.useStore('form', 'card', 'uid');
   const personInfo = PersonModel.hooks.useStore('personInfo');
@@ -221,12 +222,17 @@ export default function PagePerson() {
 
   /** 返回上一页 */
   const goBackHandle = useCallback(() => {
-    history.goBack();
+    navigate(-1);
   }, [history]);
 
   return (
     <div className={styles.wrap}>
-      <PageHeader title='编辑卡片' onBack={goBackHandle} />
+      <Space style={{ marginBottom: 16 }}>
+        <Button onClick={goBackHandle}>返回</Button>
+        <Typography.Title level={4} style={{ margin: 0 }}>
+          编辑卡片
+        </Typography.Title>
+      </Space>
 
       <Form {...defaultFormLayout.normal} className={styles.form}>
         <Form.Item label='头像' required>
@@ -235,10 +241,7 @@ export default function PagePerson() {
             disabled={formLoading}
             onChange={avastChangeHandle}
             suffix={
-              <Tooltip
-                defaultVisible
-                title='是否同步设置该图片为该用户的登录头像'
-              >
+              <Tooltip open title='是否同步设置该图片为该用户的登录头像'>
                 <Switch
                   loading={formLoading}
                   checked={form.setAsUserAvatar}

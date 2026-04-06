@@ -18,4 +18,4 @@ export function rootContainer(container: any) {
   return createElement(Root, null, container);
 }
 
-export { config as request } from '@/utils/requestConfig';
+export { request } from '@/utils/requestConfig';

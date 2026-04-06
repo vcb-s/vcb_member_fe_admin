@@ -14,30 +14,28 @@ const tailLayout = {
 const PassCalc = memo(function PassCalc() {
   const [pass, setPass] = useState('');
 
-  const [
-    { loading, error: errMsg, value: hash },
-    calc,
-  ] = useAsyncFn(async () => {
-    console.log('1', pass);
-    const { argon2id } = await import('hash-wasm');
-    console.log('2', argon2id);
-    if (!pass) {
-      return '';
-    }
-    const hash = await argon2id({
-      password: pass,
-      salt: '12345678',
-      iterations: 1,
-      parallelism: 1,
-      memorySize: 8,
-      hashLength: 32,
-      outputType: 'encoded',
-    });
+  const [{ loading, error: errMsg, value: hash }, calc] =
+    useAsyncFn(async () => {
+      console.log('1', pass);
+      const { argon2id } = await import('hash-wasm');
+      console.log('2', argon2id);
+      if (!pass) {
+        return '';
+      }
+      const hash = await argon2id({
+        password: pass,
+        salt: '12345678',
+        iterations: 1,
+        parallelism: 1,
+        memorySize: 8,
+        hashLength: 32,
+        outputType: 'encoded',
+      });
 
-    console.log('3', hash);
+      console.log('3', hash);
 
-    return hash;
-  }, [pass]);
+      return hash;
+    }, [pass]);
 
   const [isReady, cancel] = useDebounce(calc, 200, [pass]);
 
@@ -59,8 +57,8 @@ const PassCalc = memo(function PassCalc() {
             errMsg
               ? 'error'
               : !!isReady() && !loading
-              ? 'success'
-              : 'validating'
+                ? 'success'
+                : 'validating'
           }
           hasFeedback
         >

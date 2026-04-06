@@ -1,14 +1,13 @@
-import type { ResponseInterceptor } from 'umi-request';
+import type { AxiosResponse } from 'axios';
 
 import { token } from '@/utils/token';
 
-export const tokenInterceptor: ResponseInterceptor = function (
-  response,
-  options,
-) {
-  if (response.headers.has('x-token')) {
-    token.token = response.headers.get('x-token') || '';
+export function tokenResponseInterceptor(
+  response: AxiosResponse,
+): AxiosResponse {
+  const xToken = response.headers['x-token'];
+  if (xToken) {
+    token.token = xToken;
   }
-
   return response;
-};
+}

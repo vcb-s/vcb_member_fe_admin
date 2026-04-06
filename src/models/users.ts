@@ -51,8 +51,8 @@ const { model, actions, utils, globalActions, ...helpers } = modelCreator({
           }),
         );
       } catch (error) {
-        yield put(actions.getUserListFail({ error }));
-        message.error(error.message);
+        yield put(actions.getUserListFail({ error: error as Error }));
+        message.error((error as Error).message);
       }
     },
   },

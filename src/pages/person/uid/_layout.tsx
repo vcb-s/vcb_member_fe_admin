@@ -1,8 +1,15 @@
-import { useState, useCallback, useMemo, useEffect, FC } from 'react';
-import { useDispatch, NavLink, useParams, useLocation, useHistory } from 'umi';
+import {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  FC,
+  PropsWithChildren,
+} from 'react';
+import { useDispatch } from 'react-redux';
+import { NavLink, useParams, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, Avatar, Space, Dropdown, message, Modal, Tooltip } from 'antd';
-import { MenuClickEventHandler } from 'rc-menu/lib/interface';
-import { SelectInfo as SelectParam } from 'rc-menu/lib/interface';
+import type { MenuProps } from 'antd';
 import { ApartmentOutlined, IdcardOutlined } from '@ant-design/icons';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { PageParam } from './types';
@@ -10,7 +17,7 @@ import { compile } from 'path-to-regexp';
 import { RestPass } from '@/components/rest-pass';
 import { PersonModel } from '@/models/person';
 
-import styles from './_layout.scss';
+import styles from './_layout.css';
 
 enum MenuLevel {
   all = 0,
@@ -80,7 +87,9 @@ const MenuSide: FC = function () {
   });
 
   const selectHandle = useCallback(
-    ({ selectedKeys: selected }: SelectParam) => {
+    ({
+      selectedKeys: selected,
+    }: Parameters<NonNullable<MenuProps['onSelect']>>[0]) => {
       if (selected) {
         setSelectedKeys(selected.map((i) => `${i}`));
       }
@@ -115,32 +124,34 @@ const MenuSide: FC = function () {
         selectedKeys={selectedKeys}
         onSelect={selectHandle}
         mode='inline'
-      >
-        {menuData.map((menuItem) => (
-          <Menu.Item key={menuItem.key}>
+        items={menuData.map((menuItem) => ({
+          key: menuItem.key,
+          label: (
             <NavLink to={menuItem.presetPath} replace>
               <menuItem.Icon />
               {menuItem.name}
             </NavLink>
-          </Menu.Item>
-        ))}
-      </Menu>
+          ),
+        }))}
+      />
     </div>
   );
 };
 
-const PersonLaylout: FC = function PersonLaylout({ children }) {
+const PersonLaylout: FC<PropsWithChildren> = function PersonLaylout({
+  children,
+}) {
   const personState = PersonModel.hooks.useStore();
   const dispatch = useDispatch();
-  const { uid } = useParams<PageParam>();
-  const history = useHistory();
+  const { uid = '' } = useParams<PageParam>();
+  const navigate = useNavigate();
 
   const logoutHandle = useCallback(() => {
     PersonModel.dispatch.logout(dispatch);
   }, [dispatch]);
 
   const editUserHandle = useCallback(() => {
-    history.push(`/person/${uid}/edit`);
+    navigate(`/person/${uid}/edit`);
   }, [history, uid]);
 
   const [show, setShow] = useState(false);
@@ -148,7 +159,7 @@ const PersonLaylout: FC = function PersonLaylout({ children }) {
     setShow(() => false);
   }, []);
 
-  const menuChangeHandle: MenuClickEventHandler = useCallback(
+  const menuChangeHandle: NonNullable<MenuProps['onClick']> = useCallback(
     ({ key }) => {
       switch (`${key}`) {
         case 'editUser': {
@@ -179,22 +190,23 @@ const PersonLaylout: FC = function PersonLaylout({ children }) {
     PersonModel.dispatch.closeRSPModel(dispatch);
   }, [dispatch]);
 
-  const menuJsx = useMemo((): JSX.Element[] => {
+  const menuItems = useMemo((): MenuProps['items'] => {
     if (personState.personInfo.avast) {
       return [
-        <Menu.Item key='editUser'>修改信息</Menu.Item>,
-        <Menu.Item key='resetPass'>
-          <RestPass show={show} onClose={closeHandle}>
-            修改密码
-          </RestPass>
-        </Menu.Item>,
-        <Menu.Item key='logout'>退出登录</Menu.Item>,
+        { key: 'editUser', label: '\u4fee\u6539\u4fe1\u606f' },
+        {
+          key: 'resetPass',
+          label: (
+            <RestPass show={show} onClose={closeHandle}>
+              \u4fee\u6539\u5bc6\u7801
+            </RestPass>
+          ),
+        },
+        { key: 'logout', label: '\u9000\u51fa\u767b\u5f55' },
       ];
     } else {
       return [
-        <Menu.Item key='login' disabled>
-          请稍候...
-        </Menu.Item>,
+        { key: 'login', label: '\u8bf7\u7a0d\u5019\u2026', disabled: true },
       ];
     }
   }, [closeHandle, personState.personInfo.avast, show]);
@@ -207,7 +219,7 @@ const PersonLaylout: FC = function PersonLaylout({ children }) {
           <header className={styles.header}>
             <Dropdown
               className={styles.clickAble}
-              overlay={<Menu onClick={menuChangeHandle}>{menuJsx}</Menu>}
+              menu={{ items: menuItems, onClick: menuChangeHandle }}
             >
               <Space>
                 <Avatar
@@ -229,7 +241,7 @@ const PersonLaylout: FC = function PersonLaylout({ children }) {
       </main>
 
       <Modal
-        visible={personState.resetPassSuccessModal.show}
+        open={personState.resetPassSuccessModal.show}
         centered
         title='重置成功'
         onOk={closeRSPModelHandle}
@@ -241,7 +253,7 @@ const PersonLaylout: FC = function PersonLaylout({ children }) {
           text={personState.resetPassSuccessModal.newPass}
           onCopy={() => message.success('复制成功')}
         >
-          <Tooltip placement='topLeft' overlay='点击复制' mouseEnterDelay={0}>
+          <Tooltip placement='topLeft' title='点击复制' mouseEnterDelay={0}>
             <span className={styles.passCopyBtn}>
               {personState.resetPassSuccessModal.newPass}
             </span>

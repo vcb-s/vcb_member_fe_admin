@@ -4,10 +4,12 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  .com_footer_label {
+
+  & .com_footer_label {
     color: #777;
     text-align: center;
-    a {
+
+    & a {
       color: inherit;
     }
   }

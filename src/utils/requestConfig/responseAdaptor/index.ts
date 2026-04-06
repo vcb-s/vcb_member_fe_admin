@@ -1,1 +1,1 @@
-export { errorConfigAdaptor } from './error';
+export { responseErrorAdaptor } from './error';

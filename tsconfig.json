@@ -3,18 +3,18 @@
     "jsx": "react-jsx",
     "target": "esnext",
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "importHelpers": true,
 
     "sourceMap": true,
-    "baseUrl": ".",
+    "skipLibCheck": true,
     "strict": true,
     "paths": {
-      "@/*": ["src/*"],
-      "@@/*": ["src/.umi/*"]
+      "@/*": ["./src/*"]
     },
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": false
   },
-  "include": ["src", ".umirc.ts"]
+  "include": ["src", "rsbuild.config.ts"]
 }

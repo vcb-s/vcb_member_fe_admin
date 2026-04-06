@@ -44,10 +44,10 @@ export const useModal = (
   const afterCancel = usePersistFn(option.afterCancel || EMPTY_FUNC);
   const afterClose = usePersistFn(option.afterClose || EMPTY_FUNC);
 
-  const state = useMemo((): UseModalState => ({ show, loading }), [
-    loading,
-    show,
-  ]);
+  const state = useMemo(
+    (): UseModalState => ({ show, loading }),
+    [loading, show],
+  );
   const isCancel = useRef(false);
   const actions = useMemo((): UseModalActions => {
     const result: UseModalActions = {

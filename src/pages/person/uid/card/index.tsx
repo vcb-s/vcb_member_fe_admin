@@ -1,7 +1,8 @@
 import { FC, useEffect, useMemo, useCallback } from 'react';
-import { useParams, history, useDispatch } from 'umi';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { Typography, Table, Avatar, Button, Tag, Space, Modal } from 'antd';
-import { ColumnsType } from 'antd/lib/table';
+import type { TableColumnsType } from 'antd';
 
 import { GO_BOOL } from '@/utils/types';
 import { Group } from '@/utils/types/Group';
@@ -10,14 +11,15 @@ import { PersonModel } from '@/models/person';
 
 import { PageParam } from '../types';
 
-import styles from './index.scss';
+import styles from './index.css';
 import { useImmer } from '@/utils/hooks/useImmer';
 
 const PagePersonCard: FC = function PagePersonCard() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const personInfo = PersonModel.hooks.useStore('personInfo');
   const cardList = PersonModel.hooks.useStore('cardList');
-  const { uid } = useParams<PageParam>();
+  const { uid = '' } = useParams<PageParam>();
   const tableLoading = PersonModel.hooks.useLoading('getPersonInfo');
   const [loadingCard, setLoadingCard] = useImmer(new Set(''));
 
@@ -31,12 +33,12 @@ const PagePersonCard: FC = function PagePersonCard() {
 
   /** 新增 */
   const createHandle = useCallback(() => {
-    history.push(`./card/edit`);
+    navigate(`./card/edit`);
   }, []);
 
   /** 编辑 */
   const editHandle = useCallback((id: string) => {
-    history.push(`./card/edit/${id}`);
+    navigate(`./card/edit/${id}`);
   }, []);
 
   /** 删除 */
@@ -59,7 +61,7 @@ const PagePersonCard: FC = function PagePersonCard() {
     [dispatch, setLoadingCard],
   );
 
-  const columns = useMemo<ColumnsType<UserCard.Item>>(() => {
+  const columns = useMemo<TableColumnsType<UserCard.Item>>(() => {
     return [
       {
         title: '昵称',
@@ -69,7 +71,7 @@ const PagePersonCard: FC = function PagePersonCard() {
         title: '头像',
         dataIndex: 'avast',
         align: 'center',
-        render: (avatar) => <Avatar src={avatar} />,
+        render: (avatar: string) => <Avatar src={avatar} />,
       },
       {
         title: '组别',

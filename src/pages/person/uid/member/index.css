@@ -9,17 +9,17 @@
   width: 100%;
 }
 .groupTagsWrap {
-  .groupTag {
+  & .groupTag {
     cursor: auto;
     margin-bottom: 10px;
   }
 
-  .groupTagsLastlineAdjust {
+  & .groupTagsLastlineAdjust {
     margin-top: -10px;
   }
 }
 
 .userSeletorNickname {
   margin-left: 10px;
-  // @todo 这里需要做省略就需要overflow，但overflow就对不齐，以后再改了
+  /* @todo 这里需要做省略就需要overflow，但overflow就对不齐，以后再改了 */
 }
